@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>True North CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#090f18; --navy-card:#0e1c2e; --navy-mid:#122035; --navy-light:#1a2e47;
+  --navy-border:#1e3350; --navy-hover:#1f3656;
+  --accent:#f5c842; --accent-dim:rgba(245,200,66,0.12); --accent-glow:rgba(245,200,66,0.25);
+  --green:#27c76f; --green-dim:rgba(39,199,111,0.15);
+  --yellow:#f5c842; --yellow-dim:rgba(245,200,66,0.15);
+  --orange:#f07c2a; --orange-dim:rgba(240,124,42,0.15);
+  --red:#e84040; --red-dim:rgba(232,64,64,0.15);
+  --text:#dce8f5; --text-muted:#5d7a96; --text-dim:#2e4a63; --white:#ffffff;
+  --sidebar-w:230px; --topbar-h:56px;
+  --radius-sm:6px; --radius-md:10px; --radius-lg:14px;
+}
+body.light-mode{
+  --navy:#f0f4f8; --navy-card:#ffffff; --navy-mid:#e8edf4; --navy-light:#dde4ed;
+  --navy-border:#c8d3e0; --navy-hover:#cfd8e5;
+  --text:#1a2e45; --text-muted:#5a7290; --text-dim:#94afc8; --white:#1a2e45;
+  --accent-dim:rgba(245,200,66,0.18); --accent-glow:rgba(245,200,66,0.35);
+  --green-dim:rgba(39,199,111,0.12); --yellow-dim:rgba(245,200,66,0.12);
+  --orange-dim:rgba(240,124,42,0.12); --red-dim:rgba(232,64,64,0.1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{height:100%;}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased;}
+button{cursor:pointer;font-family:inherit;}
+select,input,textarea{font-family:inherit;}
+a{color:inherit;text-decoration:none;}
+
+/* SIDEBAR */
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:#070d17;border-right:1px solid var(--navy-border);display:flex;flex-direction:column;z-index:200;transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.sidebar-brand{padding:18px 18px 14px;border-bottom:1px solid var(--navy-border);}
+.brand-row{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:38px;height:38px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--navy);letter-spacing:-.5px;flex-shrink:0;}
+.brand-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--white);line-height:1.2;}
+.brand-sub{font-size:10.5px;color:var(--text-muted);margin-top:1px;}
+.sidebar-nav{flex:1;overflow-y:auto;padding:10px 0;}
+.nav-group-label{padding:8px 18px 3px;font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim);margin-top:6px;}
+.nav-link{display:flex;align-items:center;gap:9px;padding:9px 18px;font-size:13.5px;font-weight:500;color:var(--text-muted);border:none;background:none;width:100%;text-align:left;position:relative;transition:color .15s,background .15s;border-right:3px solid transparent;}
+.nav-link:hover{background:var(--navy-light);color:var(--text);}
+.nav-link.active{background:var(--accent-dim);color:var(--accent);border-right-color:var(--accent);}
+.nav-icon{font-size:15px;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;background:var(--accent);color:var(--navy);font-size:10px;font-weight:800;padding:1px 6px;border-radius:20px;line-height:1.6;}
+.sidebar-quick{border-top:1px solid var(--navy-border);padding:12px 14px;}
+.quick-label{font-size:9.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim);margin-bottom:6px;}
+.quick-action{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:var(--radius-sm);font-size:12.5px;color:var(--text-muted);border:none;background:none;width:100%;text-align:left;transition:all .15s;}
+.quick-action:hover{background:var(--navy-light);color:var(--text);}
+.sidebar-user{border-top:1px solid var(--navy-border);padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2a7bd4,#1557a0);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:13px;font-weight:600;}
+.user-role{font-size:11px;color:var(--text-muted);}
+
+/* LAYOUT */
+.layout{margin-left:var(--sidebar-w);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{height:var(--topbar-h);background:#070d17;border-bottom:1px solid var(--navy-border);display:flex;align-items:center;padding:0 20px;gap:10px;position:sticky;top:0;z-index:100;}
+.topbar-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--white);}
+.topbar-sub{font-size:11.5px;color:var(--text-muted);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+@media(max-width:500px){.topbar-right .pill-select{display:none;}.topbar-sub{display:none;}}
+.pill-select{background:var(--navy-light);border:1px solid var(--navy-border);color:var(--text);padding:6px 10px;border-radius:var(--radius-sm);font-size:12.5px;outline:none;cursor:pointer;}
+.btn{padding:7px 15px;border-radius:var(--radius-sm);font-size:13px;font-weight:600;border:none;transition:all .15s;}
+.btn-primary{background:var(--accent);color:var(--navy);}
+.btn-primary:hover{background:#f0be30;}
+.btn-ghost{background:var(--navy-light);color:var(--text-muted);border:1px solid var(--navy-border);}
+.btn-ghost:hover{color:var(--text);background:var(--navy-hover);}
+.btn-danger{background:var(--red);color:#fff;}
+.btn-sm{padding:5px 10px;font-size:11.5px;}
+.theme-btn{background:var(--navy-light);border:1px solid var(--navy-border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:15px;cursor:pointer;line-height:1;}
+.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;line-height:1;}
+.content{padding:20px;flex:1;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* CARD */
+.card{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-lg);overflow:hidden;}
+.card-header{padding:14px 18px;border-bottom:1px solid var(--navy-border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.card-sub{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+
+/* STATUS */
+.status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.s-green{background:var(--green-dim);color:var(--green);}
+.s-yellow{background:var(--yellow-dim);color:var(--yellow);}
+.s-orange{background:var(--orange-dim);color:var(--orange);}
+.s-red{background:var(--red-dim);color:var(--red);}
+
+/* ═══ TRUE NORTH QUOTA HERO ═══ */
+.quota-hero{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-lg);padding:22px;margin-bottom:16px;position:relative;overflow:hidden;}
+.quota-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--green),var(--accent));}
+.quota-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;}
+.quota-label{font-size:10px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.quota-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--white);}
+.quota-pct{font-family:'DM Mono',monospace;font-size:42px;font-weight:700;line-height:1;}
+.quota-pct.behind{color:var(--orange);}
+.quota-pct.onpace{color:var(--yellow);}
+.quota-pct.ahead{color:var(--green);}
+.quota-pct-label{font-size:11px;color:var(--text-muted);text-align:right;margin-top:2px;}
+.quota-bar-wrap{height:14px;background:var(--navy-light);border-radius:7px;overflow:hidden;position:relative;margin-bottom:8px;}
+.quota-bar-fill{height:100%;border-radius:7px;transition:width 1.1s cubic-bezier(.16,1,.3,1);background:linear-gradient(90deg,var(--green),var(--accent));}
+.quota-meta-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:12px;color:var(--text-muted);}
+.quota-meta-row b{color:var(--text);font-family:'DM Mono',monospace;font-weight:600;}
+.quota-edit-btn{background:var(--navy-light);border:1px solid var(--navy-border);color:var(--text-muted);padding:5px 12px;border-radius:6px;font-size:11.5px;cursor:pointer;transition:all .15s;}
+.quota-edit-btn:hover{color:var(--text);}
+
+/* KPI STRIP */
+.kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;}
+.kpi-tile{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:14px 16px;position:relative;overflow:hidden;}
+.kpi-tile::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent-dim),transparent);}
+.kpi-tile-label{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:7px;}
+.kpi-tile-value{font-family:'DM Mono',monospace;font-size:21px;font-weight:700;color:var(--white);letter-spacing:-.5px;margin-bottom:8px;}
+.kpi-tile-value.green{color:var(--green);}
+.kpi-tile-value.yellow{color:var(--yellow);}
+.kpi-tile-value.orange{color:var(--orange);}
+.kpi-mini-bar{height:3px;background:var(--navy-border);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.kpi-mini-fill{height:100%;border-radius:2px;background:var(--green);transition:width 1s ease;}
+.kpi-mini-fill.yellow{background:var(--yellow);}
+.kpi-sub{font-size:10.5px;color:var(--text-muted);}
+.kpi-sub b{color:var(--text);}
+.status-dots{display:flex;gap:5px;margin-top:8px;}
+.sdot{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:10px;font-weight:800;}
+.sdot.green{background:var(--green);color:var(--navy);}
+.sdot.yellow{background:var(--yellow);color:var(--navy);}
+.sdot.orange{background:var(--orange);color:#fff;}
+.sdot.red{background:var(--red);color:#fff;}
+
+/* TAM CHART */
+.tam-chart{padding:0 18px 18px;}
+.tam-row{display:flex;flex-direction:column;gap:6px;padding:10px 6px;border-bottom:1px solid var(--navy-border);cursor:pointer;border-radius:var(--radius-sm);transition:background .15s;}
+.tam-row:last-child{border-bottom:none;}
+.tam-row:hover{background:rgba(255,255,255,0.03);}
+.tam-row-top{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.tam-row-bar{display:flex;align-items:center;gap:8px;}
+.acct-meta{display:flex;align-items:center;gap:9px;min-width:0;flex:1;}
+.acct-logo{width:30px;height:30px;border-radius:6px;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;color:var(--text);}
+.acct-name-text{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.acct-city-text{font-size:11px;color:var(--text-muted);white-space:nowrap;}
+.bar-wrap{height:20px;background:var(--navy-light);border-radius:4px;overflow:hidden;position:relative;}
+.bar-fill{height:100%;border-radius:4px;transition:width 1.1s cubic-bezier(.16,1,.3,1);position:relative;}
+.bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,transparent 100%);}
+.bar-fill.green{background:var(--green);}
+.bar-fill.yellow{background:var(--yellow);}
+.bar-fill.orange{background:var(--orange);}
+.bar-fill.red{background:var(--red);}
+.tam-value{font-family:'DM Mono',monospace;font-size:11.5px;font-weight:600;color:var(--text-muted);white-space:nowrap;flex-shrink:0;}
+.x-axis-row{padding:6px 6px 0;}
+.x-labels{display:flex;justify-content:space-between;}
+.x-label{font-size:9.5px;font-family:'DM Mono',monospace;color:var(--text-dim);}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-muted);}
+.legend-pip{width:9px;height:9px;border-radius:2px;}
+
+/* PIPELINE / FUNNEL KANBAN */
+.funnel-board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;}
+.funnel-col{background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:12px;min-width:230px;flex-shrink:0;}
+.funnel-col.active-deal{border-top:3px solid var(--accent);}
+.funnel-col-head{margin-bottom:10px;}
+.funnel-stage-num{font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:2px;}
+.funnel-stage-name{font-size:12.5px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.funnel-stage-goal{font-size:10.5px;color:var(--text-muted);line-height:1.4;}
+.funnel-col-total{font-family:'DM Mono',monospace;font-size:13px;font-weight:700;color:var(--accent);margin-top:6px;padding-top:6px;border-top:1px solid var(--navy-border);}
+.funnel-card{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-sm);padding:10px 12px;margin-top:8px;cursor:pointer;transition:border-color .15s;}
+.funnel-card:hover{border-color:var(--accent);}
+.funnel-card-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.funnel-card-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);}
+.funnel-card-meta{font-size:10.5px;color:var(--text-dim);margin-top:3px;}
+.funnel-empty{font-size:11.5px;color:var(--text-dim);padding:12px 0;text-align:center;}
+
+/* DETAIL PAGE */
+.detail-back{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--radius-sm);background:var(--navy-light);border:1px solid var(--navy-border);font-size:13px;color:var(--text-muted);margin-bottom:16px;cursor:pointer;transition:all .15s;}
+.detail-back:hover{color:var(--text);}
+.detail-hero{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px;}
+.detail-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.detail-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--white);}
+.detail-city{font-size:13px;color:var(--text-muted);margin-top:2px;}
+.detail-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+@media(max-width:700px){.detail-metrics{grid-template-columns:1fr 1fr;}}
+.detail-metric{background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:12px 14px;}
+.dm-label{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px;}
+.dm-value{font-family:'DM Mono',monospace;font-size:18px;font-weight:700;color:var(--white);}
+.dm-value.green{color:var(--green);}
+.dm-value.yellow{color:var(--yellow);}
+.dm-value.orange{color:var(--orange);}
+.dm-value.red{color:var(--red);}
+.dm-sub{font-size:10.5px;color:var(--text-muted);margin-top:3px;}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:700px){.detail-grid{grid-template-columns:1fr;}}
+.detail-section{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:16px;}
+.ds-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--navy-border);}
+.ds-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-size:13px;border-bottom:1px solid var(--navy-border);}
+.ds-row:last-child{border-bottom:none;}
+.ds-key{color:var(--text-muted);font-size:12px;}
+.ds-val{font-weight:600;text-align:right;max-width:60%;}
+.ds-val.mono{font-family:'DM Mono',monospace;font-size:12px;}
+.champ-bar-wrap{height:8px;background:var(--navy-border);border-radius:4px;overflow:hidden;margin:8px 0 4px;}
+.champ-bar-fill{height:100%;border-radius:4px;transition:width .8s ease;}
+.next-action-box{background:var(--accent-dim);border:1px solid var(--accent-glow);border-radius:var(--radius-md);padding:13px 15px;margin-bottom:14px;}
+.na-label{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:4px;}
+.na-text{font-size:13.5px;font-weight:600;}
+
+/* TASKS */
+.task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 18px;border-bottom:1px solid var(--navy-border);cursor:pointer;transition:background .15s;}
+.task-row:last-child{border-bottom:none;}
+.task-row:hover{background:rgba(255,255,255,.02);}
+.task-check{width:18px;height:18px;border-radius:4px;border:2px solid var(--navy-border);flex-shrink:0;margin-top:2px;transition:all .15s;}
+.task-row.done .task-check{background:var(--green);border-color:var(--green);}
+.task-row.done .task-title{text-decoration:line-through;color:var(--text-muted);}
+.task-title{font-size:13.5px;font-weight:500;}
+.task-meta{font-size:11.5px;color:var(--text-muted);margin-top:2px;}
+.task-right{margin-left:auto;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.task-due{font-size:11.5px;font-family:'DM Mono',monospace;color:var(--text-muted);}
+.task-due.overdue{color:var(--red);}
+.task-del{background:none;border:none;color:var(--text-dim);font-size:16px;line-height:1;}
+.task-del:hover{color:var(--red);}
+
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(5,10,18,.88);backdrop-filter:blur(5px);z-index:500;display:none;align-items:center;justify-content:center;padding:16px;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-lg);width:100%;max-width:560px;max-height:92vh;overflow-y:auto;animation:modalIn .22s ease;}
+@keyframes modalIn{from{transform:translateY(20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--navy-border);display:flex;align-items:flex-start;justify-content:space-between;}
+.modal-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;}
+.modal-x{background:none;border:none;color:var(--text-muted);font-size:20px;line-height:1;padding-left:10px;}
+.modal-body{padding:20px 22px;}
+.modal-foot{padding:14px 22px;border-top:1px solid var(--navy-border);display:flex;gap:8px;justify-content:flex-end;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px;}
+@media(max-width:500px){.frow{grid-template-columns:1fr;}}
+.fg{display:flex;flex-direction:column;gap:5px;}
+.fg.full{grid-column:1/-1;}
+.flabel{font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);}
+.finput,.fselect,.ftextarea{background:var(--navy-light);border:1px solid var(--navy-border);border-radius:var(--radius-sm);padding:9px 11px;color:var(--text);font-size:13.5px;outline:none;transition:border-color .15s;}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--accent);}
+.finput::placeholder{color:var(--text-dim);}
+.ftextarea{resize:vertical;min-height:70px;}
+input[type=range]{width:100%;accent-color:var(--accent);background:transparent;cursor:pointer;}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:50px 20px;color:var(--text-muted);}
+.empty-icon{font-size:36px;margin-bottom:10px;}
+
+/* OVERLAY */
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:150;}
+.mob-overlay.open{display:block;}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  .kpi-strip{grid-template-columns:repeat(2,1fr);}
+  .quota-pct{font-size:34px;}
+}
+@media(max-width:700px){
+  :root{--sidebar-w:0px;}
+  .sidebar{width:260px;transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .layout{margin-left:0;}
+  .hamburger{display:block;}
+  .x-axis-row{display:none;}
+  .chart-legend{display:none;}
+  .kpi-strip{grid-template-columns:1fr 1fr;}
+  .content{padding:14px;}
+  .topbar{padding:0 14px;}
+  .quota-top{flex-direction:column;}
+  .quota-pct-label{text-align:left;}
+}
+@media(max-width:420px){.kpi-strip{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="mob-overlay" id="mob-overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-row">
+      <div class="brand-mark">TN</div>
+      <div>
+        <div class="brand-name">True North CRM</div>
+        <div class="brand-sub" id="brand-sub">Your Territory</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-group-label">Command</div>
+    <button class="nav-link active" onclick="goPage('dashboard',this)"><span class="nav-icon">📊</span> Dashboard</button>
+    <button class="nav-link" onclick="goPage('accounts',this)"><span class="nav-icon">🏥</span> Accounts</button>
+    <button class="nav-link" onclick="goPage('pipeline',this)"><span class="nav-icon">🔁</span> Pipeline <span class="nav-badge" id="nb-pipeline">0</span></button>
+    <div class="nav-group-label">Activity</div>
+    <button class="nav-link" onclick="goPage('tasks',this)"><span class="nav-icon">✅</span> Tasks <span class="nav-badge" id="nb-tasks">0</span></button>
+    <button class="nav-link" onclick="goPage('contacts',this)"><span class="nav-icon">👤</span> Contacts</button>
+    <div class="nav-group-label">Resources</div>
+    <button class="nav-link" onclick="goPage('playbook',this)"><span class="nav-icon">📋</span> Playbook</button>
+    <button class="nav-link" onclick="goPage('fleet',this)"><span class="nav-icon">🔬</span> Fleet Intel</button>
+  </nav>
+  <div class="sidebar-quick">
+    <div class="quick-label">Quick Actions</div>
+    <button class="quick-action" onclick="openAccountModal()">➕ Add Account</button>
+    <button class="quick-action" onclick="openTaskModal()">📝 Add Task</button>
+    <button class="quick-action" onclick="openContactModal(null)">👤 Add Contact</button>
+  </div>
+  <div class="sidebar-user" onclick="openProfileModal()">
+    <div class="user-avatar" id="user-avatar">+</div>
+    <div>
+      <div class="user-name" id="user-name">Set up profile</div>
+      <div class="user-role" id="user-role">Tap to edit</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="layout">
+  <header class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div>
+      <div class="topbar-title" id="topbar-title">Territory Dashboard</div>
+      <div class="topbar-sub" id="topbar-sub">Your true north</div>
+    </div>
+    <div class="topbar-right">
+      <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark">🌙</button>
+      <select class="pill-select" id="yr-sel"><option>2026</option><option>2025</option></select>
+      <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Add Account</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+
+      <!-- QUOTA HERO -->
+      <div class="quota-hero">
+        <div class="quota-top">
+          <div>
+            <div class="quota-label">True North · % to Quota</div>
+            <div class="quota-title" id="quota-title">$0 of $0 Goal</div>
+          </div>
+          <div style="text-align:right">
+            <div class="quota-pct" id="quota-pct">0%</div>
+            <div class="quota-pct-label">of annual quota</div>
+          </div>
+        </div>
+        <div class="quota-bar-wrap"><div class="quota-bar-fill" id="quota-bar" style="width:0%"></div></div>
+        <div class="quota-meta-row">
+          <div>Closed/Sold: <b id="quota-sold">$0</b> &nbsp;·&nbsp; Goal: <b id="quota-goal-display">$0</b> &nbsp;·&nbsp; Remaining: <b id="quota-remaining">$0</b></div>
+          <button class="quota-edit-btn" onclick="openQuotaModal()">✏ Set Quota & Sold</button>
+        </div>
+      </div>
+
+      <!-- KPI STRIP -->
+      <div class="kpi-strip" id="kpi-strip"></div>
+
+      <!-- TAM CHART -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Total Addressable Market by Account</div>
+            <div class="card-sub">Bar length = TAM · Color = Win Probability / Stage · Click any row to open account</div>
+          </div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-pip" style="background:var(--green)"></div>Very Favorable (75–100%)</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--yellow)"></div>Favorable / Neutral (40–75%)</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--orange)"></div>Difficult (20–50%)</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--red)"></div>High Resistance (0–20%)</div>
+          </div>
+        </div>
+        <div class="tam-chart" id="tam-chart"></div>
+      </div>
+
+      <!-- ACTIVE DEALS PREVIEW -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Active Deals — 8-Stage Sales Funnel</div>
+            <div class="card-sub">Deals assigned to a funnel stage count toward Active Deals on your dashboard</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="goPage('pipeline', document.querySelectorAll('.nav-link')[2])">View Full Pipeline →</button>
+        </div>
+        <div style="padding:14px 18px">
+          <div class="funnel-board" id="funnel-board-preview"></div>
+        </div>
+      </div>
+
+    </div><!-- /dashboard -->
+
+    <!-- ACCOUNTS -->
+    <div class="page" id="page-accounts">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">All Accounts</div><div class="card-sub">Every account in your territory</div></div>
+          <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
+      <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Add Account</button>
+        </div>
+        <div style="overflow-x:auto"><table id="accounts-tbl" style="width:100%;border-collapse:collapse"></table></div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT DETAIL -->
+    <div class="page" id="page-detail"><div id="detail-content"></div></div>
+
+    <!-- PIPELINE / 8-STAGE FUNNEL -->
+    <div class="page" id="page-pipeline">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">8-Stage Sales Funnel</div>
+          <div class="card-sub">Intelligence → Champion Development → Problem Development → Executive Alignment → Clinical Validation → Formal Evaluation → Financial Approval → Contract & PO</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openOppModal()">+ Add Deal</button>
+      </div>
+      <div class="funnel-board" id="funnel-board-full"></div>
+    </div>
+
+    <!-- TASKS -->
+    <div class="page" id="page-tasks">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Tasks & Follow-ups</div><div class="card-sub">Your action items</div></div>
+          <button class="btn btn-primary btn-sm" onclick="openTaskModal()">+ Add Task</button>
+        </div>
+        <div id="task-list"></div>
+      </div>
+    </div>
+
+    <!-- CONTACTS -->
+    <div class="page" id="page-contacts">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">Contacts & Interactions</div>
+          <div class="card-sub">Key people across all accounts · Full interaction history</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost btn-sm" onclick="openContactModal(null)">+ Contact</button>
+          <button class="btn btn-primary btn-sm" onclick="openInteractionModal(null)">+ Log Interaction</button>
+        </div>
+      </div>
+      <div id="contact-filter-pills" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:14px" id="contacts-layout">
+        <div class="card" style="max-height:75vh;overflow-y:auto">
+          <div class="card-header" style="position:sticky;top:0;background:var(--navy-card);z-index:10"><div class="card-title" style="font-size:13px">People</div></div>
+          <div id="contacts-list"></div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-header">
+              <div id="contact-detail-header"><div class="card-title" style="font-size:13px">Select a contact to see their history</div></div>
+              <button id="btn-log-interaction" class="btn btn-primary btn-sm" style="display:none" onclick="openInteractionModal(window._selectedContactId)">+ Log</button>
+            </div>
+            <div id="interaction-feed" style="max-height:65vh;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>
+      @media(max-width:900px){#contacts-layout{grid-template-columns:1fr !important}}
+    </style>
+
+
+    <!-- FLEET INTELLIGENCE -->
+    <div class="page" id="page-fleet">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">Fleet Intelligence</div>
+          <div class="card-sub">Browse by device type · Drill into an account-by-account breakdown</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openDeviceUnitModal()">+ Add Device Record</button>
+      </div>
+      <div id="fleet-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px"></div>
+      <div id="device-type-grid"></div>
+    </div>
+
+    <!-- DEVICE DETAIL (per device type, broken down by account) -->
+    <div class="page" id="page-devicedetail"><div id="device-detail-content"></div></div>
+
+    <!-- PLAYBOOK -->
+    <div class="page" id="page-playbook">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+        <div>
+          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">Rep Playbook</div>
+          <div class="card-sub">Questions that work · Field lessons · Product knowledge</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openPlaybookModal()">+ Add Question</button>
+      </div>
+      <div id="playbook-filter-pills" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;margin-top:12px"></div>
+      <div id="playbook-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Quota -->
+<div class="modal-bg" id="m-quota">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Set Quota & Progress</div><button class="modal-x" onclick="closeModal('m-quota')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Annual Quota / Goal ($)</label><input class="finput" type="number" id="fq-goal" placeholder="2000000"></div>
+        <div class="fg"><label class="flabel">Sold / Closed So Far ($)</label><input class="finput" type="number" id="fq-sold" placeholder="450000"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Fiscal Year Label</label><input class="finput" id="fq-fy" placeholder="FY2026"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6">This is your True North. % to Quota = Sold ÷ Goal. Update this anytime a deal closes.</div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-quota')">Cancel</button><button class="btn btn-primary" onclick="saveQuota()">Save</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Profile -->
+<div class="modal-bg" id="m-profile">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Your Profile</div><button class="modal-x" onclick="closeModal('m-profile')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Your Name</label><input class="finput" id="fp-name" placeholder="Jane Smith, RN"></div>
+        <div class="fg"><label class="flabel">Role</label><input class="finput" id="fp-role" placeholder="Sales Representative"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Territory</label><input class="finput" id="fp-territory" placeholder="Kansas City, MO"></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-profile')">Cancel</button><button class="btn btn-primary" onclick="saveProfile()">Save</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Account -->
+<div class="modal-bg" id="m-account">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="m-acct-title">Add Account</div><button class="modal-x" onclick="closeModal('m-account')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Account Name</label><input class="finput" id="fa-name" placeholder="e.g. St. Luke's Health System"></div>
+        <div class="fg"><label class="flabel">City, State</label><input class="finput" id="fa-city" placeholder="Kansas City, MO"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Priority Tier</label><select class="fselect" id="fa-tier"><option value="1">Tier 1 — Top Priority</option><option value="2">Tier 2 — Important</option><option value="3" selected>Tier 3 — Maintain</option></select></div>
+        <div class="fg"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">TAM – Min ($)</label><input class="finput" type="number" id="fa-min" placeholder="200000"></div>
+        <div class="fg"><label class="flabel">TAM – Max ($)</label><input class="finput" type="number" id="fa-max" placeholder="400000"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Current Opportunity Value ($)</label><input class="finput" type="number" id="fa-opp-val" placeholder="150000"></div>
+        <div class="fg"><label class="flabel">Status Color</label>
+          <select class="fselect" id="fa-status">
+            <option value="green">🟢 Green – Very Favorable (75–100%)</option>
+            <option value="yellow">🟡 Yellow – Favorable/Neutral (40–75%)</option>
+            <option value="orange">🟠 Orange – Difficult (20–50%)</option>
+            <option value="red">🔴 Red – High Resistance (0–20%)</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Current Vendor</label><input class="finput" id="fa-vendor" placeholder="Zoll, Physio-Control, etc."></div>
+        <div class="fg"><label class="flabel">Product / Solution</label><input class="finput" id="fa-product" placeholder="LIFEPAK 35"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Clinical Champion</label><input class="finput" id="fa-clinical" placeholder="Name / Role"></div>
+        <div class="fg"><label class="flabel">Biomed Contact</label><input class="finput" id="fa-biomed" placeholder="Name / Role"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Champion Score (0–10)</label>
+          <input type="range" min="0" max="10" value="5" id="fa-champ" oninput="document.getElementById('fa-champ-val').textContent=this.value">
+          <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Score: <b id="fa-champ-val" style="color:var(--accent)">5</b> / 10</div>
+        </div>
+        <div class="fg"><label class="flabel">Win Probability (%)</label><input class="finput" type="number" min="0" max="100" id="fa-prob" placeholder="65"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Budget Cycle / Fiscal Year</label><input class="finput" id="fa-budget" placeholder="Q3 2026"></div>
+        <div class="fg"><label class="flabel">Last Contact Date</label><input class="finput" type="date" id="fa-contact"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Competitive Threats</label><input class="finput" id="fa-comp" placeholder="Current competitor presence"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Next Required Action</label><input class="finput" id="fa-next" placeholder="What must happen to advance this deal?"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="fa-notes" placeholder="Key context, stakeholders, history…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-account')">Cancel</button><button class="btn btn-primary" onclick="saveAccount()">Save Account</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Task -->
+<div class="modal-bg" id="m-task">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Task</div><button class="modal-x" onclick="closeModal('m-task')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow"><div class="fg full"><label class="flabel">Task Title</label><input class="finput" id="ft-title" placeholder="e.g. Follow-up call"></div></div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Account</label><select class="fselect" id="ft-account"><option value="">— None —</option></select></div>
+        <div class="fg"><label class="flabel">Type</label>
+          <select class="fselect" id="ft-type">
+            <option value="Call">📞 Call</option><option value="Email">📧 Email</option>
+            <option value="Meeting">🤝 Meeting</option><option value="Demo">📦 Demo</option>
+            <option value="Proposal">📝 Proposal</option><option value="Follow-up">📆 Follow-up</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Due Date</label><input class="finput" type="date" id="ft-due"></div>
+        <div class="fg"><label class="flabel">Priority</label>
+          <select class="fselect" id="ft-priority"><option value="High">🔴 High</option><option value="Medium">🟡 Medium</option><option value="Low">🟢 Low</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-task')">Cancel</button><button class="btn btn-primary" onclick="saveTask()">Add Task</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Opportunity / Deal -->
+<div class="modal-bg" id="m-opp">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Add Deal to Funnel</div><button class="modal-x" onclick="closeModal('m-opp')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow"><div class="fg full"><label class="flabel">Deal Name</label><input class="finput" id="fo-name" placeholder="e.g. LIFEPAK 35 Fleet Replacement"></div></div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fo-account"></select></div>
+        <div class="fg"><label class="flabel">Value ($)</label><input class="finput" type="number" id="fo-value" placeholder="150000"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Funnel Stage</label>
+          <select class="fselect" id="fo-stage">
+            <option value="1">Stage 1 — Intelligence</option>
+            <option value="2">Stage 2 — Champion Development</option>
+            <option value="3">Stage 3 — Problem Development</option>
+            <option value="4">Stage 4 — Executive Alignment</option>
+            <option value="5">Stage 5 — Clinical Validation</option>
+            <option value="6">Stage 6 — Formal Evaluation</option>
+            <option value="7">Stage 7 — Financial Approval</option>
+            <option value="8">Stage 8 — Contract & PO</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow"><div class="fg full"><label class="flabel">Expected Close Date</label><input class="finput" type="date" id="fo-close"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-opp')">Cancel</button><button class="btn btn-primary" onclick="saveOpp()">Save</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Contact -->
+<div class="modal-bg" id="m-contact">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="m-contact-title">Add Contact</div><button class="modal-x" onclick="closeModal('m-contact')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Full Name</label><input class="finput" id="fc-name" placeholder="e.g. Jane Doe"></div>
+        <div class="fg"><label class="flabel">Title / Role</label><input class="finput" id="fc-title-input" placeholder="Director of..."></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fc-account"></select></div>
+        <div class="fg"><label class="flabel">Influence Level</label>
+          <select class="fselect" id="fc-influence">
+            <option value="champion">🌟 Champion</option>
+            <option value="advocate">👍 Advocate</option>
+            <option value="neutral" selected>😐 Neutral</option>
+            <option value="resistant">⚠️ Resistant</option>
+            <option value="unknown">❓ Unknown</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Phone</label><input class="finput" id="fc-phone" placeholder="(816) 555-0000"></div>
+        <div class="fg"><label class="flabel">Email</label><input class="finput" id="fc-email" placeholder="name@hospital.org"></div>
+      </div>
+      <div class="frow"><div class="fg full"><label class="flabel">Notes / Key Intel</label><textarea class="ftextarea" id="fc-notes" placeholder="Personality, preferences, blockers…"></textarea></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-contact')">Cancel</button><button class="btn btn-primary" onclick="saveContact()">Save Contact</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Interaction -->
+<div class="modal-bg" id="m-interaction">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title">Log Interaction</div><button class="modal-x" onclick="closeModal('m-interaction')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Contact</label><select class="fselect" id="fi-contact"></select></div>
+        <div class="fg"><label class="flabel">Type</label>
+          <select class="fselect" id="fi-type">
+            <option>Phone Call</option><option>In-Person Visit</option><option>Email</option>
+            <option>Text / iMessage</option><option>Demo</option><option>Lunch / Dinner</option>
+            <option>Formal Meeting</option><option>Conference / Event</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Date</label><input class="finput" type="date" id="fi-date"></div>
+        <div class="fg"><label class="flabel">Sentiment</label>
+          <select class="fselect" id="fi-sentiment"><option value="positive">🟢 Positive</option><option value="neutral" selected>🟡 Neutral</option><option value="negative">🔴 Negative</option></select>
+        </div>
+      </div>
+      <div class="frow"><div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="fi-notes" style="min-height:100px" placeholder="What was said, learned, next step…"></textarea></div></div>
+      <div class="frow"><div class="fg full"><label class="flabel">Follow-up Required</label><input class="finput" id="fi-followup" placeholder="e.g. Send proposal by Friday"></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-interaction')">Cancel</button><button class="btn btn-primary" onclick="saveInteraction()">Save</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Playbook -->
+<div class="modal-bg" id="m-playbook">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="m-playbook-title">Add to Playbook</div><button class="modal-x" onclick="closeModal('m-playbook')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow"><div class="fg full"><label class="flabel">Question / Technique</label><textarea class="ftextarea" id="pb-question" placeholder="e.g. What is most important to you regarding...?" style="min-height:70px"></textarea></div></div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Category</label>
+          <select class="fselect" id="pb-category">
+            <option>Discovery</option><option>Timeline & Decision</option><option>Champion Building</option>
+            <option>Objection Handling</option><option>Closing</option><option>Competitive Intel</option>
+            <option>Stakeholder Mapping</option><option>Field Lesson</option><option>Product Knowledge</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">Effectiveness</label>
+          <select class="fselect" id="pb-rating">
+            <option value="proven">⭐ Proven</option><option value="good">👍 Good</option>
+            <option value="wishidasked">💡 Wish I'd Asked</option><option value="try">🧪 Try Next Time</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow"><div class="fg full"><label class="flabel">Why it works / Context</label><textarea class="ftextarea" id="pb-notes" placeholder="What happened when you used it?"></textarea></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-playbook')">Cancel</button><button class="btn btn-primary" onclick="savePlaybookItem()">Save</button></div>
+  </div>
+</div>
+
+
+<!-- MODAL: Device Record -->
+<div class="modal-bg" id="m-device">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="m-device-title">Add Device Record</div><button class="modal-x" onclick="closeModal('m-device')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Device Type</label>
+          <select class="fselect" id="fd-type">
+            <option>Monitors</option><option>LUCAS</option><option>AEDs</option>
+            <option>Chairs</option><option>Data</option><option>Other</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fd-account"></select></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Unit Count</label><input class="finput" type="number" id="fd-count" placeholder="e.g. 12"></div>
+        <div class="fg"><label class="flabel">Average Age (years)</label><input class="finput" type="number" id="fd-age" placeholder="e.g. 8"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Useful Life Status</label>
+          <select class="fselect" id="fd-status">
+            <option value="within">Within UL</option>
+            <option value="approaching">Approaching UL</option>
+            <option value="beyond">Beyond UL</option>
+            <option value="beyondsl">Beyond Service Life</option>
+          </select>
+        </div>
+        <div class="fg"><label class="flabel">ProCare Contract</label>
+          <select class="fselect" id="fd-procare">
+            <option value="none">No Contract</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow"><div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="fd-notes" placeholder="Location detail, part numbers, strategic notes…"></textarea></div></div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-device')">Cancel</button><button class="btn btn-primary" onclick="saveDeviceRecord()">Save</button></div>
+  </div>
+</div>
+
+<script charset="utf-8">
+
+// ===== DATA =====
+var SK = 'truenorth_v2_blank';
+
+function seed() {
+  return {
+    profile: { name:"", role:"Sales Representative", territory:"" },
+    quota: { goal:0, sold:0, fy:"FY2026" },
+    accounts: [],
+    contacts: [],
+    interactions: [],
+    tasks: [],
+    opportunities: [], // {id, name, account, value, stage(1-8), close}
+    playbook: [],
+    nextId: {a:1, t:1, o:1, c:1, i:1, p:1, d:1},
+  };
+}
+
+function load(){ try{var r=localStorage.getItem(SK); return r?JSON.parse(r):seed();}catch(e){return seed();} }
+function persist(){ try{localStorage.setItem(SK,JSON.stringify(DB));}catch(e){} }
+var DB = load();
+if(!DB.quota) DB.quota = {goal:0, sold:0, fy:"FY2026"};
+if(!DB.profile) DB.profile = {name:"", role:"Sales Representative", territory:""};
+if(!DB.opportunities) DB.opportunities = [];
+if(!DB.playbook) DB.playbook = [];
+if(!DB.devices) DB.devices = [];
+
+// ===== UTILS =====
+function $(id){ return document.getElementById(id); }
+function fmt(n){ return '$'+Number(n||0).toLocaleString(); }
+function fmtK(n){ n=Number(n||0); return n>=1e6?'$'+(n/1e6).toFixed(1)+'M':'$'+(n/1e3).toFixed(0)+'K'; }
+function today(){ return new Date().toISOString().split('T')[0]; }
+function daysSince(d){ return d?Math.max(0,Math.floor((Date.now()-new Date(d))/86400000)):999; }
+function tamMid(a){ return ((a.tamMin||0)+(a.tamMax||0))/2; }
+function initials(name){ return (name||'').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase(); }
+
+var STATUS={
+  green: {label:'Very Favorable',pct:'75-100%',cls:'s-green'},
+  yellow:{label:'Favorable / Neutral',pct:'40-75%',cls:'s-yellow'},
+  orange:{label:'Difficult',pct:'20-50%',cls:'s-orange'},
+  red:   {label:'High Resistance',pct:'0-20%',cls:'s-red'},
+};
+var INFLUENCE={
+  champion:{label:'Champion',icon:'★',cls:'s-green'},
+  advocate:{label:'Advocate',icon:'✓',cls:'s-yellow'},
+  neutral: {label:'Neutral', icon:'–',cls:'',style:'background:rgba(93,122,150,0.15);color:#5d7a96'},
+  resistant:{label:'Resistant',icon:'!',cls:'s-red'},
+  unknown: {label:'Unknown', icon:'?',style:'background:rgba(93,122,150,0.1);color:#5d7a96'},
+};
+function champLabel(n){ if(n<=3)return 'No Champion'; if(n<=6)return 'Developing'; if(n<=8)return 'Strong Advocate'; return 'Internal Seller'; }
+function champColor(n){ if(n<=3)return 'var(--red)'; if(n<=6)return 'var(--orange)'; if(n<=8)return 'var(--yellow)'; return 'var(--green)'; }
+function probColor(n){ if(n>=75)return 'green'; if(n>=40)return 'yellow'; if(n>=20)return 'orange'; return 'red'; }
+
+// ===== 8-STAGE FUNNEL DEFINITION =====
+var FUNNEL_STAGES = [
+  {n:1, name:"Intelligence", goal:"Know who buys & when", focus:"Vendor, devices, fleet age, budget cycle, decision makers"},
+  {n:2, name:"Champion Development", goal:"Find internal advocate", focus:"Nurse manager, educator, clinical champion"},
+  {n:3, name:"Problem Development", goal:"Understand pain points", focus:"Clinical, operational & financial pain"},
+  {n:4, name:"Executive Alignment", goal:"Align with executives", focus:"Finance, supply chain, admin, IT"},
+  {n:5, name:"Clinical Validation", goal:"Demo solution", focus:"Workflow, CPR quality, EMR integration"},
+  {n:6, name:"Formal Evaluation", goal:"Run formal trial", focus:"Demo, trial, VAC/VAT, surveys"},
+  {n:7, name:"Financial Approval", goal:"Secure budget", focus:"Financing, trade-ins, service savings"},
+  {n:8, name:"Contract & PO", goal:"Close deal", focus:"Legal, purchasing, PO status"},
+];
+
+// ===== NAVIGATION =====
+var PAGE_META={
+  dashboard:['Territory Dashboard','Your true north'],
+  accounts: ['Accounts','All accounts in territory'],
+  detail:   ['Account Detail',''],
+  pipeline: ['8-Stage Sales Funnel','Intelligence through Contract & PO'],
+  tasks:    ['Tasks & Follow-ups','Your action items'],
+  contacts: ['Contacts & Interactions','Key people · Full interaction history'],
+  playbook: ['Rep Playbook','Questions that work · Field lessons learned'],
+  fleet:    ['Fleet Intelligence','Browse by device type · See age & ProCare status by account'],
+  devicedetail: ['Device Detail',''],
+};
+
+function goPage(name, btn){
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
+  var pg=$('page-'+name); if(pg) pg.classList.add('active');
+  if(btn) btn.classList.add('active');
+  var m=PAGE_META[name]||[name,''];
+  $('topbar-title').textContent=m[0];
+  $('topbar-sub').textContent=m[1];
+  if(name==='dashboard') renderDashboard();
+  if(name==='accounts')  renderAccountsTable();
+  if(name==='pipeline')  renderFunnel('funnel-board-full');
+  if(name==='tasks')     renderTasks();
+  if(name==='contacts')  renderContactsPage();
+  if(name==='playbook')  renderPlaybook();
+  if(name==='fleet')     renderFleetPage();
+  closeSidebar();
+}
+function toggleSidebar(){ $('sidebar').classList.toggle('open'); $('mob-overlay').classList.toggle('open'); }
+function closeSidebar(){ $('sidebar').classList.remove('open'); $('mob-overlay').classList.remove('open'); }
+
+// ===== THEME =====
+function toggleTheme(){
+  var light=document.body.classList.toggle('light-mode');
+  $('theme-toggle').textContent = light ? '☀️' : '🌙';
+  try{ localStorage.setItem('truenorth_theme', light?'light':'dark'); }catch(e){}
+}
+function initTheme(){
+  try{
+    var t=localStorage.getItem('truenorth_theme');
+    if(t==='light'){ document.body.classList.add('light-mode'); $('theme-toggle').textContent='☀️'; }
+  }catch(e){}
+}
+
+// ===== PROFILE =====
+function renderProfile(){
+  var p=DB.profile||{};
+  if(p.name){
+    $('user-name').textContent=p.name;
+    $('user-role').textContent=p.role||'Sales Representative';
+    $('user-avatar').textContent=initials(p.name)||'+';
+    $('brand-sub').textContent=p.territory||'Your Territory';
+  } else {
+    $('user-name').textContent='Set up profile';
+    $('user-role').textContent='Tap to edit';
+    $('user-avatar').textContent='+';
+    $('brand-sub').textContent='Your Territory';
+  }
+}
+function openProfileModal(){
+  var p=DB.profile||{};
+  $('fp-name').value=p.name||'';
+  $('fp-role').value=p.role||'Sales Representative';
+  $('fp-territory').value=p.territory||'';
+  openModal('m-profile');
+}
+function saveProfile(){
+  DB.profile={
+    name:$('fp-name').value.trim(),
+    role:$('fp-role').value.trim()||'Sales Representative',
+    territory:$('fp-territory').value.trim(),
+  };
+  persist(); closeModal('m-profile'); renderProfile();
+}
+
+// ===== QUOTA / TRUE NORTH =====
+function openQuotaModal(){
+  $('fq-goal').value=DB.quota.goal||'';
+  $('fq-sold').value=DB.quota.sold||'';
+  $('fq-fy').value=DB.quota.fy||'FY2026';
+  openModal('m-quota');
+}
+function saveQuota(){
+  DB.quota={
+    goal: parseFloat($('fq-goal').value)||0,
+    sold: parseFloat($('fq-sold').value)||0,
+    fy: $('fq-fy').value.trim()||'FY2026',
+  };
+  persist(); closeModal('m-quota'); renderDashboard();
+}
+function renderQuota(){
+  var q=DB.quota||{goal:0,sold:0,fy:'FY2026'};
+  var pct = q.goal>0 ? (q.sold/q.goal*100) : 0;
+  var pctClamped = Math.min(100, pct);
+  var remaining = Math.max(0, q.goal - q.sold);
+
+  $('quota-title').textContent = fmt(q.sold)+' of '+fmt(q.goal)+' Goal ('+q.fy+')';
+  var pctEl = $('quota-pct');
+  pctEl.textContent = pct.toFixed(1)+'%';
+  pctEl.className = 'quota-pct ' + (pct>=100?'ahead':pct>=60?'onpace':'behind');
+  $('quota-sold').textContent = fmt(q.sold);
+  $('quota-goal-display').textContent = fmt(q.goal);
+  $('quota-remaining').textContent = fmt(remaining);
+
+  requestAnimationFrame(function(){
+    $('quota-bar').style.width = pctClamped+'%';
+  });
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+  renderQuota();
+  renderKPIs();
+  renderTAM();
+  renderFunnel('funnel-board-preview', true);
+}
+
+function renderKPIs(){
+  // Total Pipeline = sum of TAM (or oppVal) across ALL accounts, regardless of funnel stage
+  var totalPipeline = DB.accounts.reduce(function(s,a){ return s+(a.oppVal||0); }, 0);
+  var totalTAM = DB.accounts.reduce(function(s,a){ return s+tamMid(a); }, 0);
+
+  // Active Deals = sum of value for opportunities that have a funnel stage assigned (1-8)
+  var activeDeals = DB.opportunities.reduce(function(s,o){ return s+(o.value||0); }, 0);
+  var activeDealCount = DB.opportunities.length;
+
+  var weighted = DB.accounts.reduce(function(s,a){ return s+(a.oppVal||0)*(a.prob||0)/100; }, 0);
+
+  var counts={green:0,yellow:0,orange:0,red:0};
+  DB.accounts.forEach(function(a){ if(counts[a.status]!==undefined) counts[a.status]++; });
+
+  var avgDays = DB.accounts.length ? DB.accounts.reduce(function(s,a){return s+daysSince(a.lastContact);},0)/DB.accounts.length : 0;
+  var overdue = DB.tasks.filter(function(t){return !t.done&&t.due&&t.due<today();}).length;
+
+  var dots='';
+  if(counts.green) dots+='<div class="sdot green">'+counts.green+'</div>';
+  if(counts.yellow) dots+='<div class="sdot yellow">'+counts.yellow+'</div>';
+  if(counts.orange) dots+='<div class="sdot orange">'+counts.orange+'</div>';
+  if(counts.red) dots+='<div class="sdot red">'+counts.red+'</div>';
+
+  $('kpi-strip').innerHTML=
+    '<div class="kpi-tile">'+
+      '<div class="kpi-tile-label">Active Deals</div>'+
+      '<div class="kpi-tile-value yellow">'+fmtK(activeDeals)+'</div>'+
+      '<div class="kpi-sub">'+activeDealCount+' deal'+(activeDealCount!==1?'s':'')+' in the 8-stage funnel</div>'+
+    '</div>'+
+    '<div class="kpi-tile">'+
+      '<div class="kpi-tile-label">Total Pipeline</div>'+
+      '<div class="kpi-tile-value">'+fmtK(totalPipeline)+'</div>'+
+      '<div class="kpi-sub">Across <b>'+DB.accounts.length+' account'+(DB.accounts.length!==1?'s':'')+'</b> (active or not)</div>'+
+    '</div>'+
+    '<div class="kpi-tile">'+
+      '<div class="kpi-tile-label">Total Addressable Market</div>'+
+      '<div class="kpi-tile-value green">'+fmtK(totalTAM)+'</div>'+
+      '<div class="status-dots" style="margin-top:10px">'+dots+'</div>'+
+    '</div>'+
+    '<div class="kpi-tile">'+
+      '<div class="kpi-tile-label">Avg Days Since Contact</div>'+
+      '<div class="kpi-tile-value '+(avgDays>14?'orange':'green')+'">'+Math.round(avgDays)+'</div>'+
+      '<div class="kpi-sub">Goal: <b>&lt;14 days</b> &nbsp;·&nbsp; <b style="color:var(--red)">'+overdue+' overdue</b></div>'+
+    '</div>';
+}
+
+function renderTAM(){
+  var sorted=[].concat(DB.accounts).sort(function(a,b){return tamMid(b)-tamMid(a);});
+  if(sorted.length===0){
+    $('tam-chart').innerHTML='<div class="empty"><div class="empty-icon">🏥</div>No accounts yet. Click <b>+ Add Account</b> to get started.</div>';
+    return;
+  }
+  var maxTAM=tamMid(sorted[0])||500000;
+  var rows='';
+  sorted.forEach(function(a){
+    var pct=(tamMid(a)/maxTAM*100).toFixed(1);
+    var init=initials(a.name);
+    var tierColors=['','var(--accent)','var(--orange)','var(--text-dim)'];
+    var tierBg=['','rgba(245,200,66,0.15)','rgba(240,124,42,0.12)','rgba(255,255,255,0.05)'];
+    var tierLabels=['','T1','T2','T3'];
+    var tc=tierColors[a.tier||3], tb=tierBg[a.tier||3], tl=tierLabels[a.tier||3];
+    var tierBadge=a.tier?'<span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;background:'+tb+';color:'+tc+';border:1px solid '+tc+';margin-left:5px">'+tl+'</span>':'';
+    rows+=
+      '<div class="tam-row" onclick="openDetail('+a.id+')">'+
+        '<div class="tam-row-top">'+
+          '<div class="acct-meta">'+
+            '<div class="acct-logo">'+init+'</div>'+
+            '<div style="min-width:0">'+
+              '<div class="acct-name-text">'+a.name+tierBadge+'</div>'+
+              '<div class="acct-city-text">'+a.city+'</div>'+
+            '</div>'+
+          '</div>'+
+          '<div class="tam-value">'+fmt(a.tamMin)+' – '+fmt(a.tamMax)+'</div>'+
+        '</div>'+
+        '<div class="tam-row-bar"><div class="bar-wrap" style="flex:1"><div class="bar-fill '+a.status+'" style="width:0%" data-w="'+pct+'"></div></div></div>'+
+      '</div>';
+  });
+  var xLabels='';
+  [0,20,40,60,80,100].forEach(function(p){ xLabels+='<span class="x-label">'+fmtK(maxTAM*p/100)+'</span>'; });
+  $('tam-chart').innerHTML='<div>'+rows+'</div><div class="x-axis-row"><div class="x-labels">'+xLabels+'</div></div>';
+  requestAnimationFrame(function(){
+    document.querySelectorAll('.bar-fill[data-w]').forEach(function(el,i){
+      setTimeout(function(){el.style.width=el.getAttribute('data-w')+'%';},i*55);
+    });
+  });
+}
+
+// ===== 8-STAGE FUNNEL RENDER =====
+function renderFunnel(targetId, preview){
+  var el=$(targetId);
+  if(!el) return;
+  var html='';
+  FUNNEL_STAGES.forEach(function(stage){
+    var items=DB.opportunities.filter(function(o){return o.stage===stage.n;});
+    var total=items.reduce(function(s,o){return s+(o.value||0);},0);
+    var cards='';
+    if(preview){
+      // condensed: just count + total
+      cards = items.length ?
+        '<div style="font-size:11px;color:var(--text-muted);margin-top:6px">'+items.length+' deal'+(items.length!==1?'s':'')+'</div>'
+        : '<div class="funnel-empty">—</div>';
+    } else {
+      items.forEach(function(o){
+        var acct=DB.accounts.find(function(a){return a.name===o.account;});
+        cards+=
+          '<div class="funnel-card" onclick="'+(acct?'openDetail('+acct.id+')':'')+'">'+
+            '<div class="funnel-card-title">'+o.name+'</div>'+
+            '<div class="funnel-card-meta">'+o.account+'</div>'+
+            '<div class="funnel-card-val">'+fmt(o.value)+'</div>'+
+            '<div class="funnel-card-meta">Close: '+(o.close||'—')+'</div>'+
+            '<button onclick="event.stopPropagation();deleteOpp('+o.id+')" style="margin-top:6px;background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕ Remove</button>'+
+          '</div>';
+      });
+      if(!items.length) cards='<div class="funnel-empty">No deals at this stage</div>';
+    }
+    html+=
+      '<div class="funnel-col'+(preview?'':' active-deal')+'" style="'+(preview?'min-width:170px':'')+'">'+
+        '<div class="funnel-col-head">'+
+          '<div class="funnel-stage-num">Stage '+stage.n+'</div>'+
+          '<div class="funnel-stage-name">'+stage.name+'</div>'+
+          (preview?'':'<div class="funnel-stage-goal">'+stage.goal+'<br><span style="color:var(--text-dim)">'+stage.focus+'</span></div>')+
+        '</div>'+
+        '<div class="funnel-col-total">'+fmt(total)+'</div>'+
+        cards+
+      '</div>';
+  });
+  el.innerHTML=html;
+  if(!preview){
+    $('nb-pipeline').textContent = DB.opportunities.length;
+  }
+}
+
+function deleteOpp(id){
+  DB.opportunities=DB.opportunities.filter(function(o){return o.id!==id;});
+  persist(); renderFunnel('funnel-board-full'); renderDashboard();
+}
+
+// ===== ACCOUNT DETAIL =====
+function openDetail(id){
+  var a=DB.accounts.find(function(x){return x.id===id;});
+  if(!a) return;
+  var pColor=probColor(a.prob||0);
+  var cColor=champColor(a.champScore||0);
+  var cLabel=champLabel(a.champScore||0);
+  var st=STATUS[a.status]||STATUS.red;
+  var champW=(a.champScore||0)*10;
+
+  var contactsHtml='';
+  var acctContacts=DB.contacts.filter(function(c){return c.account===a.name;});
+  if(acctContacts.length===0){
+    contactsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No contacts yet.</div>';
+  } else {
+    acctContacts.forEach(function(c){
+      var iv=INFLUENCE[c.influence]||INFLUENCE.unknown;
+      var iCount=DB.interactions.filter(function(i){return i.contactId===c.id;}).length;
+      contactsHtml+=
+        '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--navy-border);cursor:pointer" onclick="goContacts('+c.id+')">'+
+          '<div style="width:26px;height:26px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">'+initials(c.name)+'</div>'+
+          '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+c.name+' <span style="font-size:11px">'+iv.icon+'</span></div>'+
+          '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div></div>'+
+          '<span style="font-size:11px;color:var(--text-dim)">'+iCount+' logs</span>'+
+        '</div>';
+    });
+  }
+
+  var tasksHtml='';
+  var acctTasks=DB.tasks.filter(function(t){return t.account===a.name;});
+  if(acctTasks.length===0){
+    tasksHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No tasks yet.</div>';
+  } else {
+    acctTasks.forEach(function(t){
+      var doneStyle=t.done?'text-decoration:line-through;color:var(--text-muted)':'';
+      var checkBg=t.done?'var(--green)':'transparent';
+      var checkBorder=t.done?'var(--green)':'var(--navy-border)';
+      tasksHtml+=
+        '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--navy-border)">'+
+          '<div style="width:14px;height:14px;border-radius:3px;border:2px solid '+checkBorder+';background:'+checkBg+';flex-shrink:0"></div>'+
+          '<div style="flex:1;min-width:0;font-size:12.5px;'+doneStyle+'">'+t.type+' '+t.title+'</div>'+
+          '<div style="font-size:11px;font-family:DM Mono,monospace;color:var(--text-dim)">'+t.due+'</div>'+
+        '</div>';
+    });
+  }
+
+  var champWarning='';
+  if((a.champScore||0)<=3){
+    champWarning='<div style="margin-top:10px;padding:8px 10px;background:var(--red-dim);border-radius:6px;font-size:12px;color:var(--red)">No champion identified. High risk regardless of TAM. Prioritize relationship building.</div>';
+  }
+
+  var notesHtml=a.notes?a.notes:'No notes yet.';
+
+  // Related funnel deals
+  var dealsHtml='';
+  var acctDeals=DB.opportunities.filter(function(o){return o.account===a.name;});
+  if(acctDeals.length){
+    acctDeals.forEach(function(o){
+      var stage=FUNNEL_STAGES[o.stage-1];
+      dealsHtml+=
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--navy-border);font-size:12.5px">'+
+          '<div><b>'+o.name+'</b><div style="color:var(--text-muted);font-size:11px">Stage '+o.stage+': '+stage.name+'</div></div>'+
+          '<div style="font-family:DM Mono,monospace;color:var(--green)">'+fmt(o.value)+'</div>'+
+        '</div>';
+    });
+  } else {
+    dealsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">Not in the funnel yet. <button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Add to Funnel</button></div>';
+  }
+
+  $('detail-content').innerHTML=
+    '<button class="detail-back" onclick="goPage(\'dashboard\',document.querySelector(\'.nav-link\'))">← Back to Dashboard</button>'+
+    '<div class="next-action-box"><div class="na-label">⚡ Next Required Action</div><div class="na-text">'+(a.next||'No next action defined')+'</div></div>'+
+    '<div class="detail-hero">'+
+      '<div class="detail-top">'+
+        '<div><div class="detail-name">'+a.name+'</div><div class="detail-city">'+a.city+'</div></div>'+
+        '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+          '<span class="status-pill '+st.cls+'">'+st.label+'</span>'+
+          '<button class="btn btn-ghost btn-sm" onclick="editAccount('+a.id+')">Edit</button>'+
+          '<button class="btn btn-danger btn-sm" onclick="deleteAccount('+a.id+')">Delete</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="detail-metrics">'+
+        '<div class="detail-metric"><div class="dm-label">Total Addressable Market</div><div class="dm-value green">'+fmt(a.tamMin)+' - '+fmt(a.tamMax)+'</div><div class="dm-sub">Estimated potential</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">Current Opportunity</div><div class="dm-value yellow">'+fmt(a.oppVal||0)+'</div><div class="dm-sub">Active deal value</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">Win Probability</div><div class="dm-value '+pColor+'">'+(a.prob||0)+'%</div><div class="dm-sub">'+st.pct+'</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">Weighted Forecast</div><div class="dm-value">'+fmt(Math.round((a.oppVal||0)*(a.prob||0)/100))+'</div><div class="dm-sub">Probability-adjusted</div></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="detail-grid">'+
+      '<div class="detail-section"><div class="ds-title">Account Information</div>'+
+        '<div class="ds-row"><span class="ds-key">Current Vendor</span><span class="ds-val">'+(a.vendor||'—')+'</span></div>'+
+        '<div class="ds-row"><span class="ds-key">Product / Solution</span><span class="ds-val">'+(a.product||'—')+'</span></div>'+
+        '<div class="ds-row"><span class="ds-key">Budget Cycle</span><span class="ds-val">'+(a.budget||'Unknown')+'</span></div>'+
+        '<div class="ds-row"><span class="ds-key">Last Contact</span><span class="ds-val mono">'+(a.lastContact||'—')+' ('+daysSince(a.lastContact)+'d ago)</span></div>'+
+        '<div class="ds-row"><span class="ds-key">Competitive Threats</span><span class="ds-val" style="font-size:11.5px">'+(a.comp||'Unknown')+'</span></div>'+
+      '</div>'+
+      '<div class="detail-section"><div class="ds-title">Champion Intelligence</div>'+
+        '<div style="margin-bottom:10px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px">'+
+            '<span style="font-size:12px;color:var(--text-muted)">Champion Score</span>'+
+            '<span style="font-family:DM Mono,monospace;font-size:20px;font-weight:700;color:'+cColor+'">'+(a.champScore||0)+'<span style="font-size:12px;color:var(--text-muted)">/10</span></span>'+
+          '</div>'+
+          '<div class="champ-bar-wrap"><div class="champ-bar-fill" style="width:'+champW+'%;background:'+cColor+'"></div></div>'+
+          '<div style="font-size:11.5px;color:'+cColor+';font-weight:600">'+cLabel+'</div>'+
+        '</div>'+
+        '<div class="ds-row"><span class="ds-key">Clinical Champion</span><span class="ds-val" style="font-size:11.5px">'+(a.clinical||'None identified')+'</span></div>'+
+        '<div class="ds-row"><span class="ds-key">Biomed Contact</span><span class="ds-val" style="font-size:11.5px">'+(a.biomed||'None identified')+'</span></div>'+
+        champWarning+
+      '</div>'+
+      '<div class="detail-section"><div class="ds-title">Notes & Context</div><div style="font-size:13px;line-height:1.6;color:var(--text)">'+notesHtml+'</div></div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Contact</button></div>'+contactsHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Task</button></div>'+tasksHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Funnel Stage / Deals</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Deal</button></div>'+dealsHtml+'</div>'+
+    '</div>';
+
+  document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
+  $('topbar-title').textContent=a.name;
+  $('topbar-sub').textContent=a.city+(a.product?' · '+a.product:'');
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  $('page-detail').classList.add('active');
+  closeSidebar();
+}
+
+// ===== ACCOUNTS TABLE =====
+function renderAccountsTable(){
+  var sorted=[].concat(DB.accounts).sort(function(a,b){return tamMid(b)-tamMid(a);});
+  if(sorted.length===0){
+    $('accounts-tbl').innerHTML='<tr><td><div class="empty"><div class="empty-icon">🏥</div>No accounts yet.</div></td></tr>';
+    return;
+  }
+  var rows='';
+  sorted.forEach(function(a){
+    var st=STATUS[a.status]||STATUS.red;
+    var ds=daysSince(a.lastContact);
+    var dateColor=ds>14?'var(--red)':'var(--text-muted)';
+    rows+=
+      '<tr style="cursor:pointer" onclick="openDetail('+a.id+')">'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)">'+(a.tier?'<span style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:10px;background:'+(a.tier===1?'var(--accent)':a.tier===2?'var(--orange)':'var(--navy-border)')+';color:'+(a.tier===1?'var(--navy)':'#fff')+'">T'+a.tier+'</span>':'—')+'</td>'+
+        '<td style="padding:11px 14px;font-weight:600;font-size:13px;border-bottom:1px solid var(--navy-border)">'+a.name+'</td>'+
+        '<td style="padding:11px 14px;color:var(--text-muted);font-size:12px;border-bottom:1px solid var(--navy-border)">'+a.city+'</td>'+
+        '<td style="padding:11px 14px;font-family:DM Mono,monospace;font-size:11.5px;border-bottom:1px solid var(--navy-border)">'+fmt(a.tamMin)+' - '+fmt(a.tamMax)+'</td>'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><span class="status-pill '+st.cls+'">'+st.label+'</span></td>'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><span style="font-size:12px;font-weight:700;color:'+champColor(a.champScore||0)+'">'+(a.champScore||0)+'/10</span> <span style="font-size:11px;color:var(--text-muted)">'+champLabel(a.champScore||0)+'</span></td>'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border);font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:var(--'+probColor(a.prob||0)+')">'+(a.prob||0)+'%</td>'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border);font-family:DM Mono,monospace;font-size:11.5px;color:'+dateColor+'">'+(a.lastContact||'—')+' ('+ds+'d)</td>'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editAccount('+a.id+')">Edit</button></td>'+
+      '</tr>';
+  });
+  $('accounts-tbl').innerHTML=
+    '<thead><tr>'+
+      ['Tier','Account','Location','TAM Range','Status','Champion','Prob %','Last Contact',''].map(function(h){
+        return '<th style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--navy-border)">'+h+'</th>';
+      }).join('')+
+    '</tr></thead><tbody>'+rows+'</tbody>';
+}
+
+// ===== TASKS =====
+function renderTasks(){
+  var sorted=[].concat(DB.tasks).sort(function(a,b){return a.done-b.done||new Date(a.due)-new Date(b.due);});
+  var html='';
+  sorted.forEach(function(t){
+    var over=!t.done&&t.due&&t.due<today();
+    var typeIcon=t.type==='Demo'?'📦':t.type==='Call'?'📞':t.type==='Meeting'?'🤝':t.type==='Email'?'📧':'📝';
+    html+=
+      '<div class="task-row'+(t.done?' done':'')+'" onclick="toggleTask('+t.id+')">'+
+        '<div class="task-check"></div>'+
+        '<div style="flex:1;min-width:0"><div class="task-title">'+typeIcon+' '+t.title+'</div><div class="task-meta">'+(t.account||'No account')+' · '+t.priority+'</div></div>'+
+        '<div class="task-right"><span class="task-due'+(over?' overdue':'')+'">'+t.due+'</span><button class="task-del" onclick="event.stopPropagation();deleteTask('+t.id+')">✕</button></div>'+
+      '</div>';
+  });
+  $('task-list').innerHTML=html||'<div class="empty"><div class="empty-icon">✅</div>All clear. No tasks yet.</div>';
+  $('nb-tasks').textContent=DB.tasks.filter(function(t){return !t.done;}).length;
+}
+function toggleTask(id){ var t=DB.tasks.find(function(x){return x.id===id;}); if(t){t.done=!t.done;persist();renderTasks();updateBadges();} }
+function deleteTask(id){ DB.tasks=DB.tasks.filter(function(x){return x.id!==id;}); persist();renderTasks();updateBadges(); }
+function updateBadges(){
+  $('nb-tasks').textContent=DB.tasks.filter(function(t){return !t.done;}).length;
+  $('nb-pipeline').textContent=DB.opportunities.length;
+}
+
+// ===== CONTACTS & INTERACTIONS =====
+var _selContactId=null;
+var _filterAccount=null;
+
+function renderContactsPage(){
+  var accounts=[];
+  DB.contacts.forEach(function(c){ if(accounts.indexOf(c.account)===-1) accounts.push(c.account); });
+  var pills='<button class="btn btn-sm" style="'+((!_filterAccount)?'background:var(--accent);color:var(--navy);border:none':'background:var(--navy-light);color:var(--text-muted);border:1px solid var(--navy-border)')+'" onclick="_filterAccount=null;renderContactsPage()">All</button>';
+  accounts.forEach(function(a){
+    var active=(_filterAccount===a);
+    pills+='<button class="btn btn-sm" data-acct="'+a.replace(/"/g,'&quot;')+'" style="'+(active?'background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent)':'background:var(--navy-light);color:var(--text-muted);border:1px solid var(--navy-border)')+'" onclick="_filterAccount=this.getAttribute(\'data-acct\');renderContactsPage()">'+a+'</button>';
+  });
+  $('contact-filter-pills').innerHTML=pills;
+
+  var filtered=_filterAccount?DB.contacts.filter(function(c){return c.account===_filterAccount;}):DB.contacts;
+  var listHtml='';
+  if(filtered.length===0){
+    listHtml='<div style="padding:24px;text-align:center;color:var(--text-muted);font-size:13px">No contacts yet. Click + Contact to add one.</div>';
+  } else {
+    filtered.forEach(function(c){
+      var iv=INFLUENCE[c.influence]||INFLUENCE.unknown;
+      var iCount=DB.interactions.filter(function(i){return i.contactId===c.id;}).length;
+      var lastI=DB.interactions.filter(function(i){return i.contactId===c.id;}).sort(function(a,b){return new Date(b.date)-new Date(a.date);})[0];
+      var isSelected=(_selContactId===c.id);
+      listHtml+=
+        '<div onclick="selectContact('+c.id+')" style="padding:13px 16px;border-bottom:1px solid var(--navy-border);cursor:pointer;background:'+(isSelected?'var(--accent-dim)':'transparent')+'">'+
+          '<div style="display:flex;align-items:flex-start;gap:10px">'+
+            '<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials(c.name)+'</div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:13px;font-weight:700;margin-bottom:2px">'+c.name+' <span style="font-size:12px">'+iv.icon+'</span></div>'+
+              '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div>'+
+              '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">'+c.account+'</div>'+
+              '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">'+iCount+' interaction'+(iCount!==1?'s':'')+' '+(lastI?'· Last: '+lastI.date:'')+'</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>';
+    });
+  }
+  $('contacts-list').innerHTML=listHtml;
+  if(_selContactId) selectContact(_selContactId,true);
+}
+
+function selectContact(id,noScroll){
+  _selContactId=id;
+  window._selectedContactId=id;
+  var c=DB.contacts.find(function(x){return x.id===id;});
+  if(!c) return;
+  var iv=INFLUENCE[c.influence]||INFLUENCE.unknown;
+  var pillStyle=iv.style||'';
+  var pillCls=iv.cls||'';
+  $('contact-detail-header').innerHTML=
+    '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
+      '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">'+initials(c.name)+'</div>'+
+      '<div><div style="font-size:15px;font-weight:700">'+c.name+'</div><div style="font-size:12px;color:var(--text-muted)">'+c.title+' · '+c.account+'</div></div>'+
+      '<span class="status-pill '+pillCls+'" style="'+pillStyle+'">'+iv.icon+' '+iv.label+'</span>'+
+      '<button class="btn btn-ghost btn-sm" onclick="openContactModal('+id+')" style="margin-left:4px">Edit</button>'+
+    '</div>'+
+    (c.notes?'<div style="margin-top:10px;padding:10px 12px;background:var(--navy-mid);border-radius:6px;font-size:12.5px;line-height:1.6">'+c.notes+'</div>':'');
+  $('btn-log-interaction').style.display='block';
+
+  var interactions=DB.interactions.filter(function(i){return i.contactId===id;}).sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+  var sentimentIcon={positive:'🟢',neutral:'🟡',negative:'🔴'};
+  var feed='';
+  if(interactions.length===0){
+    feed='<div style="padding:30px;text-align:center;color:var(--text-muted);font-size:13px">No interactions logged yet. Click + Log to add one.</div>';
+  } else {
+    interactions.forEach(function(i){
+      var si=sentimentIcon[i.sentiment]||'🟡';
+      feed+=
+        '<div style="padding:14px 18px;border-bottom:1px solid var(--navy-border)">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">'+
+            '<span style="font-size:13px">'+i.type+'</span>'+
+            '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text-muted)">'+i.date+'</span>'+
+            '<span>'+si+'</span>'+
+            '<button onclick="deleteInteraction('+i.id+')" style="margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:14px;cursor:pointer">✕</button>'+
+          '</div>'+
+          '<div style="font-size:13px;line-height:1.65;margin-bottom:'+(i.followup?'8px':'0')+'">'+i.notes+'</div>'+
+          (i.followup?'<div style="padding:7px 10px;background:var(--accent-dim);border-radius:5px;font-size:12px;color:var(--accent)">⚡ Follow-up: '+i.followup+'</div>':'')+
+        '</div>';
+    });
+  }
+  $('interaction-feed').innerHTML=feed+
+    '<div style="margin:0;padding:14px 18px;background:var(--accent-dim);border-top:1px solid var(--accent-glow)">'+
+      '<div style="font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px">Post-Meeting Checklist</div>'+
+      '<div id="contact-checklist-'+id+'"></div>'+
+    '</div>';
+  renderChecklist(id);
+  renderContactsPage();
+}
+
+function renderChecklist(contactId){
+  var c=DB.contacts.find(function(x){return x.id===contactId;});
+  if(!c) return;
+  if(!c.checklist) c.checklist={email:false,linkedin:false,text:false,logged:true,task:false};
+  var el=document.getElementById('contact-checklist-'+contactId);
+  if(!el) return;
+  var items=[
+    {key:'email',icon:'📧',label:'Follow-up email sent'},
+    {key:'linkedin',icon:'💼',label:'Connected on LinkedIn'},
+    {key:'text',icon:'💬',label:'Follow-up text sent'},
+    {key:'logged',icon:'📋',label:'Logged in CRM'},
+    {key:'task',icon:'✅',label:'Follow-up task created'},
+  ];
+  var doneCount=Object.values(c.checklist).filter(Boolean).length;
+  var pct=Math.round(doneCount/items.length*100);
+  var html=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+      '<span style="font-size:11px;color:var(--text-muted)">'+doneCount+' of '+items.length+' complete</span>'+
+      '<span style="font-size:11px;font-weight:700;color:var(--accent)">'+pct+'%</span>'+
+    '</div>'+
+    '<div style="height:3px;background:rgba(245,200,66,0.2);border-radius:2px;margin-bottom:10px;overflow:hidden">'+
+      '<div style="height:100%;width:'+pct+'%;background:var(--accent);border-radius:2px"></div>'+
+    '</div>';
+  el.innerHTML=html;
+  items.forEach(function(item){
+    var done=c.checklist[item.key];
+    var checkStyle='width:18px;height:18px;border-radius:4px;flex-shrink:0;border:2px solid '+(done?'var(--accent)':'rgba(245,200,66,0.3)')+';background:'+(done?'var(--accent)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:var(--navy)';
+    var textStyle='font-size:12.5px;'+(done?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)');
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:10px;padding:6px 0;cursor:pointer;border-bottom:1px solid rgba(245,200,66,0.1)';
+    row.innerHTML='<div style="'+checkStyle+'">'+(done?'✓':'')+'</div><span style="'+textStyle+'">'+item.icon+' '+item.label+'</span>';
+    row.addEventListener('click',(function(cid,k){return function(){toggleChecklist(cid,k);};})(contactId,item.key));
+    el.appendChild(row);
+  });
+}
+function toggleChecklist(contactId,key){
+  var c=DB.contacts.find(function(x){return x.id===contactId;});
+  if(!c) return;
+  if(!c.checklist) c.checklist={email:false,linkedin:false,text:false,logged:true,task:false};
+  c.checklist[key]=!c.checklist[key];
+  persist(); renderChecklist(contactId);
+}
+function deleteInteraction(id){
+  if(!confirm('Delete this interaction log?')) return;
+  DB.interactions=DB.interactions.filter(function(x){return x.id!==id;});
+  persist(); if(_selContactId) selectContact(_selContactId,true);
+}
+
+// ===== MODALS: ACCOUNT =====
+var _editingAcctId=null;
+function openModal(id){ $(id).classList.add('open'); }
+function closeModal(id){ $(id).classList.remove('open'); }
+
+function openAccountModal(){
+  _editingAcctId=null;
+  $('m-acct-title').textContent='Add Account';
+  ['fa-name','fa-city','fa-vendor','fa-product','fa-clinical','fa-biomed','fa-budget','fa-comp','fa-next','fa-notes'].forEach(function(f){$(f).value='';});
+  $('fa-min').value='';$('fa-max').value='';$('fa-opp-val').value='';
+  $('fa-prob').value='';$('fa-champ').value=5;$('fa-champ-val').textContent=5;
+  $('fa-status').value='green';$('fa-contact').value=today();$('fa-tier').value='3';
+  openModal('m-account');
+}
+function editAccount(id){
+  var a=DB.accounts.find(function(x){return x.id===id;});
+  if(!a) return;
+  _editingAcctId=id;
+  $('m-acct-title').textContent='Edit Account';
+  $('fa-name').value=a.name;$('fa-city').value=a.city;
+  $('fa-min').value=a.tamMin;$('fa-max').value=a.tamMax;
+  $('fa-opp-val').value=a.oppVal||'';$('fa-status').value=a.status;
+  $('fa-vendor').value=a.vendor||'';$('fa-product').value=a.product||'';
+  $('fa-clinical').value=a.clinical||'';$('fa-biomed').value=a.biomed||'';
+  $('fa-champ').value=a.champScore||5;$('fa-champ-val').textContent=a.champScore||5;
+  $('fa-prob').value=a.prob||'';
+  $('fa-budget').value=a.budget||'';$('fa-contact').value=a.lastContact||today();
+  $('fa-comp').value=a.comp||'';$('fa-next').value=a.next||'';
+  $('fa-notes').value=a.notes||'';$('fa-tier').value=String(a.tier||3);
+  openModal('m-account');
+}
+function saveAccount(){
+  var name=$('fa-name').value.trim();
+  if(!name){alert('Account name required');return;}
+  var data={
+    name:name,city:$('fa-city').value.trim(),
+    tamMin:parseInt($('fa-min').value)||0,tamMax:parseInt($('fa-max').value)||0,
+    oppVal:parseInt($('fa-opp-val').value)||0,status:$('fa-status').value,
+    vendor:$('fa-vendor').value.trim(),product:$('fa-product').value.trim(),
+    clinical:$('fa-clinical').value.trim(),biomed:$('fa-biomed').value.trim(),
+    champScore:parseInt($('fa-champ').value)||0,prob:parseInt($('fa-prob').value)||0,
+    tier:parseInt($('fa-tier').value)||3,
+    budget:$('fa-budget').value.trim(),lastContact:$('fa-contact').value,
+    comp:$('fa-comp').value.trim(),next:$('fa-next').value.trim(),
+    notes:$('fa-notes').value.trim(),
+  };
+  var oldName=null;
+  if(_editingAcctId){
+    var i=DB.accounts.findIndex(function(x){return x.id===_editingAcctId;});
+    if(i>-1){ oldName=DB.accounts[i].name; DB.accounts[i]=Object.assign({},DB.accounts[i],data); }
+    // If name changed, update references
+    if(oldName && oldName!==name){
+      DB.contacts.forEach(function(c){if(c.account===oldName)c.account=name;});
+      DB.interactions.forEach(function(i){if(i.account===oldName)i.account=name;});
+      DB.tasks.forEach(function(t){if(t.account===oldName)t.account=name;});
+      DB.opportunities.forEach(function(o){if(o.account===oldName)o.account=name;});
+    }
+  } else {
+    DB.accounts.push(Object.assign({id:DB.nextId.a++},data));
+  }
+  persist();closeModal('m-account');
+  renderDashboard();renderAccountsTable();
+}
+function deleteAccount(id){
+  if(!confirm('Delete this account? This will not delete related contacts/tasks but will leave them unlinked.')) return;
+  DB.accounts=DB.accounts.filter(function(x){return x.id!==id;});
+  persist();
+  goPage('dashboard',document.querySelector('.nav-link'));
+}
+
+// ===== MODALS: TASK / OPP =====
+function populateAccountSelects(){
+  var opts='<option value="">— None —</option>'+DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('');
+  var oppOpts=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('');
+  if($('ft-account')) $('ft-account').innerHTML=opts;
+  if($('fo-account')) $('fo-account').innerHTML=oppOpts||'<option value="">No accounts yet</option>';
+}
+function openTaskModal(){ populateAccountSelects(); $('ft-title').value=''; $('ft-due').value=today(); openModal('m-task'); }
+function openTaskModalFor(name){ populateAccountSelects(); $('ft-title').value=''; $('ft-due').value=today(); $('ft-account').value=name; openModal('m-task'); }
+function saveTask(){
+  var title=$('ft-title').value.trim();
+  if(!title){alert('Task title required');return;}
+  DB.tasks.push({id:DB.nextId.t++,title:title,account:$('ft-account').value,type:$('ft-type').value,due:$('ft-due').value,priority:$('ft-priority').value,done:false});
+  persist();closeModal('m-task');renderTasks();updateBadges();
+}
+
+function openOppModal(){
+  populateAccountSelects();
+  $('fo-name').value='';$('fo-value').value='';$('fo-close').value=today();$('fo-stage').value='1';
+  if(DB.accounts.length===0){ alert('Add an account first before adding a deal to the funnel.'); return; }
+  openModal('m-opp');
+}
+function openOppModalFor(name){
+  populateAccountSelects();
+  $('fo-name').value='';$('fo-value').value='';$('fo-close').value=today();$('fo-stage').value='1';
+  $('fo-account').value=name;
+  openModal('m-opp');
+}
+function saveOpp(){
+  var name=$('fo-name').value.trim();
+  if(!name){alert('Deal name required');return;}
+  DB.opportunities.push({id:DB.nextId.o++,name:name,account:$('fo-account').value,value:parseInt($('fo-value').value)||0,stage:parseInt($('fo-stage').value)||1,close:$('fo-close').value});
+  persist();closeModal('m-opp');renderFunnel('funnel-board-full');renderDashboard();updateBadges();
+}
+
+// ===== MODALS: CONTACT / INTERACTION =====
+var _editingContactId=null;
+function openContactModal(id){
+  _editingContactId=id||null;
+  var sel=$('fc-account');
+  sel.innerHTML=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('')||'<option value="">No accounts yet</option>';
+  if(id){
+    var c=DB.contacts.find(function(x){return x.id===id;});
+    if(!c) return;
+    $('m-contact-title').textContent='Edit Contact';
+    $('fc-name').value=c.name;$('fc-title-input').value=c.title;
+    sel.value=c.account;$('fc-influence').value=c.influence;
+    $('fc-phone').value=c.phone||'';$('fc-email').value=c.email||'';
+    $('fc-notes').value=c.notes||'';
+  } else {
+    $('m-contact-title').textContent='Add Contact';
+    ['fc-name','fc-title-input','fc-phone','fc-email','fc-notes'].forEach(function(f){$(f).value='';});
+    $('fc-influence').value='neutral';
+  }
+  if(DB.accounts.length===0){ alert('Add an account first before adding a contact.'); return; }
+  openModal('m-contact');
+}
+function openContactModalForAccount(acctName){ openContactModal(null); $('fc-account').value=acctName; }
+function saveContact(){
+  var name=$('fc-name').value.trim();
+  if(!name){alert('Name required');return;}
+  var data={
+    name:name,title:$('fc-title-input').value.trim(),
+    account:$('fc-account').value,influence:$('fc-influence').value,
+    phone:$('fc-phone').value.trim(),email:$('fc-email').value.trim(),
+    notes:$('fc-notes').value.trim(),
+  };
+  if(_editingContactId){
+    var i=DB.contacts.findIndex(function(x){return x.id===_editingContactId;});
+    if(i>-1) DB.contacts[i]=Object.assign({},DB.contacts[i],data);
+  } else {
+    DB.contacts.push(Object.assign({id:DB.nextId.c++,checklist:{email:false,linkedin:false,text:false,logged:true,task:false}},data));
+  }
+  persist();closeModal('m-contact');renderContactsPage();
+}
+function openInteractionModal(presetContactId){
+  if(DB.contacts.length===0){ alert('Add a contact first.'); return; }
+  var sel=$('fi-contact');
+  sel.innerHTML=DB.contacts.map(function(c){return '<option value="'+c.id+'">'+c.name+' - '+c.account+'</option>';}).join('');
+  if(presetContactId) sel.value=presetContactId;
+  $('fi-date').value=today();$('fi-notes').value='';$('fi-followup').value='';$('fi-sentiment').value='neutral';
+  openModal('m-interaction');
+}
+function saveInteraction(){
+  var cId=parseInt($('fi-contact').value);
+  var c=DB.contacts.find(function(x){return x.id===cId;});
+  var notes=$('fi-notes').value.trim();
+  if(!notes){alert('Notes required');return;}
+  var date=$('fi-date').value;
+  DB.interactions.push({id:DB.nextId.i++,contactId:cId,contactName:c?c.name:'Unknown',account:c?c.account:'',type:$('fi-type').value,date:date,sentiment:$('fi-sentiment').value,notes:notes,followup:$('fi-followup').value.trim()});
+  if(c){ var acct=DB.accounts.find(function(a){return a.name===c.account;}); if(acct) acct.lastContact=date; }
+  persist();closeModal('m-interaction');
+  _selContactId=cId; renderContactsPage(); renderDashboard();
+}
+function goContacts(contactId){
+  _selContactId=contactId;
+  var btn=document.querySelector('.nav-link[onclick*="contacts"]');
+  goPage('contacts',btn);
+  setTimeout(function(){selectContact(contactId);},80);
+}
+
+// ===== PLAYBOOK =====
+var _pbFilter=null;
+var _editingPbId=null;
+var PB_RATING={
+  proven:{label:'Proven',icon:'⭐',color:'var(--green)'},
+  good:{label:'Good',icon:'👍',color:'var(--yellow)'},
+  wishidasked:{label:"Wish I'd Asked",icon:'💡',color:'var(--orange)'},
+  try:{label:'Try Next Time',icon:'🧪',color:'var(--text-muted)'},
+};
+var PB_CAT_ICONS={
+  'Discovery':'🔍','Timeline & Decision':'📅','Champion Building':'🌟','Objection Handling':'🛡️',
+  'Closing':'🤝','Competitive Intel':'🔬','Stakeholder Mapping':'🗺️','Field Lesson':'📖','Product Knowledge':'🔬',
+};
+function renderPlaybook(){
+  var cats=[];
+  DB.playbook.forEach(function(p){ if(cats.indexOf(p.category)===-1) cats.push(p.category); });
+  var pills='<button class="btn btn-sm" style="'+(!_pbFilter?'background:var(--accent);color:var(--navy);border:none':'background:var(--navy-light);color:var(--text-muted);border:1px solid var(--navy-border)')+'" onclick="_pbFilter=null;renderPlaybook()">All ('+DB.playbook.length+')</button>';
+  cats.forEach(function(c){
+    var active=(_pbFilter===c);
+    var icon=PB_CAT_ICONS[c]||'';
+    pills+='<button class="btn btn-sm" data-cat="'+c+'" style="'+(active?'background:var(--accent-dim);border:1px solid var(--accent);color:var(--accent)':'background:var(--navy-light);color:var(--text-muted);border:1px solid var(--navy-border)')+'" onclick="_pbFilter=this.getAttribute(\'data-cat\');renderPlaybook()">'+icon+' '+c+'</button>';
+  });
+  $('playbook-filter-pills').innerHTML=pills;
+  var filtered=_pbFilter?DB.playbook.filter(function(p){return p.category===_pbFilter;}):DB.playbook;
+  if(filtered.length===0){
+    $('playbook-grid').innerHTML='<div class="empty"><div class="empty-icon">📋</div>No playbook items yet. Add your first question!</div>';
+    return;
+  }
+  var grouped={};
+  filtered.forEach(function(p){ if(!grouped[p.category])grouped[p.category]=[]; grouped[p.category].push(p); });
+  var html='';
+  Object.keys(grouped).forEach(function(cat){
+    var icon=PB_CAT_ICONS[cat]||'';
+    html+='<div style="margin-bottom:24px"><div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--navy-border)">';
+    html+='<span style="font-size:16px">'+icon+'</span><span style="font-family:Syne,sans-serif;font-size:13px;font-weight:700;color:var(--text)">'+cat+'</span>';
+    html+='<span style="font-size:11px;color:var(--text-dim);margin-left:4px">'+grouped[cat].length+' item'+(grouped[cat].length!==1?'s':'')+'</span></div>';
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px">';
+    grouped[cat].forEach(function(p){
+      var r=PB_RATING[p.rating]||PB_RATING.try;
+      html+=
+        '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:16px;position:relative">'+
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px">'+
+            '<div style="font-size:22px;line-height:1">'+r.icon+'</div>'+
+            '<div style="display:flex;gap:6px">'+
+              '<button onclick="editPlaybookItem('+p.id+')" style="background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:2px 6px;border-radius:4px">✏</button>'+
+              '<button onclick="deletePlaybookItem('+p.id+')" style="background:none;border:none;color:var(--text-dim);font-size:13px;cursor:pointer;padding:2px 6px;border-radius:4px">✕</button>'+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:14px;font-weight:700;line-height:1.5;margin-bottom:8px;color:var(--white)">'+p.question+'</div>'+
+          '<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;background:rgba(255,255,255,0.05);color:'+r.color+';margin-bottom:'+(p.notes?'10px':'0')+'">'+r.icon+' '+r.label+'</div>'+
+          (p.notes?'<div style="font-size:12.5px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--navy-border);padding-top:8px;margin-top:4px">'+p.notes+'</div>':'')+
+        '</div>';
+    });
+    html+='</div></div>';
+  });
+  $('playbook-grid').innerHTML=html;
+}
+function openPlaybookModal(){
+  _editingPbId=null;
+  $('m-playbook-title').textContent='Add to Playbook';
+  $('pb-question').value='';$('pb-notes').value='';
+  $('pb-category').value='Discovery';$('pb-rating').value='proven';
+  openModal('m-playbook');
+}
+function editPlaybookItem(id){
+  var p=DB.playbook.find(function(x){return x.id===id;});
+  if(!p) return;
+  _editingPbId=id;
+  $('m-playbook-title').textContent='Edit Playbook Item';
+  $('pb-question').value=p.question;$('pb-category').value=p.category;$('pb-rating').value=p.rating;$('pb-notes').value=p.notes||'';
+  openModal('m-playbook');
+}
+function savePlaybookItem(){
+  var q=$('pb-question').value.trim();
+  if(!q){alert('Question required');return;}
+  var data={question:q,category:$('pb-category').value,rating:$('pb-rating').value,notes:$('pb-notes').value.trim()};
+  if(_editingPbId){
+    var i=DB.playbook.findIndex(function(x){return x.id===_editingPbId;});
+    if(i>-1) DB.playbook[i]=Object.assign({},DB.playbook[i],data);
+  } else {
+    DB.playbook.push(Object.assign({id:DB.nextId.p++},data));
+  }
+  persist();closeModal('m-playbook');renderPlaybook();
+}
+function deletePlaybookItem(id){
+  if(!confirm('Remove this from your playbook?')) return;
+  DB.playbook=DB.playbook.filter(function(x){return x.id!==id;});
+  persist();renderPlaybook();
+}
+
+
+// ===== FLEET INTELLIGENCE (by device type, then by account) =====
+var UL_STATUS = {
+  within:     {label:'Within UL', color:'var(--green)', bg:'var(--green-dim)'},
+  approaching:{label:'Approaching UL', color:'var(--yellow)', bg:'var(--yellow-dim)'},
+  beyond:     {label:'Beyond UL', color:'var(--orange)', bg:'var(--orange-dim)'},
+  beyondsl:   {label:'Beyond Service Life', color:'var(--red)', bg:'var(--red-dim)'},
+};
+var PROCARE_STATUS = {
+  none:   {label:'No Contract', color:'var(--orange)', bg:'var(--orange-dim)'},
+  active: {label:'Active', color:'var(--green)', bg:'var(--green-dim)'},
+  expired:{label:'Expired', color:'var(--red)', bg:'var(--red-dim)'},
+};
+var DEVICE_ICONS = {
+  'Monitors':'⚡','LUCAS':'🫀','AEDs':'🚨','Chairs':'🪑','Data':'📡','Other':'📦'
+};
+
+var DEVICE_TYPES = ['Monitors','LUCAS','AEDs','Chairs','Data'];
+
+function renderFleetPage(){
+  var types=DEVICE_TYPES.slice();
+  DB.devices.forEach(function(d){ if(types.indexOf(d.type)===-1) types.push(d.type); });
+
+  var totalUnits=DB.devices.reduce(function(s,d){return s+(d.count||0);},0);
+  var noProcare=DB.devices.filter(function(d){return d.procare==='none';}).reduce(function(s,d){return s+(d.count||0);},0);
+  var beyondUL=DB.devices.filter(function(d){return d.status==='beyond'||d.status==='beyondsl';}).reduce(function(s,d){return s+(d.count||0);},0);
+  var accountsWithDevices=[]; DB.devices.forEach(function(d){if(accountsWithDevices.indexOf(d.account)===-1)accountsWithDevices.push(d.account);});
+
+  $('fleet-summary').innerHTML=
+    '<div class="kpi-tile"><div class="kpi-tile-label">Device Types Tracked</div><div class="kpi-tile-value">'+types.length+'</div></div>'+
+    '<div class="kpi-tile"><div class="kpi-tile-label">Total Units</div><div class="kpi-tile-value">'+totalUnits+'</div></div>'+
+    '<div class="kpi-tile"><div class="kpi-tile-label">Beyond UL / Service Life</div><div class="kpi-tile-value orange">'+beyondUL+'</div></div>'+
+    '<div class="kpi-tile"><div class="kpi-tile-label">No ProCare Contract</div><div class="kpi-tile-value orange">'+noProcare+'</div><div class="kpi-sub">units across <b>'+accountsWithDevices.length+'</b> accounts</div></div>';
+
+  var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">';
+  types.forEach(function(type){
+    var items=DB.devices.filter(function(d){return d.type===type;});
+    var units=items.reduce(function(s,d){return s+(d.count||0);},0);
+    var accounts=[]; items.forEach(function(d){if(accounts.indexOf(d.account)===-1)accounts.push(d.account);});
+    var beyond=items.filter(function(d){return d.status==='beyond'||d.status==='beyondsl';}).reduce(function(s,d){return s+(d.count||0);},0);
+    var noPC=items.filter(function(d){return d.procare==='none';}).reduce(function(s,d){return s+(d.count||0);},0);
+    var icon=DEVICE_ICONS[type]||'📦';
+    html+=
+      '<div onclick="openDeviceDetail('+JSON.stringify(type)+')" style="cursor:pointer;background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:18px;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--navy-border)\'">'+
+        '<div style="font-size:28px;margin-bottom:8px">'+icon+'</div>'+
+        '<div style="font-family:Syne,sans-serif;font-size:15px;font-weight:700;margin-bottom:4px">'+type+'</div>'+
+        '<div style="font-family:DM Mono,monospace;font-size:24px;font-weight:700;color:var(--accent);margin-bottom:8px">'+units+'<span style="font-size:12px;color:var(--text-muted);font-weight:400"> units</span></div>'+
+        '<div style="font-size:11.5px;color:var(--text-muted);margin-bottom:2px">'+accounts.length+' account'+(accounts.length!==1?'s':'')+'</div>'+
+        (beyond>0?'<div style="font-size:11px;color:var(--orange);margin-top:6px">⚠ '+beyond+' Beyond UL</div>':'')+
+        (noPC>0?'<div style="font-size:11px;color:var(--orange)">🛡 '+noPC+' no ProCare</div>':'')+
+      '</div>';
+  });
+  html+='</div>';
+  $('device-type-grid').innerHTML=html;
+}
+
+function openDeviceDetail(type){
+  var items=DB.devices.filter(function(d){return d.type===type;});
+  var icon=DEVICE_ICONS[type]||'📦';
+  var totalUnits=items.reduce(function(s,d){return s+(d.count||0);},0);
+
+  var sorted=[].concat(items).sort(function(a,b){return (b.age||0)-(a.age||0);});
+
+  var rows='';
+  if(sorted.length===0){
+    rows='<div class="empty"><div class="empty-icon">'+icon+'</div>No '+type+' records yet.</div>';
+  } else {
+    sorted.forEach(function(d){
+      var ul=UL_STATUS[d.status]||UL_STATUS.within;
+      var pc=PROCARE_STATUS[d.procare]||PROCARE_STATUS.none;
+      var acct=DB.accounts.find(function(a){return a.name===d.account;});
+      rows+=
+        '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+ul.color+';border-radius:var(--radius-md);padding:16px;margin-bottom:10px">'+
+          '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">'+
+            '<div>'+
+              '<div style="font-size:15px;font-weight:700;cursor:pointer" '+(acct?'onclick="openDetail('+acct.id+')"':'')+'>'+d.account+(acct?' →':'')+'</div>'+
+            '</div>'+
+            '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+              '<span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;background:'+ul.bg+';color:'+ul.color+'">'+ul.label+'</span>'+
+              '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+pc.bg+';color:'+pc.color+'">'+pc.label+'</span>'+
+              '<button class="btn btn-ghost btn-sm" onclick="editDeviceRecord('+d.id+')">Edit</button>'+
+              '<button class="btn btn-danger btn-sm" onclick="deleteDeviceRecord('+d.id+','+JSON.stringify(type)+')">Delete</button>'+
+            '</div>'+
+          '</div>'+
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:'+(d.notes?'10px':'0')+'">'+
+            '<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px"><div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Units</div><div style="font-family:DM Mono,monospace;font-size:22px;font-weight:700">'+(d.count||0)+'</div></div>'+
+            '<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px"><div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Avg Age</div><div style="font-family:DM Mono,monospace;font-size:22px;font-weight:700">'+(d.age||0)+'<span style="font-size:12px;color:var(--text-muted)"> yrs</span></div></div>'+
+          '</div>'+
+          (d.notes?'<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--text)">'+d.notes+'</div>':'')+
+        '</div>';
+    });
+  }
+
+  $('device-detail-content').innerHTML=
+    '<button class="detail-back" onclick="goPage(\'fleet\',document.querySelector(\'.nav-link[onclick*=fleet]\'))">← Back to Fleet Intelligence</button>'+
+    '<div class="detail-hero">'+
+      '<div class="detail-top">'+
+        '<div><div class="detail-name">'+icon+' '+type+'</div><div class="detail-city">By account · sorted by age (oldest first)</div></div>'+
+        '<button class="btn btn-primary btn-sm" onclick="openDeviceUnitModal('+JSON.stringify(type)+')">+ Add Account Record</button>'+
+      '</div>'+
+      '<div class="detail-metrics" style="grid-template-columns:repeat(3,1fr)">'+
+        '<div class="detail-metric"><div class="dm-label">Total Units</div><div class="dm-value">'+totalUnits+'</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">Accounts</div><div class="dm-value">'+items.length+'</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">No ProCare</div><div class="dm-value orange">'+items.filter(function(d){return d.procare==='none';}).reduce(function(s,d){return s+(d.count||0);},0)+'</div></div>'+
+      '</div>'+
+    '</div>'+
+    rows;
+
+  document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
+  $('topbar-title').textContent=type;
+  $('topbar-sub').textContent='Fleet Intelligence · By account';
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  $('page-devicedetail').classList.add('active');
+  closeSidebar();
+}
+
+var _editingDeviceId=null, _deviceModalType=null;
+function openDeviceUnitModal(presetType){
+  if(DB.accounts.length===0){
+    if(confirm('You need at least one account before logging device records.\n\nGo to Accounts page to add one now?')){
+      goPage('accounts', document.querySelector('.nav-link[onclick*="accounts"]'));
+    }
+    return;
+  }
+  _editingDeviceId=null;
+  _deviceModalType=presetType||null;
+  $('m-device-title').textContent='Add Device Record';
+  $('fd-account').innerHTML=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('');
+  if(presetType) $('fd-type').value=presetType;
+  $('fd-count').value='';$('fd-age').value='';$('fd-status').value='within';$('fd-procare').value='none';$('fd-notes').value='';
+  openModal('m-device');
+}
+function editDeviceRecord(id){
+  var d=DB.devices.find(function(x){return x.id===id;});
+  if(!d) return;
+  _editingDeviceId=id;
+  $('m-device-title').textContent='Edit Device Record';
+  $('fd-account').innerHTML=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('');
+  $('fd-type').value=d.type;$('fd-account').value=d.account;
+  $('fd-count').value=d.count;$('fd-age').value=d.age;
+  $('fd-status').value=d.status;$('fd-procare').value=d.procare;$('fd-notes').value=d.notes||'';
+  openModal('m-device');
+}
+function saveDeviceRecord(){
+  var data={
+    type:$('fd-type').value, account:$('fd-account').value,
+    count:parseInt($('fd-count').value)||0, age:parseInt($('fd-age').value)||0,
+    status:$('fd-status').value, procare:$('fd-procare').value,
+    notes:$('fd-notes').value.trim(),
+  };
+  if(_editingDeviceId){
+    var i=DB.devices.findIndex(function(x){return x.id===_editingDeviceId;});
+    if(i>-1) DB.devices[i]=Object.assign({},DB.devices[i],data);
+  } else {
+    DB.devices.push(Object.assign({id:DB.nextId.d++},data));
+  }
+  persist();closeModal('m-device');
+  if(_deviceModalType||(_editingDeviceId&&data.type)) openDeviceDetail(data.type);
+  else renderFleetPage();
+}
+function deleteDeviceRecord(id,type){
+  if(!confirm('Delete this device record?')) return;
+  DB.devices=DB.devices.filter(function(x){return x.id!==id;});
+  persist();openDeviceDetail(type);
+}
+
+
+// ===== EXPORT / IMPORT =====
+function exportData(){
+  var blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  var date=new Date().toISOString().split('T')[0];
+  a.href=url;
+  a.download='true-north-crm-backup-'+date+'.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function importData(event){
+  var file=event.target.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var data=JSON.parse(e.target.result);
+      if(!data.accounts || !Array.isArray(data.accounts)){
+        alert('This does not look like a valid True North CRM backup file.');
+        return;
+      }
+      if(!confirm('Import this backup? This will REPLACE all current data in this CRM with the data from the file.\n\nThis cannot be undone.')) return;
+      DB=data;
+      if(!DB.quota) DB.quota={goal:0,sold:0,fy:'FY2026'};
+      if(!DB.profile) DB.profile={name:'',role:'Sales Representative',territory:''};
+      if(!DB.opportunities) DB.opportunities=[];
+      if(!DB.playbook) DB.playbook=[];
+      if(!DB.devices) DB.devices=[];
+      if(!DB.nextId) DB.nextId={a:1,t:1,o:1,c:1,i:1,p:1,d:1};
+      persist();
+      renderProfile();
+      goPage('dashboard', document.querySelector('.nav-link'));
+      updateBadges();
+      alert('Backup imported successfully.');
+    }catch(err){
+      alert('Could not read this file. Make sure it is a valid JSON backup exported from this CRM.');
+    }
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+// ===== INIT =====
+initTheme();
+renderProfile();
+renderDashboard();
+updateBadges();
+</script>
+</body>
+</html>

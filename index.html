@@ -444,9 +444,9 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="card-header">
           <div>
             <div class="card-title">Potential Deals</div>
-            <div class="card-sub">Auto-created when you log fleet data on an account. Drag into Stage 1 (or tap Activate) to make it an active deal counted in your pipeline.</div>
+            <div class="card-sub">One deal per device line you log on an account. Set a stage right on the device line to activate it directly into the pipeline — or drag/Activate it here.</div>
           </div>
-          <button class="btn btn-ghost btn-sm" onclick="openOppModal()">+ Add Deal Manually</button>
+          <button class="btn btn-ghost btn-sm" onclick="openOppModal()">+ Add Non-Device Deal</button>
         </div>
         <div id="potential-deals-row" style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;min-height:60px"></div>
       </div>
@@ -593,15 +593,34 @@ input[type=number]{-moz-appearance:textfield;}
         <label class="flabel">Installed Fleet — Drives Calculated TAM</label>
         <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5">Log what they currently have. TAM is calculated automatically from device count × age-weighted replacement pricing — oldest equipment weighted as most likely to upgrade first.</div>
         <div id="fleet-input-rows"></div>
-        <div style="margin-top:6px;padding:10px 12px;background:var(--navy-mid);border-radius:6px;display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:11.5px;color:var(--text-muted)">Calculated TAM</span>
-          <span id="fa-calc-tam" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--green)">$0</span>
+        <div style="margin-top:6px;padding:10px 12px;background:var(--navy-mid);border-radius:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:11.5px;color:var(--text-muted)">Calculated TAM</span>
+            <span id="fa-calc-tam" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--green)">$0</span>
+          </div>
+          <div style="margin-top:6px">
+            <button type="button" onclick="toggleTamExplainer()" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;padding:0;text-decoration:underline">How is this calculated?</button>
+            <div id="tam-explainer" style="display:none;margin-top:8px;font-size:11px;color:var(--text-muted);line-height:1.6;border-top:1px solid var(--navy-border);padding-top:8px">
+              <b style="color:var(--text)">Formula per device line:</b><br>
+              Quantity × Upgrade Target Price × Age Weight = Line Value<br><br>
+              <b style="color:var(--text)">Age weight scale</b> (older = more likely to convert, so it counts for more of the full price):<br>
+              0–1 yrs → 40% &nbsp;·&nbsp; 2–3 yrs → 55% &nbsp;·&nbsp; 4–5 yrs → 70% &nbsp;·&nbsp; 6–7 yrs → 85% &nbsp;·&nbsp; 8+ yrs → 100%<br><br>
+              <b style="color:var(--text)">Example:</b> 11 old AEDs, 8+ years old, upgrading to LPCR2 ($3,400/unit) →<br>
+              11 × $3,400 × 100% = <b style="color:var(--green)">$37,400</b><br><br>
+              Calculated TAM = the sum of every device line's value, added together. Lines already on a current Stryker product (already-LP35, already-LPCR2, already-LUCAS) contribute $0 since there's no upgrade opportunity there.
+            </div>
+          </div>
         </div>
       </div>
       <div class="frow">
         <div class="fg"><label class="flabel">Current Opportunity Value ($)</label>
-          <input class="finput" type="text" inputmode="decimal" id="fa-opp-val" placeholder="Auto-fills from fleet TAM" oninput="markOppValManual()">
-          <div style="font-size:10.5px;color:var(--text-dim);margin-top:3px" id="fa-opp-val-hint">Auto-synced to calculated TAM. Edit to override (e.g. partial deal, discount).</div>
+          <input class="finput" type="text" inputmode="decimal" id="fa-opp-val" placeholder="Auto-fills from fleet TAM">
+          <div style="font-size:10.5px;color:var(--text-dim);margin-top:3px" id="fa-opp-val-hint">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer">
+              <input type="checkbox" id="fa-opp-val-override" onchange="toggleOppValOverride()" style="margin:0">
+              <span>Override calculated TAM with a custom value</span>
+            </label>
+          </div>
         </div>
         <div class="fg"><label class="flabel">Status Color</label>
           <select class="fselect" id="fa-status">
@@ -619,9 +638,10 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg"><label class="flabel">Product / Solution</label><input class="finput" id="fa-product" placeholder="LIFEPAK 35"></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Clinical Champion</label><input class="finput" id="fa-clinical" placeholder="Name / Role"></div>
+        <div class="fg"><label class="flabel">Overall Clinical Champion (general)</label><input class="finput" id="fa-clinical" placeholder="Name / Role"></div>
         <div class="fg"><label class="flabel">Biomed Contact</label><input class="finput" id="fa-biomed" placeholder="Name / Role"></div>
       </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-top:-7px;margin-bottom:13px">This is your general account-wide champion. For a champion specific to one product (e.g. loves LUCAS but not LIFEPAK), use the Champion field on that device line below.</div>
       <div class="frow">
         <div class="fg full"><label class="flabel">Champion Score (0–10)</label>
           <input type="range" min="0" max="10" value="5" id="fa-champ" oninput="document.getElementById('fa-champ-val').textContent=this.value">
@@ -729,7 +749,18 @@ input[type=number]{-moz-appearance:textfield;}
       </div>
       <div class="frow">
         <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fc-account"></select></div>
-        <div class="fg"><label class="flabel">Influence Level</label>
+        <div class="fg"><label class="flabel">Role / Influence Tier</label>
+          <select class="fselect" id="fc-tier">
+            <option value="uninfluential">Uninfluential</option>
+            <option value="pure_clinical">Pure Clinical</option>
+            <option value="clinical_leadership">Clinical Leadership</option>
+            <option value="admin_leadership">Admin Leadership</option>
+            <option value="decision_maker">Decision Maker</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Disposition</label>
           <select class="fselect" id="fc-influence">
             <option value="champion">🌟 Champion</option>
             <option value="advocate">👍 Advocate</option>
@@ -846,6 +877,22 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
+
+<!-- MODAL: Stage Zoom (dashboard funnel click) -->
+<div class="modal-bg" id="m-stage-zoom">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="stage-zoom-title">Stage</div>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:3px" id="stage-zoom-sub"></div>
+      </div>
+      <button class="modal-x" onclick="closeModal('m-stage-zoom')">✕</button>
+    </div>
+    <div class="modal-body" id="stage-zoom-body" style="max-height:60vh;overflow-y:auto"></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-stage-zoom')">Close</button><button class="btn btn-primary" onclick="closeModal('m-stage-zoom');goPage('pipeline',document.querySelector('.nav-link[onclick*=pipeline]'))">View Full Pipeline →</button></div>
+  </div>
+</div>
+
 <script charset="utf-8">
 
 // ===== DATA =====
@@ -943,6 +990,14 @@ function renderFleetInputRows(){
           '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Age yrs" value="'+(r.age||'')+'" data-field="age" oninput="updateFleetRow('+i+',\'age\',this.value)">'+
           '<button type="button" onclick="removeFleetRow('+i+')" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px">✕</button>'+
         '</div>'+
+        (isAlreadyCurrent ? '' :
+        '<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:6px;margin-bottom:6px">'+
+          '<select class="fselect" style="font-size:11.5px;padding:6px 8px" onchange="updateFleetRow('+i+',\'stage\',this.value)">'+
+            '<option value="0"'+((r.stage||0)===0?' selected':'')+'>Potential (not yet active)</option>'+
+            FUNNEL_STAGES.map(function(s){return '<option value="'+s.n+'"'+(r.stage===s.n?' selected':'')+'>Stage '+s.n+' — '+s.name+'</option>';}).join('')+
+          '</select>'+
+          '<input class="finput" style="font-size:11.5px;padding:6px 8px" placeholder="Champion for THIS product" value="'+(r.champion||'')+'" oninput="updateFleetRow('+i+',\'champion\',this.value)">'+
+        '</div>')+
         '<div class="fleet-row-detail" data-detail="'+i+'">'+
           (isAlreadyCurrent
             ? '<div style="font-size:11px;color:var(--text-dim)">Already current Stryker product — no upgrade TAM from this line.</div>'
@@ -974,20 +1029,30 @@ function updateFleetCalculations(){
   var tamEl=$('fa-calc-tam');
   if(tamEl) tamEl.textContent = fmt(calcTotal);
   var oppEl=$('fa-opp-val');
-  var hintEl=$('fa-opp-val-hint');
-  if(oppEl && !_oppValManuallyEdited){
+  var overrideBox=$('fa-opp-val-override');
+  var isOverride = overrideBox && overrideBox.checked;
+  if(oppEl && !isOverride){
     oppEl.value = calcTotal>0 ? calcTotal : '';
-  }
-  if(hintEl){
-    hintEl.innerHTML = _oppValManuallyEdited
-      ? 'Manually overridden. <a href="#" onclick="resyncOppVal();return false;" style="color:var(--accent);text-decoration:underline">Re-sync to calculated TAM</a>'
-      : 'Auto-synced to calculated TAM. Edit to override (e.g. partial deal, discount).';
+    oppEl.readOnly = true;
+    oppEl.style.opacity = '0.75';
   }
 }
-function markOppValManual(){ _oppValManuallyEdited = true; var h=$('fa-opp-val-hint'); if(h) h.innerHTML='Manually overridden. <a href="#" onclick="resyncOppVal();return false;" style="color:var(--accent);text-decoration:underline">Re-sync to calculated TAM</a>'; }
-function resyncOppVal(){ _oppValManuallyEdited = false; renderFleetInputRows(); }
+function toggleOppValOverride(){
+  var overrideBox=$('fa-opp-val-override');
+  var oppEl=$('fa-opp-val');
+  if(!overrideBox || !oppEl) return;
+  if(overrideBox.checked){
+    oppEl.readOnly=false;
+    oppEl.style.opacity='1';
+    oppEl.focus();
+  } else {
+    oppEl.readOnly=true;
+    oppEl.style.opacity='0.75';
+    updateFleetCalculations(); // snap back to calculated value
+  }
+}
 function addFleetRow(){
-  _fleetRows.push({type:DEVICE_TYPE_OPTIONS[0], count:'', age:''});
+  _fleetRows.push({type:DEVICE_TYPE_OPTIONS[0], count:'', age:'', stage:0, champion:''});
   renderFleetInputRows();
 }
 function removeFleetRow(i){
@@ -1091,6 +1156,20 @@ function closeAccountModal(){
   closeModal('m-account');
 }
 
+
+
+function togglePaceExplainer(){
+  var el=$('pace-explainer');
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+function toggleTamExplainer(){
+  var el=$('tam-explainer');
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
 // ===== UTILS =====
 function $(id){ return document.getElementById(id); }
 function fmt(n){ return '$'+Number(n||0).toLocaleString(); }
@@ -1117,6 +1196,13 @@ var INFLUENCE={
   neutral: {label:'Neutral', icon:'–',cls:'',style:'background:rgba(93,122,150,0.15);color:#5d7a96'},
   resistant:{label:'Resistant',icon:'!',cls:'s-red'},
   unknown: {label:'Unknown', icon:'?',style:'background:rgba(93,122,150,0.1);color:#5d7a96'},
+};
+var ROLE_TIER={
+  uninfluential:       {label:'Uninfluential',       color:'#5d7a96', bg:'rgba(93,122,150,0.15)'},
+  pure_clinical:       {label:'Pure Clinical',       color:'var(--yellow)', bg:'var(--yellow-dim)'},
+  clinical_leadership: {label:'Clinical Leadership', color:'var(--green)',  bg:'var(--green-dim)'},
+  admin_leadership:    {label:'Admin Leadership',    color:'var(--orange)', bg:'var(--orange-dim)'},
+  decision_maker:      {label:'Decision Maker',      color:'var(--accent)', bg:'var(--accent-dim)'},
 };
 function champLabel(n){ if(n<=3)return 'No Champion'; if(n<=6)return 'Developing'; if(n<=8)return 'Strong Advocate'; return 'Internal Seller'; }
 function champColor(n){ if(n<=3)return 'var(--red)'; if(n<=6)return 'var(--orange)'; if(n<=8)return 'var(--yellow)'; return 'var(--green)'; }
@@ -1328,7 +1414,13 @@ function renderPace(){
       '<div class="pace-stat"><div class="pace-stat-label">Pace vs Expected</div><div class="pace-stat-value" style="color:'+(paceGap>=0?'var(--green)':'var(--red)')+'">'+gapText+'</div></div>'+
       '<span class="pace-badge '+statusClass+'">'+statusLabel+'</span>'+
     '</div>'+
-    '<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px">Period: '+startLabel+' – '+endLabel+'. Excludes weekends and the week of Dec 22–31. <a href="#" onclick="openQuotaModal();return false;" style="color:var(--text-muted);text-decoration:underline">Edit period</a></div>';
+    '<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px">Period: '+startLabel+' – '+endLabel+'. Excludes weekends and the week of Dec 22–31. <a href="#" onclick="openQuotaModal();return false;" style="color:var(--text-muted);text-decoration:underline">Edit period</a> · <a href="#" onclick="togglePaceExplainer();return false;" style="color:var(--text-muted);text-decoration:underline">How is this calculated?</a></div>'+
+    '<div id="pace-explainer" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid var(--navy-border);font-size:11px;color:var(--text-muted);line-height:1.7">'+
+      '<b style="color:var(--text)">Required Daily Run-Rate</b> = Remaining Quota ÷ Selling Days Left<br>'+
+      fmt(Math.round(remaining))+' remaining ÷ '+sellingDaysRemaining+' selling days = <b style="color:var(--accent)">'+fmt(Math.round(requiredDailyRate))+'/day</b><br><br>'+
+      '<b style="color:var(--text)">Selling Days</b> count weekdays only (Mon–Fri) between '+startLabel+' and '+endLabel+', excluding Dec 22–31.<br><br>'+
+      '<b style="color:var(--text)">Pace vs Expected</b> compares what you\'ve actually closed ('+fmt(sold)+') to what you\'d expect by today if evenly paced toward goal: Goal × (Days Elapsed ÷ Total Selling Days) = '+fmt(Math.round(expectedSoldByNow))+' expected by now.'+
+    '</div>';
 }
 
 // ===== DASHBOARD =====
@@ -1435,7 +1527,7 @@ function renderFunnel(targetId, preview){
     var total=items.reduce(function(s,o){return s+(o.value||0);},0);
     var cards='';
     if(preview){
-      // condensed: just count + total
+      // condensed: just count + total — whole column is clickable to zoom into stage detail
       cards = items.length ?
         '<div style="font-size:11px;color:var(--text-muted);margin-top:6px">'+items.length+' deal'+(items.length!==1?'s':'')+'</div>'
         : '<div class="funnel-empty">—</div>';
@@ -1449,16 +1541,20 @@ function renderFunnel(targetId, preview){
             'onclick="'+(acct?'openDetail('+acct.id+')':'')+'">'+
             '<div class="funnel-card-title">'+o.name+'</div>'+
             '<div class="funnel-card-meta">'+o.account+'</div>'+
+            (o.champion?'<div class="funnel-card-meta">👤 '+o.champion+'</div>':'')+
             '<div class="funnel-card-val">'+fmt(o.value)+'</div>'+
             '<div class="funnel-card-meta">Close: '+(o.close||'—')+'</div>'+
-            '<button onclick="event.stopPropagation();deleteOpp('+o.id+')" style="margin-top:6px;background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕ Remove</button>'+
+            '<div style="display:flex;gap:10px;margin-top:6px">'+
+              '<button onclick="event.stopPropagation();editOpp('+o.id+')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">✏ Edit</button>'+
+              '<button onclick="event.stopPropagation();deleteOpp('+o.id+')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕ Remove</button>'+
+            '</div>'+
           '</div>';
       });
       if(!items.length) cards='<div class="funnel-empty">No deals at this stage<br><span style="font-size:10px">Drop a card here</span></div>';
     }
     html+=
-      '<div class="funnel-col'+(preview?'':' active-deal')+'" style="'+(preview?'min-width:170px':'')+'" data-stage="'+stage.n+'" '+
-        (preview?'':'ondragover="onColDragOver(event,'+stage.n+')" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event,'+stage.n+')"')+'>'+
+      '<div class="funnel-col'+(preview?'':' active-deal')+'" style="'+(preview?'min-width:170px;cursor:pointer':'')+'" data-stage="'+stage.n+'" '+
+        (preview?'onclick="openStageZoom('+stage.n+')"':'ondragover="onColDragOver(event,'+stage.n+')" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event,'+stage.n+')"')+'>'+
         '<div class="funnel-col-head">'+
           '<div class="funnel-stage-num">Stage '+stage.n+'</div>'+
           '<div class="funnel-stage-name">'+stage.name+'</div>'+
@@ -1473,6 +1569,67 @@ function renderFunnel(targetId, preview){
     var activeCount = DB.opportunities.filter(function(o){return o.stage>0;}).length;
     $('nb-pipeline').textContent = activeCount;
   }
+}
+
+
+// Edit a deal: if it's tied to a device line, send the rep to that account's fleet line to edit it (single source of truth).
+// If it's a manually-added deal with no device line, open a lightweight edit modal for it directly.
+function editOpp(id){
+  var o=DB.opportunities.find(function(x){return x.id===id;});
+  if(!o) return;
+  if(o.lineId){
+    var acct=DB.accounts.find(function(a){return a.name===o.account;});
+    if(acct){
+      closeModal('m-stage-zoom');
+      editAccount(acct.id);
+      return;
+    }
+  }
+  // Manually-added deal (no device line) — edit directly
+  _editingManualOppId=id;
+  $('fo-name').value=o.name;
+  populateAccountSelects();
+  $('fo-account').value=o.account;
+  $('fo-value').value=o.value;
+  $('fo-stage').value=String(o.stage||1);
+  $('fo-close').value=o.close||'';
+  closeModal('m-stage-zoom');
+  openModal('m-opp');
+}
+var _editingManualOppId=null;
+
+// Dashboard stage zoom-in: click any funnel column on the dashboard to see every deal/account at that stage
+function openStageZoom(stageNum){
+  var stage = FUNNEL_STAGES.find(function(s){return s.n===stageNum;});
+  if(!stage) return;
+  var items = DB.opportunities.filter(function(o){return o.stage===stageNum;});
+  var total = items.reduce(function(s,o){return s+(o.value||0);},0);
+  var rows='';
+  if(items.length===0){
+    rows='<div class="empty"><div class="empty-icon">📭</div>No deals at this stage yet.</div>';
+  } else {
+    items.slice().sort(function(a,b){return b.value-a.value;}).forEach(function(o){
+      var acct=DB.accounts.find(function(a){return a.name===o.account;});
+      rows+=
+        '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;cursor:pointer" onclick="closeModal(\'m-stage-zoom\');'+(acct?'openDetail('+acct.id+')':'')+'">'+
+            '<div>'+
+              '<div style="font-size:14px;font-weight:700">'+o.name+'</div>'+
+              '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">'+o.account+(o.champion?' · 👤 '+o.champion:'')+'</div>'+
+            '</div>'+
+            '<div style="font-family:DM Mono,monospace;font-size:15px;font-weight:700;color:var(--green)">'+fmt(o.value)+'</div>'+
+          '</div>'+
+          '<div style="margin-top:8px;display:flex;gap:12px">'+
+            '<button onclick="editOpp('+o.id+')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer">✏ Edit</button>'+
+            '<button onclick="closeModal(\'m-stage-zoom\');deleteOpp('+o.id+')" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer">✕ Remove</button>'+
+          '</div>'+
+        '</div>';
+    });
+  }
+  $('stage-zoom-title').textContent='Stage '+stage.n+' — '+stage.name;
+  $('stage-zoom-sub').textContent=stage.goal+' · '+items.length+' deal'+(items.length!==1?'s':'')+' · '+fmt(total)+' total';
+  $('stage-zoom-body').innerHTML=rows;
+  openModal('m-stage-zoom');
 }
 
 function deleteOpp(id){
@@ -1497,6 +1654,7 @@ function renderPotentialDeals(){
         'ondragstart="onDragStart(event,'+o.id+')" ondragend="onDragEnd(event)" '+
         'ontouchstart="onTouchStart(event,'+o.id+')" ontouchmove="onTouchMove(event)" ontouchend="onTouchEnd(event)">'+
         '<div class="potential-card-title">'+o.name+'</div>'+
+        (o.champion?'<div style="font-size:11px;color:var(--text-muted);margin-bottom:4px">👤 '+o.champion+'</div>':'')+
         '<div class="potential-card-val">'+fmt(o.value)+'</div>'+
         '<div class="potential-card-actions">'+
           '<button class="btn btn-primary btn-sm" onclick="activateDeal('+o.id+')">→ Activate to Stage 1</button>'+
@@ -1511,6 +1669,7 @@ function activateDeal(id){
   var o=DB.opportunities.find(function(x){return x.id===id;});
   if(!o) return;
   o.stage=1;
+  o.autoCreated=false; // manually activated, stop auto-syncing stage from device line
   if(!o.close) o.close='';
   persist();
   renderPotentialDeals();
@@ -1550,6 +1709,7 @@ function moveOppToStage(id, stageNum){
   var o=DB.opportunities.find(function(x){return x.id===id;});
   if(!o) return;
   o.stage=stageNum;
+  o.autoCreated=false; // once manually moved, stop letting the account's device-line stage override this
   persist();
   renderPotentialDeals();
   renderFunnel('funnel-board-full');
@@ -1636,12 +1796,13 @@ function openDetail(id){
   } else {
     acctContacts.forEach(function(c){
       var iv=INFLUENCE[c.influence]||INFLUENCE.unknown;
+      var rt=ROLE_TIER[c.roleTier]||null;
       var iCount=DB.interactions.filter(function(i){return i.contactId===c.id;}).length;
       contactsHtml+=
         '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--navy-border);cursor:pointer" onclick="goContacts('+c.id+')">'+
           '<div style="width:26px;height:26px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">'+initials(c.name)+'</div>'+
           '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+c.name+' <span style="font-size:11px">'+iv.icon+'</span></div>'+
-          '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div></div>'+
+          '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+(rt?' · <span style="color:'+rt.color+'">'+rt.label+'</span>':'')+'</div></div>'+
           '<span style="font-size:11px;color:var(--text-dim)">'+iCount+' logs</span>'+
         '</div>';
     });
@@ -1728,16 +1889,16 @@ function openDetail(id){
   var dealsHtml='';
   var acctDeals=DB.opportunities.filter(function(o){return o.account===a.name;});
   if(acctDeals.length){
-    acctDeals.forEach(function(o){
-      var stage=FUNNEL_STAGES[o.stage-1];
+    acctDeals.slice().sort(function(x,y){return y.value-x.value;}).forEach(function(o){
+      var stageLabel = o.stage===0 ? 'Potential (not yet active)' : ('Stage '+o.stage+': '+(FUNNEL_STAGES[o.stage-1]?FUNNEL_STAGES[o.stage-1].name:'Unknown'));
       dealsHtml+=
         '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--navy-border);font-size:12.5px">'+
-          '<div><b>'+o.name+'</b><div style="color:var(--text-muted);font-size:11px">Stage '+o.stage+': '+stage.name+'</div></div>'+
+          '<div><b>'+o.name+'</b><div style="color:var(--text-muted);font-size:11px">'+stageLabel+(o.champion?' · 👤 '+o.champion:'')+'</div></div>'+
           '<div style="font-family:DM Mono,monospace;color:var(--green)">'+fmt(o.value)+'</div>'+
         '</div>';
     });
   } else {
-    dealsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">Not in the funnel yet. <button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Add to Funnel</button></div>';
+    dealsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No deals yet. Add device lines above (with quantity and age) to automatically create deals here.</div>';
   }
 
   $('detail-content').innerHTML=
@@ -1785,7 +1946,7 @@ function openDetail(id){
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Notes &amp; Context</span><button class="btn btn-ghost btn-sm" onclick="openNoteModal('+a.id+')">+ Add Note</button></div>'+notesTimelineHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Contact</button></div>'+contactsHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Task</button></div>'+tasksHtml+'</div>'+
-      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Funnel Stage / Deals</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Deal</button></div>'+dealsHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Deals (auto-created from device lines)</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Non-Device Deal</button></div>'+dealsHtml+'</div>'+
     '</div>';
 
   document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
@@ -1885,6 +2046,7 @@ function renderContactsPage(){
               '<div style="font-size:13px;font-weight:700;margin-bottom:2px">'+c.name+' <span style="font-size:12px">'+iv.icon+'</span>'+(c.source==='secondhand'?' <span style="font-size:10px">👂</span>':'')+'</div>'+
               '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div>'+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">'+c.account+'</div>'+
+              (ROLE_TIER[c.roleTier]?'<div style="margin-top:4px"><span style="font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:10px;background:'+ROLE_TIER[c.roleTier].bg+';color:'+ROLE_TIER[c.roleTier].color+'">'+ROLE_TIER[c.roleTier].label+'</span></div>':'')+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">'+iCount+' interaction'+(iCount!==1?'s':'')+' '+(lastI?'· Last: '+lastI.date:'')+'</div>'+
             '</div>'+
           '</div>'+
@@ -1903,6 +2065,8 @@ function selectContact(id,noScroll){
   var iv=INFLUENCE[c.influence]||INFLUENCE.unknown;
   var pillStyle=iv.style||'';
   var pillCls=iv.cls||'';
+  var rt=ROLE_TIER[c.roleTier]||ROLE_TIER.uninfluential;
+  var tierBadge='<span style="display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10.5px;font-weight:700;background:'+rt.bg+';color:'+rt.color+'">'+rt.label+'</span>';
   var srcBadge = c.source==='secondhand'
     ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--orange-dim);color:var(--orange)">👂 Secondhand'+(c.sourceName?' · '+c.sourceName:'')+'</span>'
     : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--green-dim);color:var(--green)">📝 Met Myself</span>';
@@ -1910,6 +2074,7 @@ function selectContact(id,noScroll){
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
       '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">'+initials(c.name)+'</div>'+
       '<div><div style="font-size:15px;font-weight:700">'+c.name+'</div><div style="font-size:12px;color:var(--text-muted)">'+c.title+' · '+c.account+'</div></div>'+
+      tierBadge+
       '<span class="status-pill '+pillCls+'" style="'+pillStyle+'">'+iv.icon+' '+iv.label+'</span>'+
       srcBadge+
       '<button class="btn btn-ghost btn-sm" onclick="openContactModal('+id+')" style="margin-left:4px">Edit</button>'+
@@ -2007,8 +2172,10 @@ function openAccountModal(){
   $('fa-notes-source').value='mine';
   toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap');
   _fleetRows=[];
-  _oppValManuallyEdited=false;
   renderFleetInputRows();
+  $('fa-opp-val-override').checked=false;
+  $('fa-opp-val').readOnly=true;
+  $('fa-opp-val').style.opacity='0.75';
   $('fa-opp-val').value='';
   $('fa-prob').value='';$('fa-champ').value=5;$('fa-champ-val').textContent=5;
   $('fa-status').value='green';$('fa-contact').value=today();
@@ -2031,14 +2198,19 @@ function editAccount(id){
   $('m-acct-title').textContent='Edit Account';
   var bEl=$('account-draft-banner'); if(bEl) bEl.innerHTML='';
   _fleetRows = (a.fleet && a.fleet.length) ? JSON.parse(JSON.stringify(a.fleet)) : [];
-  var calcForThis = calcFleetTAM(_fleetRows);
-  _oppValManuallyEdited = (a.oppVal!==undefined && a.oppVal!==calcForThis);
   renderFleetInputRows();
+  var calcForThis = calcFleetTAM(_fleetRows);
+  var wasOverridden = (a.oppVal!==undefined && a.oppVal!==calcForThis && _fleetRows.length>0);
+  $('fa-opp-val-override').checked = wasOverridden;
+  $('fa-opp-val').readOnly = !wasOverridden;
+  $('fa-opp-val').style.opacity = wasOverridden ? '1' : '0.75';
+  if(!wasOverridden) $('fa-opp-val').value = calcForThis>0 ? calcForThis : (a.oppVal||'');
+  else $('fa-opp-val').value = a.oppVal||'';
   $('fa-name').value=a.name;$('fa-city').value=a.city;
   var pSel=$('fa-parent');
   pSel.innerHTML='<option value="">— None / Standalone —</option>'+DB.accounts.filter(function(x){return x.id!==a.id;}).map(function(x){return '<option value="'+x.name+'">'+x.name+'</option>';}).join('');
   pSel.value=a.parent||'';
-  $('fa-opp-val').value=a.oppVal||'';$('fa-status').value=a.status;
+  $('fa-status').value=a.status;
   $('fa-vendor').value=a.vendor||'';$('fa-product').value=a.product||'';
   $('fa-clinical').value=a.clinical||'';$('fa-biomed').value=a.biomed||'';
   $('fa-champ').value=a.champScore||5;$('fa-champ-val').textContent=a.champScore||5;
@@ -2053,8 +2225,15 @@ function editAccount(id){
 function saveAccount(){
   var name=$('fa-name').value.trim();
   if(!name){alert('Account name required');return;}
+
+  // Assign a stable lineId to each device row so its deal can be tracked across saves/edits
   var fleetClean = _fleetRows.filter(function(r){ return r.type && Number(r.count)>0; }).map(function(r){
-    return {type:r.type, count:Number(r.count)||0, age:Number(r.age)||0};
+    return {
+      lineId: r.lineId || ('L'+Date.now()+Math.random().toString(36).slice(2,7)),
+      type:r.type, count:Number(r.count)||0, age:Number(r.age)||0,
+      stage: r.stage!==undefined ? Number(r.stage) : 0,
+      champion: (r.champion||'').trim(),
+    };
   });
   var calcTam = calcFleetTAM(fleetClean);
   var data={
@@ -2086,25 +2265,46 @@ function saveAccount(){
     DB.accounts.push(Object.assign({id:DB.nextId.a++},data));
   }
 
-  // Auto-create a Potential Deal if this account has fleet data and no deal exists yet for it
-  if(fleetClean.length && calcTam>0){
-    var existingDeal = DB.opportunities.find(function(o){ return o.account===name; });
-    if(!existingDeal){
+  // ===== ONE DEAL PER DEVICE LINE =====
+  // Sync: each fleet line with a real upgrade value gets its own opportunity, keyed by lineId.
+  // Lines removed from the fleet have their deals removed too. Lines already-current (price=0) get no deal.
+  var lineIdsThisSave = fleetClean.map(function(r){return r.lineId;});
+
+  // Remove deals whose source line no longer exists on this account
+  DB.opportunities = DB.opportunities.filter(function(o){
+    if(o.account!==name || !o.lineId) return true; // keep deals not tied to a line, or belonging to other accounts
+    return lineIdsThisSave.indexOf(o.lineId)>-1;
+  });
+
+  fleetClean.forEach(function(r){
+    var def = DEVICE_TARGETS[r.type] || {target:'',price:0};
+    if(def.price<=0) return; // already-current product, no deal to create
+    var lineW = ageWeight(r.age);
+    var lineVal = Math.round(def.price * r.count * lineW);
+    if(lineVal<=0) return;
+
+    var existing = DB.opportunities.find(function(o){ return o.lineId===r.lineId; });
+    var dealName = name+' — '+r.type+' → '+def.target+' ('+r.count+'x)';
+    if(existing){
+      existing.value = lineVal;
+      existing.name = dealName;
+      existing.champion = r.champion;
+      // Only auto-sync stage if the deal was auto-created and hasn't been manually moved past where the line says
+      if(existing.autoCreated){ existing.stage = r.stage||0; }
+    } else {
       DB.opportunities.push({
         id:DB.nextId.o++,
-        name:name+' — Fleet Upgrade Opportunity',
+        name:dealName,
         account:name,
-        value:calcTam,
-        stage:0, // 0 = Potential, not yet active
+        value:lineVal,
+        stage:r.stage||0,
         close:'',
+        champion:r.champion,
+        lineId:r.lineId,
         autoCreated:true,
       });
-    } else if(existingDeal.autoCreated && existingDeal.stage===0){
-      // keep potential deal value in sync with recalculated TAM until it's activated
-      existingDeal.value = calcTam;
-      existingDeal.name = name+' — Fleet Upgrade Opportunity';
     }
-  }
+  });
 
   persist();
   clearAccountDraft();
@@ -2135,6 +2335,7 @@ function saveTask(){
 }
 
 function openOppModal(){
+  _editingManualOppId=null;
   populateAccountSelects();
   $('fo-name').value='';$('fo-value').value='';$('fo-close').value=today();$('fo-stage').value='1';
   if(DB.accounts.length===0){ alert('Add an account first before adding a deal to the funnel.'); return; }
@@ -2149,7 +2350,14 @@ function openOppModalFor(name){
 function saveOpp(){
   var name=$('fo-name').value.trim();
   if(!name){alert('Deal name required');return;}
-  DB.opportunities.push({id:DB.nextId.o++,name:name,account:$('fo-account').value,value:parseInt($('fo-value').value)||0,stage:parseInt($('fo-stage').value)||1,close:$('fo-close').value});
+  var data={name:name,account:$('fo-account').value,value:parseInt($('fo-value').value)||0,stage:parseInt($('fo-stage').value)||1,close:$('fo-close').value};
+  if(_editingManualOppId){
+    var i=DB.opportunities.findIndex(function(x){return x.id===_editingManualOppId;});
+    if(i>-1) DB.opportunities[i]=Object.assign({},DB.opportunities[i],data);
+    _editingManualOppId=null;
+  } else {
+    DB.opportunities.push(Object.assign({id:DB.nextId.o++},data));
+  }
   persist();closeModal('m-opp');renderFunnel('funnel-board-full');renderDashboard();updateBadges();
 }
 
@@ -2165,6 +2373,7 @@ function openContactModal(id){
     $('m-contact-title').textContent='Edit Contact';
     $('fc-name').value=c.name;$('fc-title-input').value=c.title;
     sel.value=c.account;$('fc-influence').value=c.influence;
+    $('fc-tier').value=c.roleTier||'uninfluential';
     $('fc-phone').value=c.phone||'';$('fc-email').value=c.email||'';
     $('fc-notes').value=c.notes||'';
     $('fc-source').value=c.source||'mine';
@@ -2174,6 +2383,7 @@ function openContactModal(id){
     $('m-contact-title').textContent='Add Contact';
     ['fc-name','fc-title-input','fc-phone','fc-email','fc-notes','fc-source-name'].forEach(function(f){$(f).value='';});
     $('fc-influence').value='neutral';
+    $('fc-tier').value='uninfluential';
     $('fc-source').value='mine';
     toggleSourceNameField('fc-source','fc-source-name-wrap');
   }
@@ -2187,6 +2397,7 @@ function saveContact(){
   var data={
     name:name,title:$('fc-title-input').value.trim(),
     account:$('fc-account').value,influence:$('fc-influence').value,
+    roleTier:$('fc-tier').value,
     phone:$('fc-phone').value.trim(),email:$('fc-email').value.trim(),
     notes:$('fc-notes').value.trim(),
     source:$('fc-source').value,

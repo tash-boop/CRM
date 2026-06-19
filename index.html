@@ -85,8 +85,10 @@ a{color:inherit;text-decoration:none;}
 
 /* STATUS */
 .status-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.s-darkgreen{background:rgba(15,130,60,0.2);color:#0f8a3c;}
 .s-green{background:var(--green-dim);color:var(--green);}
 .s-yellow{background:var(--yellow-dim);color:var(--yellow);}
+.s-grey{background:rgba(120,140,160,0.15);color:#8a9bb0;}
 .s-orange{background:var(--orange-dim);color:var(--orange);}
 .s-red{background:var(--red-dim);color:var(--red);}
 
@@ -107,6 +109,14 @@ a{color:inherit;text-decoration:none;}
 .quota-meta-row b{color:var(--text);font-family:'DM Mono',monospace;font-weight:600;}
 .quota-edit-btn{background:var(--navy-light);border:1px solid var(--navy-border);color:var(--text-muted);padding:5px 12px;border-radius:6px;font-size:11.5px;cursor:pointer;transition:all .15s;}
 .quota-edit-btn:hover{color:var(--text);}
+.pace-row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.pace-stat{display:flex;flex-direction:column;}
+.pace-stat-label{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px;}
+.pace-stat-value{font-family:'DM Mono',monospace;font-size:16px;font-weight:700;}
+.pace-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12.5px;font-weight:700;}
+.pace-badge.ahead{background:var(--green-dim);color:var(--green);}
+.pace-badge.ontrack{background:var(--yellow-dim);color:var(--yellow);}
+.pace-badge.behind{background:var(--red-dim);color:var(--red);}
 
 /* KPI STRIP */
 .kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px;}
@@ -143,7 +153,9 @@ a{color:inherit;text-decoration:none;}
 .bar-wrap{height:20px;background:var(--navy-light);border-radius:4px;overflow:hidden;position:relative;}
 .bar-fill{height:100%;border-radius:4px;transition:width 1.1s cubic-bezier(.16,1,.3,1);position:relative;}
 .bar-fill::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.18) 0%,transparent 100%);}
+.bar-fill.darkgreen{background:#0f8a3c;}
 .bar-fill.green{background:var(--green);}
+.bar-fill.grey{background:#8a9bb0;}
 .bar-fill.yellow{background:var(--yellow);}
 .bar-fill.orange{background:var(--orange);}
 .bar-fill.red{background:var(--red);}
@@ -238,6 +250,9 @@ a{color:inherit;text-decoration:none;}
 .finput::placeholder{color:var(--text-dim);}
 .ftextarea{resize:vertical;min-height:70px;}
 input[type=range]{width:100%;accent-color:var(--accent);background:transparent;cursor:pointer;}
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+input[type=number]{-moz-appearance:textfield;}
 
 /* EMPTY STATE */
 .empty{text-align:center;padding:50px 20px;color:var(--text-muted);}
@@ -351,6 +366,7 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
           <div>Closed/Sold: <b id="quota-sold">$0</b> &nbsp;·&nbsp; Goal: <b id="quota-goal-display">$0</b> &nbsp;·&nbsp; Remaining: <b id="quota-remaining">$0</b></div>
           <button class="quota-edit-btn" onclick="openQuotaModal()">✏ Set Quota & Sold</button>
         </div>
+        <div id="pace-box" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--navy-border)"></div>
       </div>
 
       <!-- KPI STRIP -->
@@ -364,10 +380,12 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
             <div class="card-sub">Bar length = TAM · Color = Win Probability / Stage · Click any row to open account</div>
           </div>
           <div class="chart-legend">
-            <div class="legend-item"><div class="legend-pip" style="background:var(--green)"></div>Very Favorable (75–100%)</div>
-            <div class="legend-item"><div class="legend-pip" style="background:var(--yellow)"></div>Favorable / Neutral (40–75%)</div>
-            <div class="legend-item"><div class="legend-pip" style="background:var(--orange)"></div>Difficult (20–50%)</div>
-            <div class="legend-item"><div class="legend-pip" style="background:var(--red)"></div>High Resistance (0–20%)</div>
+            <div class="legend-item"><div class="legend-pip" style="background:#0f8a3c"></div>Very Favorable</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--green)"></div>Favorable</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--yellow)"></div>50/50</div>
+            <div class="legend-item"><div class="legend-pip" style="background:#8a9bb0"></div>Neutral</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--orange)"></div>Unfavorable</div>
+            <div class="legend-item"><div class="legend-pip" style="background:var(--red)"></div>Very Unfavorable</div>
           </div>
         </div>
         <div class="tam-chart" id="tam-chart"></div>
@@ -411,7 +429,7 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div>
           <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">8-Stage Sales Funnel</div>
-          <div class="card-sub">Intelligence → Champion Development → Problem Development → Executive Alignment → Clinical Validation → Formal Evaluation → Financial Approval → Contract & PO</div>
+          <div class="card-sub">Intelligence → Champion Development → Problem Development → Executive Alignment → Quote Sent → Clinical Validation → Formal Evaluation → Financial Approval → Contract & PO</div>
         </div>
         <button class="btn btn-primary btn-sm" onclick="openOppModal()">+ Add Deal</button>
       </div>
@@ -501,8 +519,8 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
     <div class="modal-head"><div class="modal-title">Set Quota & Progress</div><button class="modal-x" onclick="closeModal('m-quota')">✕</button></div>
     <div class="modal-body">
       <div class="frow">
-        <div class="fg"><label class="flabel">Annual Quota / Goal ($)</label><input class="finput" type="number" id="fq-goal" placeholder="2000000"></div>
-        <div class="fg"><label class="flabel">Sold / Closed So Far ($)</label><input class="finput" type="number" id="fq-sold" placeholder="450000"></div>
+        <div class="fg"><label class="flabel">Annual Quota / Goal ($)</label><input class="finput" type="text" inputmode="decimal" id="fq-goal" placeholder="2000000"></div>
+        <div class="fg"><label class="flabel">Sold / Closed So Far ($)</label><input class="finput" type="text" inputmode="decimal" id="fq-sold" placeholder="450000"></div>
       </div>
       <div class="frow">
         <div class="fg full"><label class="flabel">Fiscal Year Label</label><input class="finput" id="fq-fy" placeholder="FY2026"></div>
@@ -533,28 +551,39 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
 <!-- MODAL: Account -->
 <div class="modal-bg" id="m-account">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title" id="m-acct-title">Add Account</div><button class="modal-x" onclick="closeModal('m-account')">✕</button></div>
+    <div class="modal-head"><div class="modal-title" id="m-acct-title">Add Account</div><button class="modal-x" onclick="closeAccountModal()">✕</button></div>
+    <div id="account-draft-banner"></div>
     <div class="modal-body">
       <div class="frow">
         <div class="fg"><label class="flabel">Account Name</label><input class="finput" id="fa-name" placeholder="e.g. St. Luke's Health System"></div>
         <div class="fg"><label class="flabel">City, State</label><input class="finput" id="fa-city" placeholder="Kansas City, MO"></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Priority Tier</label><select class="fselect" id="fa-tier"><option value="1">Tier 1 — Top Priority</option><option value="2">Tier 2 — Important</option><option value="3" selected>Tier 3 — Maintain</option></select></div>
-        <div class="fg"></div>
+        <div class="fg full"><label class="flabel">Parent Account (optional)</label><select class="fselect" id="fa-parent"><option value="">— None / Standalone —</option></select></div>
+      </div>
+
+      <div class="fg full" style="margin-bottom:13px">
+        <label class="flabel">Installed Fleet — Drives Calculated TAM</label>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px;line-height:1.5">Log what they currently have. TAM is calculated automatically from device count × age-weighted replacement pricing — oldest equipment weighted as most likely to upgrade first.</div>
+        <div id="fleet-input-rows"></div>
+        <div style="margin-top:6px;padding:10px 12px;background:var(--navy-mid);border-radius:6px;display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11.5px;color:var(--text-muted)">Calculated TAM</span>
+          <span id="fa-calc-tam" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--green)">$0</span>
+        </div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">TAM – Min ($)</label><input class="finput" type="number" id="fa-min" placeholder="200000"></div>
-        <div class="fg"><label class="flabel">TAM – Max ($)</label><input class="finput" type="number" id="fa-max" placeholder="400000"></div>
-      </div>
-      <div class="frow">
-        <div class="fg"><label class="flabel">Current Opportunity Value ($)</label><input class="finput" type="number" id="fa-opp-val" placeholder="150000"></div>
+        <div class="fg"><label class="flabel">Current Opportunity Value ($)</label>
+          <input class="finput" type="text" inputmode="decimal" id="fa-opp-val" placeholder="Auto-fills from fleet TAM" oninput="markOppValManual()">
+          <div style="font-size:10.5px;color:var(--text-dim);margin-top:3px" id="fa-opp-val-hint">Auto-synced to calculated TAM. Edit to override (e.g. partial deal, discount).</div>
+        </div>
         <div class="fg"><label class="flabel">Status Color</label>
           <select class="fselect" id="fa-status">
-            <option value="green">🟢 Green – Very Favorable (75–100%)</option>
-            <option value="yellow">🟡 Yellow – Favorable/Neutral (40–75%)</option>
-            <option value="orange">🟠 Orange – Difficult (20–50%)</option>
-            <option value="red">🔴 Red – High Resistance (0–20%)</option>
+            <option value="darkgreen">Dark Green – Very Favorable</option>
+            <option value="green">Green – Favorable</option>
+            <option value="yellow">Yellow – 50/50</option>
+            <option value="grey">Grey – Neutral / Early Stage</option>
+            <option value="orange">Orange – Unfavorable</option>
+            <option value="red">Red – Very Unfavorable</option>
           </select>
         </div>
       </div>
@@ -567,12 +596,12 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
         <div class="fg"><label class="flabel">Biomed Contact</label><input class="finput" id="fa-biomed" placeholder="Name / Role"></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Champion Score (0–10)</label>
+        <div class="fg full"><label class="flabel">Champion Score (0–10)</label>
           <input type="range" min="0" max="10" value="5" id="fa-champ" oninput="document.getElementById('fa-champ-val').textContent=this.value">
           <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Score: <b id="fa-champ-val" style="color:var(--accent)">5</b> / 10</div>
         </div>
-        <div class="fg"><label class="flabel">Win Probability (%)</label><input class="finput" type="number" min="0" max="100" id="fa-prob" placeholder="65"></div>
       </div>
+      <input type="hidden" id="fa-prob" value="0">
       <div class="frow">
         <div class="fg"><label class="flabel">Budget Cycle / Fiscal Year</label><input class="finput" id="fa-budget" placeholder="Q3 2026"></div>
         <div class="fg"><label class="flabel">Last Contact Date</label><input class="finput" type="date" id="fa-contact"></div>
@@ -584,10 +613,22 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
         <div class="fg full"><label class="flabel">Next Required Action</label><input class="finput" id="fa-next" placeholder="What must happen to advance this deal?"></div>
       </div>
       <div class="frow">
+        <div class="fg"><label class="flabel">Note Source</label>
+          <select class="fselect" id="fa-notes-source" onchange="toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap')">
+            <option value="mine">📝 My Own Notes (firsthand)</option>
+            <option value="secondhand">👂 Secondhand (heard from someone else)</option>
+          </select>
+        </div>
+        <div class="fg" id="fa-notes-source-name-wrap" style="display:none">
+          <label class="flabel">Source Name</label>
+          <input class="finput" id="fa-notes-source-name" placeholder="e.g. Ethan (prior rep), Nathan, manager">
+        </div>
+      </div>
+      <div class="frow">
         <div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="fa-notes" placeholder="Key context, stakeholders, history…"></textarea></div>
       </div>
     </div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-account')">Cancel</button><button class="btn btn-primary" onclick="saveAccount()">Save Account</button></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeAccountModal()">Cancel</button><button class="btn btn-primary" onclick="saveAccount()">Save Account</button></div>
   </div>
 </div>
 
@@ -626,7 +667,7 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
       <div class="frow"><div class="fg full"><label class="flabel">Deal Name</label><input class="finput" id="fo-name" placeholder="e.g. LIFEPAK 35 Fleet Replacement"></div></div>
       <div class="frow">
         <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fo-account"></select></div>
-        <div class="fg"><label class="flabel">Value ($)</label><input class="finput" type="number" id="fo-value" placeholder="150000"></div>
+        <div class="fg"><label class="flabel">Value ($)</label><input class="finput" type="text" inputmode="decimal" id="fo-value" placeholder="150000"></div>
       </div>
       <div class="frow">
         <div class="fg full"><label class="flabel">Funnel Stage</label>
@@ -635,10 +676,12 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
             <option value="2">Stage 2 — Champion Development</option>
             <option value="3">Stage 3 — Problem Development</option>
             <option value="4">Stage 4 — Executive Alignment</option>
-            <option value="5">Stage 5 — Clinical Validation</option>
-            <option value="6">Stage 6 — Formal Evaluation</option>
-            <option value="7">Stage 7 — Financial Approval</option>
-            <option value="8">Stage 8 — Contract & PO</option>
+            <option value="5">Stage 5 — Quote Requested</option>
+            <option value="6">Stage 6 — Quote Sent</option>
+            <option value="7">Stage 7 — Clinical Validation</option>
+            <option value="8">Stage 8 — Formal Evaluation</option>
+            <option value="9">Stage 9 — Financial Approval</option>
+            <option value="10">Stage 10 — Contract & PO</option>
           </select>
         </div>
       </div>
@@ -672,6 +715,18 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
       <div class="frow">
         <div class="fg"><label class="flabel">Phone</label><input class="finput" id="fc-phone" placeholder="(816) 555-0000"></div>
         <div class="fg"><label class="flabel">Email</label><input class="finput" id="fc-email" placeholder="name@hospital.org"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Contact Source</label>
+          <select class="fselect" id="fc-source" onchange="toggleSourceNameField('fc-source','fc-source-name-wrap')">
+            <option value="mine">📝 I Met Them Myself</option>
+            <option value="secondhand">👂 Heard About Them (from someone else)</option>
+          </select>
+        </div>
+        <div class="fg" id="fc-source-name-wrap" style="display:none">
+          <label class="flabel">Source Name</label>
+          <input class="finput" id="fc-source-name" placeholder="e.g. Ethan (prior rep), Nathan">
+        </div>
       </div>
       <div class="frow"><div class="fg full"><label class="flabel">Notes / Key Intel</label><textarea class="ftextarea" id="fc-notes" placeholder="Personality, preferences, blockers…"></textarea></div></div>
     </div>
@@ -750,8 +805,8 @@ input[type=range]{width:100%;accent-color:var(--accent);background:transparent;c
         <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fd-account"></select></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Unit Count</label><input class="finput" type="number" id="fd-count" placeholder="e.g. 12"></div>
-        <div class="fg"><label class="flabel">Average Age (years)</label><input class="finput" type="number" id="fd-age" placeholder="e.g. 8"></div>
+        <div class="fg"><label class="flabel">Unit Count</label><input class="finput" type="text" inputmode="decimal" id="fd-count" placeholder="e.g. 12"></div>
+        <div class="fg"><label class="flabel">Average Age (years)</label><input class="finput" type="text" inputmode="decimal" id="fd-age" placeholder="e.g. 8"></div>
       </div>
       <div class="frow">
         <div class="fg"><label class="flabel">Useful Life Status</label>
@@ -804,20 +859,223 @@ if(!DB.opportunities) DB.opportunities = [];
 if(!DB.playbook) DB.playbook = [];
 if(!DB.devices) DB.devices = [];
 
+
+// ===== FLEET-BASED TAM CALCULATOR =====
+// CURRENT device they have -> TARGET product you're selling them, and that target's price.
+// TAM reflects what they'd pay to upgrade to the target product, not the value of what they already own.
+var DEVICE_TYPE_OPTIONS = [
+  'Monitor – Zoll (any)',
+  'Monitor – LP15',
+  'Monitor – LP20',
+  'Monitor – LP35 (already current)',
+  'AED – Other/Older',
+  'AED – LPCR2 (already current)',
+  'LUCAS (already current)',
+  'Chair',
+];
+
+var DEVICE_TARGETS = {
+  'Monitor – Zoll (any)':              {target:'LIFEPAK 35', price:22500},
+  'Monitor – LP15':                    {target:'LIFEPAK 35', price:22500},
+  'Monitor – LP20':                    {target:'LIFEPAK 35', price:22500},
+  'Monitor – LP35 (already current)':  {target:'Already on LP35', price:0},
+  'AED – Other/Older':                 {target:'LPCR2', price:3400},
+  'AED – LPCR2 (already current)':     {target:'Already on LPCR2', price:0},
+  'LUCAS (already current)':           {target:'Already on LUCAS', price:0},
+  'Chair':                             {target:'Stryker Chair Upgrade', price:4000},
+};
+
+// Age-weighting: older fleet = more likely to convert. Weight scales 0.4 (brand new) -> 1.0 (10+ yrs)
+function ageWeight(age){
+  age=Number(age)||0;
+  if(age<=1) return 0.40;
+  if(age<=3) return 0.55;
+  if(age<=5) return 0.70;
+  if(age<=7) return 0.85;
+  return 1.00; // 8+ years - prime replacement window
+}
+
+function calcFleetTAM(fleetRows){
+  var total=0;
+  (fleetRows||[]).forEach(function(r){
+    var def = DEVICE_TARGETS[r.type] || {target:'',price:0};
+    var price = def.price || 0;
+    var count = Number(r.count)||0;
+    var w = ageWeight(r.age);
+    total += price * count * w;
+  });
+  return Math.round(total);
+}
+
+var _fleetRows = []; // working array while modal is open
+
+var _oppValManuallyEdited = false;
+function renderFleetInputRows(){
+  var el=$('fleet-input-rows');
+  if(!el) return;
+  var html='';
+  _fleetRows.forEach(function(r,i){
+    var def = DEVICE_TARGETS[r.type] || {target:'',price:0};
+    var isAlreadyCurrent = def.price===0;
+    var lineW = ageWeight(r.age);
+    var lineVal = Math.round(def.price * (Number(r.count)||0) * lineW);
+    html+=
+      '<div style="background:var(--navy-mid);border-radius:6px;padding:10px;margin-bottom:8px">'+
+        '<div style="display:grid;grid-template-columns:2fr 0.7fr 0.7fr auto;gap:6px;align-items:center;margin-bottom:6px">'+
+          '<select class="fselect" style="font-size:12px;padding:7px 8px" onchange="updateFleetRow('+i+',\'type\',this.value)">'+
+            DEVICE_TYPE_OPTIONS.map(function(t){return '<option value="'+t+'"'+(t===r.type?' selected':'')+'>'+t+'</option>';}).join('')+
+          '</select>'+
+          '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Qty" value="'+(r.count||'')+'" oninput="updateFleetRow('+i+',\'count\',this.value)">'+
+          '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Age yrs" value="'+(r.age||'')+'" oninput="updateFleetRow('+i+',\'age\',this.value)">'+
+          '<button type="button" onclick="removeFleetRow('+i+')" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px">✕</button>'+
+        '</div>'+
+        (isAlreadyCurrent
+          ? '<div style="font-size:11px;color:var(--text-dim)">Already current Stryker product — no upgrade TAM from this line.</div>'
+          : '<div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center">'+
+              '<span>→ Upgrade target: <b style="color:var(--accent)">'+def.target+'</b> ('+fmt(def.price)+'/unit)</span>'+
+              '<span style="font-family:DM Mono,monospace;color:var(--green);font-weight:700">'+fmt(lineVal)+'</span>'+
+            '</div>'
+        )+
+      '</div>';
+  });
+  el.innerHTML = html +
+    '<button type="button" class="btn btn-ghost btn-sm" onclick="addFleetRow()" style="margin-top:4px">+ Add Device Line</button>';
+  var calcTotal = calcFleetTAM(_fleetRows);
+  var tamEl=$('fa-calc-tam');
+  if(tamEl) tamEl.textContent = fmt(calcTotal);
+  var oppEl=$('fa-opp-val');
+  var hintEl=$('fa-opp-val-hint');
+  if(oppEl && !_oppValManuallyEdited){
+    oppEl.value = calcTotal>0 ? calcTotal : '';
+  }
+  if(hintEl){
+    hintEl.innerHTML = _oppValManuallyEdited
+      ? 'Manually overridden. <a href="#" onclick="resyncOppVal();return false;" style="color:var(--accent);text-decoration:underline">Re-sync to calculated TAM</a>'
+      : 'Auto-synced to calculated TAM. Edit to override (e.g. partial deal, discount).';
+  }
+}
+function markOppValManual(){ _oppValManuallyEdited = true; var h=$('fa-opp-val-hint'); if(h) h.innerHTML='Manually overridden. <a href="#" onclick="resyncOppVal();return false;" style="color:var(--accent);text-decoration:underline">Re-sync to calculated TAM</a>'; }
+function resyncOppVal(){ _oppValManuallyEdited = false; renderFleetInputRows(); }
+function addFleetRow(){
+  _fleetRows.push({type:DEVICE_TYPE_OPTIONS[0], count:'', age:''});
+  renderFleetInputRows();
+}
+function removeFleetRow(i){
+  _fleetRows.splice(i,1);
+  renderFleetInputRows();
+}
+function updateFleetRow(i,key,val){
+  if(!_fleetRows[i]) return;
+  _fleetRows[i][key]=val;
+  renderFleetInputRows();
+}
+
+
+// ===== NOTE/CONTACT SOURCE TOGGLE =====
+function toggleSourceNameField(selectId, wrapId){
+  var sel=$(selectId), wrap=$(wrapId);
+  if(!sel||!wrap) return;
+  wrap.style.display = sel.value==='secondhand' ? 'flex' : 'none';
+}
+
+
+// ===== ACCOUNT DRAFT AUTO-SAVE =====
+var DRAFT_KEY = 'truenorth_account_draft';
+var ACCOUNT_FIELD_IDS = [
+  'fa-name','fa-city','fa-parent','fa-opp-val','fa-status',
+  'fa-vendor','fa-product','fa-clinical','fa-biomed',
+  'fa-champ','fa-prob','fa-budget','fa-contact','fa-comp','fa-next',
+  'fa-notes','fa-notes-source','fa-notes-source-name'
+];
+
+function collectAccountFormState(){
+  var state={fields:{}, fleetRows:_fleetRows, editingId:_editingAcctId};
+  ACCOUNT_FIELD_IDS.forEach(function(id){
+    var el=$(id);
+    if(el) state.fields[id]=el.value;
+  });
+  return state;
+}
+
+function hasAccountDraftContent(state){
+  if(state.fleetRows && state.fleetRows.length) return true;
+  for(var k in state.fields){
+    if(k==='fa-status') continue; // default select value doesn't count as content
+    if(state.fields[k] && String(state.fields[k]).trim()) return true;
+  }
+  return false;
+}
+
+function saveAccountDraft(){
+  var state=collectAccountFormState();
+  if(hasAccountDraftContent(state)){
+    try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); }catch(e){}
+  } else {
+    try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+  }
+}
+
+function loadAccountDraft(){
+  try{
+    var raw=localStorage.getItem(DRAFT_KEY);
+    return raw?JSON.parse(raw):null;
+  }catch(e){ return null; }
+}
+
+function clearAccountDraft(){
+  try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+}
+
+function applyAccountDraft(state){
+  if(!state) return;
+  ACCOUNT_FIELD_IDS.forEach(function(id){
+    var el=$(id);
+    if(el && state.fields[id]!==undefined) el.value=state.fields[id];
+  });
+  if(state.fleetRows && state.fleetRows.length){
+    _fleetRows = state.fleetRows;
+    renderFleetInputRows();
+  }
+  toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap');
+  if(state.fields['fa-champ']) $('fa-champ-val').textContent = state.fields['fa-champ'];
+  var banner=$('account-draft-banner');
+  if(banner){
+    banner.innerHTML='<div style="background:var(--accent-dim);border-bottom:1px solid var(--accent-glow);padding:10px 22px;font-size:12px;color:var(--accent);display:flex;justify-content:space-between;align-items:center;gap:10px">'+
+      '<span>📝 Restored your unsaved draft from last time.</span>'+
+      '<button onclick="discardAccountDraft()" style="background:none;border:none;color:var(--accent);text-decoration:underline;font-size:12px;cursor:pointer;white-space:nowrap">Discard draft</button>'+
+    '</div>';
+  }
+}
+function discardAccountDraft(){
+  clearAccountDraft();
+  closeModal('m-account');
+  openAccountModal();
+}
+
+function closeAccountModal(){
+  saveAccountDraft();
+  closeModal('m-account');
+}
+
 // ===== UTILS =====
 function $(id){ return document.getElementById(id); }
 function fmt(n){ return '$'+Number(n||0).toLocaleString(); }
 function fmtK(n){ n=Number(n||0); return n>=1e6?'$'+(n/1e6).toFixed(1)+'M':'$'+(n/1e3).toFixed(0)+'K'; }
 function today(){ return new Date().toISOString().split('T')[0]; }
 function daysSince(d){ return d?Math.max(0,Math.floor((Date.now()-new Date(d))/86400000)):999; }
-function tamMid(a){ return ((a.tamMin||0)+(a.tamMax||0))/2; }
+function tamMid(a){
+  if(a.fleet && a.fleet.length) return calcFleetTAM(a.fleet);
+  return ((a.tamMin||0)+(a.tamMax||0))/2; // legacy fallback for old accounts
+}
 function initials(name){ return (name||'').split(' ').slice(0,2).map(function(w){return w[0]||'';}).join('').toUpperCase(); }
 
 var STATUS={
-  green: {label:'Very Favorable',pct:'75-100%',cls:'s-green'},
-  yellow:{label:'Favorable / Neutral',pct:'40-75%',cls:'s-yellow'},
-  orange:{label:'Difficult',pct:'20-50%',cls:'s-orange'},
-  red:   {label:'High Resistance',pct:'0-20%',cls:'s-red'},
+  darkgreen:{label:'Very Favorable',  cls:'s-darkgreen'},
+  green:    {label:'Favorable',       cls:'s-green'},
+  yellow:   {label:'50/50',           cls:'s-yellow'},
+  grey:     {label:'Neutral',         cls:'s-grey'},
+  orange:   {label:'Unfavorable',     cls:'s-orange'},
+  red:      {label:'Very Unfavorable',cls:'s-red'},
 };
 var INFLUENCE={
   champion:{label:'Champion',icon:'★',cls:'s-green'},
@@ -832,14 +1090,16 @@ function probColor(n){ if(n>=75)return 'green'; if(n>=40)return 'yellow'; if(n>=
 
 // ===== 8-STAGE FUNNEL DEFINITION =====
 var FUNNEL_STAGES = [
-  {n:1, name:"Intelligence", goal:"Know who buys & when", focus:"Vendor, devices, fleet age, budget cycle, decision makers"},
-  {n:2, name:"Champion Development", goal:"Find internal advocate", focus:"Nurse manager, educator, clinical champion"},
-  {n:3, name:"Problem Development", goal:"Understand pain points", focus:"Clinical, operational & financial pain"},
-  {n:4, name:"Executive Alignment", goal:"Align with executives", focus:"Finance, supply chain, admin, IT"},
-  {n:5, name:"Clinical Validation", goal:"Demo solution", focus:"Workflow, CPR quality, EMR integration"},
-  {n:6, name:"Formal Evaluation", goal:"Run formal trial", focus:"Demo, trial, VAC/VAT, surveys"},
-  {n:7, name:"Financial Approval", goal:"Secure budget", focus:"Financing, trade-ins, service savings"},
-  {n:8, name:"Contract & PO", goal:"Close deal", focus:"Legal, purchasing, PO status"},
+  {n:1,  name:"Intelligence",         goal:"Know who buys & when",       focus:"Vendor, devices, fleet age, budget cycle, decision makers"},
+  {n:2,  name:"Champion Development", goal:"Find internal advocate",      focus:"Nurse manager, educator, clinical champion"},
+  {n:3,  name:"Problem Development",  goal:"Understand pain points",      focus:"Clinical, operational & financial pain"},
+  {n:4,  name:"Executive Alignment",  goal:"Align with executives",       focus:"Finance, supply chain, admin, IT"},
+  {n:5,  name:"Quote Requested",      goal:"Quote formally requested",    focus:"Configuration confirmed, pricing request submitted"},
+  {n:6,  name:"Quote Sent",           goal:"Formal quote delivered",      focus:"Pricing, configuration, trade-ins, financing options presented"},
+  {n:7,  name:"Clinical Validation",  goal:"Demo solution",               focus:"Workflow, CPR quality, EMR integration"},
+  {n:8,  name:"Formal Evaluation",    goal:"Run formal trial",            focus:"Demo, trial, VAC/VAT, surveys"},
+  {n:9,  name:"Financial Approval",   goal:"Secure budget",               focus:"Financing, trade-ins, service savings"},
+  {n:10, name:"Contract & PO",        goal:"Close deal",                  focus:"Legal, purchasing, PO status"},
 ];
 
 // ===== NAVIGATION =====
@@ -921,41 +1181,112 @@ function saveProfile(){
 
 // ===== QUOTA / TRUE NORTH =====
 function openQuotaModal(){
-  $('fq-goal').value=DB.quota.goal||'';
-  $('fq-sold').value=DB.quota.sold||'';
-  $('fq-fy').value=DB.quota.fy||'FY2026';
+  var q=DB.quota||{goal:0,sold:0,fy:'FY2026'};
+  $('fq-goal').value=q.goal||'';
+  $('fq-sold').value=q.sold||'';
+  $('fq-fy').value=q.fy||'FY2026';
   openModal('m-quota');
 }
 function saveQuota(){
+  function cleanNum(v){ return parseFloat(String(v).replace(/[$,\s]/g,''))||0; }
   DB.quota={
-    goal: parseFloat($('fq-goal').value)||0,
-    sold: parseFloat($('fq-sold').value)||0,
+    goal: cleanNum($('fq-goal').value),
+    sold: cleanNum($('fq-sold').value),
     fy: $('fq-fy').value.trim()||'FY2026',
   };
-  persist(); closeModal('m-quota'); renderDashboard();
+  persist();
+  closeModal('m-quota');
+  renderDashboard();
 }
 function renderQuota(){
   var q=DB.quota||{goal:0,sold:0,fy:'FY2026'};
-  var pct = q.goal>0 ? (q.sold/q.goal*100) : 0;
-  var pctClamped = Math.min(100, pct);
-  var remaining = Math.max(0, q.goal - q.sold);
+  var goal=q.goal||0, sold=q.sold||0;
+  var pct = goal>0 ? (sold/goal*100) : 0;
+  var pctClamped = Math.min(100,pct);
+  var remaining = Math.max(0,goal-sold);
 
-  $('quota-title').textContent = fmt(q.sold)+' of '+fmt(q.goal)+' Goal ('+q.fy+')';
-  var pctEl = $('quota-pct');
-  pctEl.textContent = pct.toFixed(1)+'%';
-  pctEl.className = 'quota-pct ' + (pct>=100?'ahead':pct>=60?'onpace':'behind');
-  $('quota-sold').textContent = fmt(q.sold);
-  $('quota-goal-display').textContent = fmt(q.goal);
-  $('quota-remaining').textContent = fmt(remaining);
+  var e1=$('quota-title'); if(e1) e1.textContent=fmt(sold)+' of '+fmt(goal)+' Goal ('+(q.fy||'FY2026')+')';
+  var e2=$('quota-pct');
+  if(e2){ e2.textContent=pct.toFixed(1)+'%'; e2.className='quota-pct '+(pct>=100?'ahead':pct>=60?'onpace':'behind'); }
+  var e3=$('quota-sold'); if(e3) e3.textContent=fmt(sold);
+  var e4=$('quota-goal-display'); if(e4) e4.textContent=fmt(goal);
+  var e5=$('quota-remaining'); if(e5) e5.textContent=fmt(remaining);
+  var bar=$('quota-bar');
+  if(bar){
+    bar.style.background=pct>=100?'linear-gradient(90deg,var(--green),#0f8a3c)':pct>=60?'linear-gradient(90deg,var(--yellow),var(--green))':'linear-gradient(90deg,var(--red),var(--orange))';
+    bar.style.width='0%';
+    setTimeout(function(){ bar.style.width=pctClamped+'%'; },50);
+  }
+}
 
-  requestAnimationFrame(function(){
-    $('quota-bar').style.width = pctClamped+'%';
-  });
+
+// ===== PACE TO QUOTA (excludes weekends + Christmas week) =====
+function isChristmasWeek(d){
+  // Dec 22 - Dec 31 treated as Christmas week (adjust as needed)
+  var m=d.getMonth(); // 0-indexed, 11 = December
+  var day=d.getDate();
+  return m===11 && day>=22 && day<=31;
+}
+function isSellingDay(d){
+  var dow=d.getDay(); // 0=Sun, 6=Sat
+  if(dow===0||dow===6) return false;
+  if(isChristmasWeek(d)) return false;
+  return true;
+}
+function countSellingDays(start, end){
+  var count=0;
+  var d=new Date(start);
+  d.setHours(0,0,0,0);
+  var endD=new Date(end);
+  endD.setHours(0,0,0,0);
+  while(d<=endD){
+    if(isSellingDay(d)) count++;
+    d.setDate(d.getDate()+1);
+  }
+  return count;
+}
+function renderPace(){
+  var box=$('pace-box');
+  if(!box) return;
+  var q=DB.quota||{goal:0,sold:0};
+  var goal=q.goal||0, sold=q.sold||0;
+  if(goal<=0){
+    box.innerHTML='<div style="font-size:12px;color:var(--text-muted)">Set your quota to see your daily pace to goal.</div>';
+    return;
+  }
+  var remaining=Math.max(0, goal-sold);
+  var now=new Date();
+  var fyEnd=new Date(now.getFullYear(),11,31); // Dec 31 this year
+  // If we're already past Dec 31 logic edge case, still compute (won't normally hit)
+  var fyStart=new Date(now.getFullYear(),0,1);
+
+  var sellingDaysTotal=countSellingDays(fyStart, fyEnd);
+  var sellingDaysElapsed=countSellingDays(fyStart, now);
+  var sellingDaysRemaining=Math.max(0, countSellingDays(now, fyEnd) - (isSellingDay(now)?1:0)); // exclude today from "remaining", today counts as elapsed if a selling day
+
+  var expectedSoldByNow = sellingDaysTotal>0 ? goal*(sellingDaysElapsed/sellingDaysTotal) : 0;
+  var paceGap = sold - expectedSoldByNow; // positive = ahead, negative = behind
+
+  var requiredDailyRate = sellingDaysRemaining>0 ? remaining/sellingDaysRemaining : (remaining>0?remaining:0);
+
+  var statusClass = paceGap>=0 ? 'ahead' : (Math.abs(paceGap) < goal*0.05 ? 'ontrack' : 'behind');
+  var statusLabel = paceGap>=0 ? '✓ Ahead of Pace' : (statusClass==='ontrack' ? '~ Roughly On Pace' : '⚠ Behind Pace');
+  var gapText = paceGap>=0 ? '+'+fmt(Math.round(paceGap))+' ahead of where you should be' : fmt(Math.round(Math.abs(paceGap)))+' behind where you should be';
+
+  box.innerHTML=
+    '<div class="pace-row">'+
+      '<div class="pace-stat"><div class="pace-stat-label">Selling Days Left (FY)</div><div class="pace-stat-value">'+sellingDaysRemaining+'</div></div>'+
+      '<div class="pace-stat"><div class="pace-stat-label">Required Daily Run-Rate</div><div class="pace-stat-value" style="color:var(--accent)">'+fmt(Math.round(requiredDailyRate))+'/day</div></div>'+
+      '<div class="pace-stat"><div class="pace-stat-label">Pace vs Expected</div><div class="pace-stat-value" style="color:'+(paceGap>=0?'var(--green)':'var(--red)')+'">'+gapText+'</div></div>'+
+      '<span class="pace-badge '+statusClass+'">'+statusLabel+'</span>'+
+    '</div>'+
+    '<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px">Excludes weekends and the week of Dec 22–31. Based on a calendar fiscal year ('+now.getFullYear()+').</div>';
 }
 
 // ===== DASHBOARD =====
 function renderDashboard(){
   renderQuota();
+  renderPace();
   renderKPIs();
   renderTAM();
   renderFunnel('funnel-board-preview', true);
@@ -1018,11 +1349,7 @@ function renderTAM(){
   sorted.forEach(function(a){
     var pct=(tamMid(a)/maxTAM*100).toFixed(1);
     var init=initials(a.name);
-    var tierColors=['','var(--accent)','var(--orange)','var(--text-dim)'];
-    var tierBg=['','rgba(245,200,66,0.15)','rgba(240,124,42,0.12)','rgba(255,255,255,0.05)'];
-    var tierLabels=['','T1','T2','T3'];
-    var tc=tierColors[a.tier||3], tb=tierBg[a.tier||3], tl=tierLabels[a.tier||3];
-    var tierBadge=a.tier?'<span style="font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;background:'+tb+';color:'+tc+';border:1px solid '+tc+';margin-left:5px">'+tl+'</span>':'';
+    var tierBadge='';
     rows+=
       '<div class="tam-row" onclick="openDetail('+a.id+')">'+
         '<div class="tam-row-top">'+
@@ -1030,10 +1357,10 @@ function renderTAM(){
             '<div class="acct-logo">'+init+'</div>'+
             '<div style="min-width:0">'+
               '<div class="acct-name-text">'+a.name+tierBadge+'</div>'+
-              '<div class="acct-city-text">'+a.city+'</div>'+
+              '<div class="acct-city-text">'+(a.parent?'↳ '+a.parent+' · ':'')+a.city+'</div>'+
             '</div>'+
           '</div>'+
-          '<div class="tam-value">'+fmt(a.tamMin)+' – '+fmt(a.tamMax)+'</div>'+
+          '<div class="tam-value">'+fmt(tamMid(a))+'</div>'+
         '</div>'+
         '<div class="tam-row-bar"><div class="bar-wrap" style="flex:1"><div class="bar-fill '+a.status+'" style="width:0%" data-w="'+pct+'"></div></div></div>'+
       '</div>';
@@ -1149,7 +1476,35 @@ function openDetail(id){
     champWarning='<div style="margin-top:10px;padding:8px 10px;background:var(--red-dim);border-radius:6px;font-size:12px;color:var(--red)">No champion identified. High risk regardless of TAM. Prioritize relationship building.</div>';
   }
 
+  var fleetBreakdownHtml='';
+  if(a.fleet && a.fleet.length){
+    var fleetTotal=calcFleetTAM(a.fleet);
+    a.fleet.slice().sort(function(x,y){return (y.age||0)-(x.age||0);}).forEach(function(r){
+      var def=DEVICE_TARGETS[r.type]||{target:'',price:0};
+      var isAlreadyCurrent = def.price===0;
+      var w=ageWeight(r.age);
+      var lineVal=Math.round(def.price*(r.count||0)*w);
+      var urgencyColor = (r.age||0)>=8 ? 'var(--red)' : (r.age||0)>=5 ? 'var(--orange)' : (r.age||0)>=3 ? 'var(--yellow)' : 'var(--green)';
+      fleetBreakdownHtml+=
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--navy-border);font-size:12.5px">'+
+          '<div><b>'+r.count+'x '+r.type+'</b><div style="color:var(--text-muted);font-size:11px"><span style="color:'+urgencyColor+';font-weight:600">'+(r.age||0)+' yrs old</span>'+(isAlreadyCurrent?'':' · → <b style="color:var(--accent)">'+def.target+'</b>')+'</div></div>'+
+          '<div style="text-align:right;font-family:DM Mono,monospace;color:var(--green)">'+(isAlreadyCurrent?'—':fmt(lineVal))+'</div>'+
+        '</div>';
+    });
+    fleetBreakdownHtml+='<div style="display:flex;justify-content:space-between;padding-top:10px;margin-top:4px;font-size:13px;font-weight:700"><span>Total Calculated TAM (Upgrade Opportunity)</span><span style="color:var(--green);font-family:DM Mono,monospace">'+fmt(fleetTotal)+'</span></div>';
+  } else {
+    fleetBreakdownHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No fleet logged yet. Edit this account to add device counts and age.</div>';
+  }
+
   var notesHtml=a.notes?a.notes:'No notes yet.';
+  var notesSourceBadge='';
+  if(a.notes){
+    if(a.notesSource==='secondhand'){
+      notesSourceBadge='<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:var(--orange-dim);color:var(--orange);margin-bottom:8px">👂 Secondhand'+(a.notesSourceName?' · from '+a.notesSourceName:'')+'</div><br>';
+    } else {
+      notesSourceBadge='<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:var(--green-dim);color:var(--green);margin-bottom:8px">📝 My Own Notes</div><br>';
+    }
+  }
 
   // Related funnel deals
   var dealsHtml='';
@@ -1180,7 +1535,7 @@ function openDetail(id){
         '</div>'+
       '</div>'+
       '<div class="detail-metrics">'+
-        '<div class="detail-metric"><div class="dm-label">Total Addressable Market</div><div class="dm-value green">'+fmt(a.tamMin)+' - '+fmt(a.tamMax)+'</div><div class="dm-sub">Estimated potential</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">Total Addressable Market</div><div class="dm-value green">'+fmt(tamMid(a))+'</div><div class="dm-sub">Calculated from fleet</div></div>'+
         '<div class="detail-metric"><div class="dm-label">Current Opportunity</div><div class="dm-value yellow">'+fmt(a.oppVal||0)+'</div><div class="dm-sub">Active deal value</div></div>'+
         '<div class="detail-metric"><div class="dm-label">Win Probability</div><div class="dm-value '+pColor+'">'+(a.prob||0)+'%</div><div class="dm-sub">'+st.pct+'</div></div>'+
         '<div class="detail-metric"><div class="dm-label">Weighted Forecast</div><div class="dm-value">'+fmt(Math.round((a.oppVal||0)*(a.prob||0)/100))+'</div><div class="dm-sub">Probability-adjusted</div></div>'+
@@ -1188,6 +1543,7 @@ function openDetail(id){
     '</div>'+
     '<div class="detail-grid">'+
       '<div class="detail-section"><div class="ds-title">Account Information</div>'+
+        (a.parent?'<div class="ds-row"><span class="ds-key">Parent Account</span><span class="ds-val" style="color:var(--accent);font-weight:700">'+a.parent+'</span></div>':'')+
         '<div class="ds-row"><span class="ds-key">Current Vendor</span><span class="ds-val">'+(a.vendor||'—')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Product / Solution</span><span class="ds-val">'+(a.product||'—')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Budget Cycle</span><span class="ds-val">'+(a.budget||'Unknown')+'</span></div>'+
@@ -1207,7 +1563,8 @@ function openDetail(id){
         '<div class="ds-row"><span class="ds-key">Biomed Contact</span><span class="ds-val" style="font-size:11.5px">'+(a.biomed||'None identified')+'</span></div>'+
         champWarning+
       '</div>'+
-      '<div class="detail-section"><div class="ds-title">Notes & Context</div><div style="font-size:13px;line-height:1.6;color:var(--text)">'+notesHtml+'</div></div>'+
+      '<div class="detail-section"><div class="ds-title">Installed Fleet</div>'+fleetBreakdownHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title">Notes & Context</div>'+notesSourceBadge+'<div style="font-size:13px;line-height:1.6;color:var(--text)">'+notesHtml+'</div></div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Contact</button></div>'+contactsHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Task</button></div>'+tasksHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Funnel Stage / Deals</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Deal</button></div>'+dealsHtml+'</div>'+
@@ -1235,10 +1592,10 @@ function renderAccountsTable(){
     var dateColor=ds>14?'var(--red)':'var(--text-muted)';
     rows+=
       '<tr style="cursor:pointer" onclick="openDetail('+a.id+')">'+
-        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)">'+(a.tier?'<span style="font-size:10px;font-weight:800;padding:2px 6px;border-radius:10px;background:'+(a.tier===1?'var(--accent)':a.tier===2?'var(--orange)':'var(--navy-border)')+';color:'+(a.tier===1?'var(--navy)':'#fff')+'">T'+a.tier+'</span>':'—')+'</td>'+
+
         '<td style="padding:11px 14px;font-weight:600;font-size:13px;border-bottom:1px solid var(--navy-border)">'+a.name+'</td>'+
         '<td style="padding:11px 14px;color:var(--text-muted);font-size:12px;border-bottom:1px solid var(--navy-border)">'+a.city+'</td>'+
-        '<td style="padding:11px 14px;font-family:DM Mono,monospace;font-size:11.5px;border-bottom:1px solid var(--navy-border)">'+fmt(a.tamMin)+' - '+fmt(a.tamMax)+'</td>'+
+        '<td style="padding:11px 14px;font-family:DM Mono,monospace;font-size:11.5px;border-bottom:1px solid var(--navy-border)">'+fmt(tamMid(a))+'</td>'+
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><span class="status-pill '+st.cls+'">'+st.label+'</span></td>'+
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><span style="font-size:12px;font-weight:700;color:'+champColor(a.champScore||0)+'">'+(a.champScore||0)+'/10</span> <span style="font-size:11px;color:var(--text-muted)">'+champLabel(a.champScore||0)+'</span></td>'+
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border);font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:var(--'+probColor(a.prob||0)+')">'+(a.prob||0)+'%</td>'+
@@ -1248,7 +1605,7 @@ function renderAccountsTable(){
   });
   $('accounts-tbl').innerHTML=
     '<thead><tr>'+
-      ['Tier','Account','Location','TAM Range','Status','Champion','Prob %','Last Contact',''].map(function(h){
+      ['Account','Location','TAM Range','Status','Champion','Prob %','Last Contact',''].map(function(h){
         return '<th style="font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);padding:10px 14px;text-align:left;border-bottom:1px solid var(--navy-border)">'+h+'</th>';
       }).join('')+
     '</tr></thead><tbody>'+rows+'</tbody>';
@@ -1307,7 +1664,7 @@ function renderContactsPage(){
           '<div style="display:flex;align-items:flex-start;gap:10px">'+
             '<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials(c.name)+'</div>'+
             '<div style="flex:1;min-width:0">'+
-              '<div style="font-size:13px;font-weight:700;margin-bottom:2px">'+c.name+' <span style="font-size:12px">'+iv.icon+'</span></div>'+
+              '<div style="font-size:13px;font-weight:700;margin-bottom:2px">'+c.name+' <span style="font-size:12px">'+iv.icon+'</span>'+(c.source==='secondhand'?' <span style="font-size:10px">👂</span>':'')+'</div>'+
               '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div>'+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">'+c.account+'</div>'+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">'+iCount+' interaction'+(iCount!==1?'s':'')+' '+(lastI?'· Last: '+lastI.date:'')+'</div>'+
@@ -1328,11 +1685,15 @@ function selectContact(id,noScroll){
   var iv=INFLUENCE[c.influence]||INFLUENCE.unknown;
   var pillStyle=iv.style||'';
   var pillCls=iv.cls||'';
+  var srcBadge = c.source==='secondhand'
+    ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--orange-dim);color:var(--orange)">👂 Secondhand'+(c.sourceName?' · '+c.sourceName:'')+'</span>'
+    : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--green-dim);color:var(--green)">📝 Met Myself</span>';
   $('contact-detail-header').innerHTML=
     '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'+
       '<div style="width:38px;height:38px;border-radius:50%;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800">'+initials(c.name)+'</div>'+
       '<div><div style="font-size:15px;font-weight:700">'+c.name+'</div><div style="font-size:12px;color:var(--text-muted)">'+c.title+' · '+c.account+'</div></div>'+
       '<span class="status-pill '+pillCls+'" style="'+pillStyle+'">'+iv.icon+' '+iv.label+'</span>'+
+      srcBadge+
       '<button class="btn btn-ghost btn-sm" onclick="openContactModal('+id+')" style="margin-left:4px">Edit</button>'+
     '</div>'+
     (c.notes?'<div style="margin-top:10px;padding:10px 12px;background:var(--navy-mid);border-radius:6px;font-size:12.5px;line-height:1.6">'+c.notes+'</div>':'');
@@ -1424,10 +1785,25 @@ function closeModal(id){ $(id).classList.remove('open'); }
 function openAccountModal(){
   _editingAcctId=null;
   $('m-acct-title').textContent='Add Account';
-  ['fa-name','fa-city','fa-vendor','fa-product','fa-clinical','fa-biomed','fa-budget','fa-comp','fa-next','fa-notes'].forEach(function(f){$(f).value='';});
-  $('fa-min').value='';$('fa-max').value='';$('fa-opp-val').value='';
+  ['fa-name','fa-city','fa-vendor','fa-product','fa-clinical','fa-biomed','fa-budget','fa-comp','fa-next','fa-notes','fa-notes-source-name'].forEach(function(f){$(f).value='';});
+  $('fa-notes-source').value='mine';
+  toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap');
+  _fleetRows=[];
+  _oppValManuallyEdited=false;
+  renderFleetInputRows();
+  $('fa-opp-val').value='';
   $('fa-prob').value='';$('fa-champ').value=5;$('fa-champ-val').textContent=5;
-  $('fa-status').value='green';$('fa-contact').value=today();$('fa-tier').value='3';
+  $('fa-status').value='green';$('fa-contact').value=today();
+  var pSel=$('fa-parent');
+  pSel.innerHTML='<option value="">— None / Standalone —</option>'+DB.accounts.map(function(x){return '<option value="'+x.name+'">'+x.name+'</option>';}).join('');
+
+  // Restore unsaved draft if one exists (only for new-account flow)
+  var bEl=$('account-draft-banner'); if(bEl) bEl.innerHTML='';
+  var draft = loadAccountDraft();
+  if(draft && !draft.editingId){
+    applyAccountDraft(draft);
+  }
+
   openModal('m-account');
 }
 function editAccount(id){
@@ -1435,8 +1811,15 @@ function editAccount(id){
   if(!a) return;
   _editingAcctId=id;
   $('m-acct-title').textContent='Edit Account';
+  var bEl=$('account-draft-banner'); if(bEl) bEl.innerHTML='';
+  _fleetRows = (a.fleet && a.fleet.length) ? JSON.parse(JSON.stringify(a.fleet)) : [];
+  var calcForThis = calcFleetTAM(_fleetRows);
+  _oppValManuallyEdited = (a.oppVal!==undefined && a.oppVal!==calcForThis);
+  renderFleetInputRows();
   $('fa-name').value=a.name;$('fa-city').value=a.city;
-  $('fa-min').value=a.tamMin;$('fa-max').value=a.tamMax;
+  var pSel=$('fa-parent');
+  pSel.innerHTML='<option value="">— None / Standalone —</option>'+DB.accounts.filter(function(x){return x.id!==a.id;}).map(function(x){return '<option value="'+x.name+'">'+x.name+'</option>';}).join('');
+  pSel.value=a.parent||'';
   $('fa-opp-val').value=a.oppVal||'';$('fa-status').value=a.status;
   $('fa-vendor').value=a.vendor||'';$('fa-product').value=a.product||'';
   $('fa-clinical').value=a.clinical||'';$('fa-biomed').value=a.biomed||'';
@@ -1444,23 +1827,31 @@ function editAccount(id){
   $('fa-prob').value=a.prob||'';
   $('fa-budget').value=a.budget||'';$('fa-contact').value=a.lastContact||today();
   $('fa-comp').value=a.comp||'';$('fa-next').value=a.next||'';
-  $('fa-notes').value=a.notes||'';$('fa-tier').value=String(a.tier||3);
-  openModal('m-account');
+  $('fa-notes').value=a.notes||'';
+  $('fa-notes-source').value=a.notesSource||'mine';
+  $('fa-notes-source-name').value=a.notesSourceName||'';
+  toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap');  openModal('m-account');
 }
 function saveAccount(){
   var name=$('fa-name').value.trim();
   if(!name){alert('Account name required');return;}
+  var fleetClean = _fleetRows.filter(function(r){ return r.type && Number(r.count)>0; }).map(function(r){
+    return {type:r.type, count:Number(r.count)||0, age:Number(r.age)||0};
+  });
+  var calcTam = calcFleetTAM(fleetClean);
   var data={
-    name:name,city:$('fa-city').value.trim(),
-    tamMin:parseInt($('fa-min').value)||0,tamMax:parseInt($('fa-max').value)||0,
+    name:name,city:$('fa-city').value.trim(),parent:$('fa-parent').value||'',
+    fleet:fleetClean,
+    tamMin:calcTam, tamMax:calcTam, // kept for any legacy code paths; both equal the calculated figure
     oppVal:parseInt($('fa-opp-val').value)||0,status:$('fa-status').value,
     vendor:$('fa-vendor').value.trim(),product:$('fa-product').value.trim(),
     clinical:$('fa-clinical').value.trim(),biomed:$('fa-biomed').value.trim(),
     champScore:parseInt($('fa-champ').value)||0,prob:parseInt($('fa-prob').value)||0,
-    tier:parseInt($('fa-tier').value)||3,
     budget:$('fa-budget').value.trim(),lastContact:$('fa-contact').value,
     comp:$('fa-comp').value.trim(),next:$('fa-next').value.trim(),
     notes:$('fa-notes').value.trim(),
+    notesSource:$('fa-notes-source').value,
+    notesSourceName:$('fa-notes-source-name').value.trim(),
   };
   var oldName=null;
   if(_editingAcctId){
@@ -1476,7 +1867,9 @@ function saveAccount(){
   } else {
     DB.accounts.push(Object.assign({id:DB.nextId.a++},data));
   }
-  persist();closeModal('m-account');
+  persist();
+  clearAccountDraft();
+  closeModal('m-account');
   renderDashboard();renderAccountsTable();
 }
 function deleteAccount(id){
@@ -1535,10 +1928,15 @@ function openContactModal(id){
     sel.value=c.account;$('fc-influence').value=c.influence;
     $('fc-phone').value=c.phone||'';$('fc-email').value=c.email||'';
     $('fc-notes').value=c.notes||'';
+    $('fc-source').value=c.source||'mine';
+    $('fc-source-name').value=c.sourceName||'';
+    toggleSourceNameField('fc-source','fc-source-name-wrap');
   } else {
     $('m-contact-title').textContent='Add Contact';
-    ['fc-name','fc-title-input','fc-phone','fc-email','fc-notes'].forEach(function(f){$(f).value='';});
+    ['fc-name','fc-title-input','fc-phone','fc-email','fc-notes','fc-source-name'].forEach(function(f){$(f).value='';});
     $('fc-influence').value='neutral';
+    $('fc-source').value='mine';
+    toggleSourceNameField('fc-source','fc-source-name-wrap');
   }
   if(DB.accounts.length===0){ alert('Add an account first before adding a contact.'); return; }
   openModal('m-contact');
@@ -1552,6 +1950,8 @@ function saveContact(){
     account:$('fc-account').value,influence:$('fc-influence').value,
     phone:$('fc-phone').value.trim(),email:$('fc-email').value.trim(),
     notes:$('fc-notes').value.trim(),
+    source:$('fc-source').value,
+    sourceName:$('fc-source-name').value.trim(),
   };
   if(_editingContactId){
     var i=DB.contacts.findIndex(function(x){return x.id===_editingContactId;});

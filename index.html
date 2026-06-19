@@ -182,6 +182,18 @@ a{color:inherit;text-decoration:none;}
 .funnel-card-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--green);}
 .funnel-card-meta{font-size:10.5px;color:var(--text-dim);margin-top:3px;}
 .funnel-empty{font-size:11.5px;color:var(--text-dim);padding:12px 0;text-align:center;}
+.potential-card{background:var(--navy-mid);border:1.5px dashed var(--accent-glow);border-radius:var(--radius-sm);padding:12px 14px;min-width:220px;max-width:260px;cursor:grab;transition:border-color .15s,transform .12s;}
+.potential-card:hover{border-color:var(--accent);}
+.potential-card-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.potential-card-val{font-family:'DM Mono',monospace;font-size:13px;color:var(--accent);margin-bottom:8px;}
+.potential-card-actions{display:flex;gap:6px;}
+.potential-empty{font-size:12px;color:var(--text-dim);padding:8px;}
+.funnel-card{cursor:grab;}
+.funnel-card.dragging,.potential-card.dragging{opacity:0.4;}
+.funnel-col.drag-over{background:var(--accent-dim);border-color:var(--accent);}
+.funnel-col{transition:background .15s,border-color .15s;}
+.note-timeline-item{border-bottom:1px solid var(--navy-border);}
+.note-timeline-item:last-child{border-bottom:none;}
 
 /* DETAIL PAGE */
 .detail-back{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:var(--radius-sm);background:var(--navy-light);border:1px solid var(--navy-border);font-size:13px;color:var(--text-muted);margin-bottom:16px;cursor:pointer;transition:all .15s;}
@@ -337,8 +349,8 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="topbar-right">
       <button class="theme-btn" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark">🌙</button>
       <select class="pill-select" id="yr-sel"><option>2026</option><option>2025</option></select>
-      <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportData()">⬆ Export</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">⬇ Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
       <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Add Account</button>
     </div>
@@ -412,8 +424,8 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="card">
         <div class="card-header">
           <div><div class="card-title">All Accounts</div><div class="card-sub">Every account in your territory</div></div>
-          <button class="btn btn-ghost btn-sm" onclick="exportData()">⬇ Export</button>
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">⬆ Import</button>
+          <button class="btn btn-ghost btn-sm" onclick="exportData()">⬆ Export</button>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('import-file').click()">⬇ Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)">
       <button class="btn btn-primary btn-sm" onclick="openAccountModal()">+ Add Account</button>
         </div>
@@ -426,12 +438,25 @@ input[type=number]{-moz-appearance:textfield;}
 
     <!-- PIPELINE / 8-STAGE FUNNEL -->
     <div class="page" id="page-pipeline">
+
+      <!-- POTENTIAL DEALS HOLDING AREA -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Potential Deals</div>
+            <div class="card-sub">Auto-created when you log fleet data on an account. Drag into Stage 1 (or tap Activate) to make it an active deal counted in your pipeline.</div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="openOppModal()">+ Add Deal Manually</button>
+        </div>
+        <div id="potential-deals-row" style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;min-height:60px"></div>
+      </div>
+
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
         <div>
-          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">8-Stage Sales Funnel</div>
-          <div class="card-sub">Intelligence → Champion Development → Problem Development → Executive Alignment → Quote Sent → Clinical Validation → Formal Evaluation → Financial Approval → Contract & PO</div>
+          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">8-Stage Sales Funnel — Active Pipeline</div>
+          <div class="card-sub">Intelligence → Champion Development → Problem Development → Executive Alignment → Quote Requested → Quote Sent → Clinical Validation → Formal Evaluation → Financial Approval → Contract & PO</div>
+          <div class="card-sub" style="margin-top:4px;color:var(--accent)">↕ Drag any card to move it between stages</div>
         </div>
-        <button class="btn btn-primary btn-sm" onclick="openOppModal()">+ Add Deal</button>
       </div>
       <div class="funnel-board" id="funnel-board-full"></div>
     </div>
@@ -483,12 +508,9 @@ input[type=number]{-moz-appearance:textfield;}
 
     <!-- FLEET INTELLIGENCE -->
     <div class="page" id="page-fleet">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-        <div>
-          <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">Fleet Intelligence</div>
-          <div class="card-sub">Browse by device type · Drill into an account-by-account breakdown</div>
-        </div>
-        <button class="btn btn-primary btn-sm" onclick="openDeviceUnitModal()">+ Add Device Record</button>
+      <div style="margin-bottom:14px">
+        <div class="card-title" style="font-family:'Syne',sans-serif;font-size:16px">Fleet Intelligence</div>
+        <div class="card-sub">Browse by device category · Automatically populated from each account's installed fleet · Add or edit device data from the Account page</div>
       </div>
       <div id="fleet-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px"></div>
       <div id="device-type-grid"></div>
@@ -795,44 +817,32 @@ input[type=number]{-moz-appearance:textfield;}
 </div>
 
 
-<!-- MODAL: Device Record -->
-<div class="modal-bg" id="m-device">
+
+<!-- MODAL: Add Note (timeline entry) -->
+<div class="modal-bg" id="m-note">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title" id="m-device-title">Add Device Record</div><button class="modal-x" onclick="closeModal('m-device')">✕</button></div>
+    <div class="modal-head"><div class="modal-title">Add Note</div><button class="modal-x" onclick="closeModal('m-note')">✕</button></div>
     <div class="modal-body">
       <div class="frow">
-        <div class="fg"><label class="flabel">Device Type</label>
-          <select class="fselect" id="fd-type">
-            <option>Monitors</option><option>LUCAS</option><option>AEDs</option>
-            <option>Chairs</option><option>Data</option><option>Other</option>
+        <div class="fg"><label class="flabel">Note Source</label>
+          <select class="fselect" id="fn-source" onchange="toggleSourceNameField('fn-source','fn-source-name-wrap')">
+            <option value="mine">📝 My Own Notes (firsthand)</option>
+            <option value="secondhand">👂 Secondhand (heard from someone else)</option>
           </select>
         </div>
-        <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fd-account"></select></div>
+        <div class="fg" id="fn-source-name-wrap" style="display:none">
+          <label class="flabel">Source Name</label>
+          <input class="finput" id="fn-source-name" placeholder="e.g. Ethan (prior rep), Nathan">
+        </div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Unit Count</label><input class="finput" type="text" inputmode="decimal" id="fd-count" placeholder="e.g. 12"></div>
-        <div class="fg"><label class="flabel">Average Age (years)</label><input class="finput" type="text" inputmode="decimal" id="fd-age" placeholder="e.g. 8"></div>
+        <div class="fg full"><label class="flabel">Date</label><input class="finput" type="date" id="fn-date"></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Useful Life Status</label>
-          <select class="fselect" id="fd-status">
-            <option value="within">Within UL</option>
-            <option value="approaching">Approaching UL</option>
-            <option value="beyond">Beyond UL</option>
-            <option value="beyondsl">Beyond Service Life</option>
-          </select>
-        </div>
-        <div class="fg"><label class="flabel">ProCare Contract</label>
-          <select class="fselect" id="fd-procare">
-            <option value="none">No Contract</option>
-            <option value="active">Active</option>
-            <option value="expired">Expired</option>
-          </select>
-        </div>
+        <div class="fg full"><label class="flabel">Note</label><textarea class="ftextarea" id="fn-text" placeholder="What happened, what you learned, next steps…" style="min-height:100px"></textarea></div>
       </div>
-      <div class="frow"><div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="fd-notes" placeholder="Location detail, part numbers, strategic notes…"></textarea></div></div>
     </div>
-    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-device')">Cancel</button><button class="btn btn-primary" onclick="saveDeviceRecord()">Save</button></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-note')">Cancel</button><button class="btn btn-primary" onclick="saveNote()">Save Note</button></div>
   </div>
 </div>
 
@@ -849,7 +859,7 @@ function seed() {
     contacts: [],
     interactions: [],
     tasks: [],
-    opportunities: [], // {id, name, account, value, stage(1-8), close}
+    opportunities: [], // {id, name, account, value, stage(0=potential,1-10=funnel), close, autoCreated}
     playbook: [],
     nextId: {a:1, t:1, o:1, c:1, i:1, p:1, d:1},
   };
@@ -915,6 +925,7 @@ function calcFleetTAM(fleetRows){
 var _fleetRows = []; // working array while modal is open
 
 var _oppValManuallyEdited = false;
+// Full rebuild — only call this when rows are added/removed, or modal first opens
 function renderFleetInputRows(){
   var el=$('fleet-input-rows');
   if(!el) return;
@@ -922,29 +933,43 @@ function renderFleetInputRows(){
   _fleetRows.forEach(function(r,i){
     var def = DEVICE_TARGETS[r.type] || {target:'',price:0};
     var isAlreadyCurrent = def.price===0;
-    var lineW = ageWeight(r.age);
-    var lineVal = Math.round(def.price * (Number(r.count)||0) * lineW);
     html+=
-      '<div style="background:var(--navy-mid);border-radius:6px;padding:10px;margin-bottom:8px">'+
+      '<div style="background:var(--navy-mid);border-radius:6px;padding:10px;margin-bottom:8px" data-row="'+i+'">'+
         '<div style="display:grid;grid-template-columns:2fr 0.7fr 0.7fr auto;gap:6px;align-items:center;margin-bottom:6px">'+
           '<select class="fselect" style="font-size:12px;padding:7px 8px" onchange="updateFleetRow('+i+',\'type\',this.value)">'+
             DEVICE_TYPE_OPTIONS.map(function(t){return '<option value="'+t+'"'+(t===r.type?' selected':'')+'>'+t+'</option>';}).join('')+
           '</select>'+
-          '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Qty" value="'+(r.count||'')+'" oninput="updateFleetRow('+i+',\'count\',this.value)">'+
-          '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Age yrs" value="'+(r.age||'')+'" oninput="updateFleetRow('+i+',\'age\',this.value)">'+
+          '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Qty" value="'+(r.count||'')+'" data-field="count" oninput="updateFleetRow('+i+',\'count\',this.value)">'+
+          '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Age yrs" value="'+(r.age||'')+'" data-field="age" oninput="updateFleetRow('+i+',\'age\',this.value)">'+
           '<button type="button" onclick="removeFleetRow('+i+')" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px">✕</button>'+
         '</div>'+
-        (isAlreadyCurrent
-          ? '<div style="font-size:11px;color:var(--text-dim)">Already current Stryker product — no upgrade TAM from this line.</div>'
-          : '<div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center">'+
-              '<span>→ Upgrade target: <b style="color:var(--accent)">'+def.target+'</b> ('+fmt(def.price)+'/unit)</span>'+
-              '<span style="font-family:DM Mono,monospace;color:var(--green);font-weight:700">'+fmt(lineVal)+'</span>'+
-            '</div>'
-        )+
+        '<div class="fleet-row-detail" data-detail="'+i+'">'+
+          (isAlreadyCurrent
+            ? '<div style="font-size:11px;color:var(--text-dim)">Already current Stryker product — no upgrade TAM from this line.</div>'
+            : '<div style="font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;align-items:center">'+
+                '<span>→ Upgrade target: <b style="color:var(--accent)">'+def.target+'</b> ('+fmt(def.price)+'/unit)</span>'+
+                '<span style="font-family:DM Mono,monospace;color:var(--green);font-weight:700" data-lineval="'+i+'">'+fmt(0)+'</span>'+
+              '</div>'
+          )+
+        '</div>'+
       '</div>';
   });
   el.innerHTML = html +
     '<button type="button" class="btn btn-ghost btn-sm" onclick="addFleetRow()" style="margin-top:4px">+ Add Device Line</button>';
+  updateFleetCalculations();
+}
+
+// Lightweight refresh — call this on every keystroke. Does NOT touch the DOM inputs, so focus/cursor is never lost.
+function updateFleetCalculations(){
+  _fleetRows.forEach(function(r,i){
+    var def = DEVICE_TARGETS[r.type] || {target:'',price:0};
+    if(def.price>0){
+      var lineW = ageWeight(r.age);
+      var lineVal = Math.round(def.price * (Number(r.count)||0) * lineW);
+      var lvEl = document.querySelector('[data-lineval="'+i+'"]');
+      if(lvEl) lvEl.textContent = fmt(lineVal);
+    }
+  });
   var calcTotal = calcFleetTAM(_fleetRows);
   var tamEl=$('fa-calc-tam');
   if(tamEl) tamEl.textContent = fmt(calcTotal);
@@ -972,7 +997,11 @@ function removeFleetRow(i){
 function updateFleetRow(i,key,val){
   if(!_fleetRows[i]) return;
   _fleetRows[i][key]=val;
-  renderFleetInputRows();
+  if(key==='type'){
+    renderFleetInputRows(); // type change needs a full rebuild (different target line, select state)
+  } else {
+    updateFleetCalculations(); // qty/age — just refresh numbers, never touch focused input
+  }
 }
 
 
@@ -1130,7 +1159,7 @@ function goPage(name, btn){
   $('topbar-sub').textContent=m[1];
   if(name==='dashboard') renderDashboard();
   if(name==='accounts')  renderAccountsTable();
-  if(name==='pipeline')  renderFunnel('funnel-board-full');
+  if(name==='pipeline'){ renderPotentialDeals(); renderFunnel('funnel-board-full'); }
   if(name==='tasks')     renderTasks();
   if(name==='contacts')  renderContactsPage();
   if(name==='playbook')  renderPlaybook();
@@ -1316,9 +1345,11 @@ function renderKPIs(){
   var totalPipeline = DB.accounts.reduce(function(s,a){ return s+(a.oppVal||0); }, 0);
   var totalTAM = DB.accounts.reduce(function(s,a){ return s+tamMid(a); }, 0);
 
-  // Active Deals = sum of value for opportunities that have a funnel stage assigned (1-8)
-  var activeDeals = DB.opportunities.reduce(function(s,o){ return s+(o.value||0); }, 0);
-  var activeDealCount = DB.opportunities.length;
+  // Active Deals = sum of value for opportunities that have been activated into the funnel (stage 1-10). Stage 0 = Potential, not yet active.
+  var activeOpps = DB.opportunities.filter(function(o){ return o.stage>0; });
+  var activeDeals = activeOpps.reduce(function(s,o){ return s+(o.value||0); }, 0);
+  var activeDealCount = activeOpps.length;
+  var potentialCount = DB.opportunities.filter(function(o){ return o.stage===0; }).length;
 
   var weighted = DB.accounts.reduce(function(s,a){ return s+(a.oppVal||0)*(a.prob||0)/100; }, 0);
 
@@ -1338,7 +1369,7 @@ function renderKPIs(){
     '<div class="kpi-tile">'+
       '<div class="kpi-tile-label">Active Deals</div>'+
       '<div class="kpi-tile-value yellow">'+fmtK(activeDeals)+'</div>'+
-      '<div class="kpi-sub">'+activeDealCount+' deal'+(activeDealCount!==1?'s':'')+' in the 8-stage funnel</div>'+
+      '<div class="kpi-sub">'+activeDealCount+' deal'+(activeDealCount!==1?'s':'')+' in the pipeline'+(potentialCount?' · <b style="color:var(--text-muted)">'+potentialCount+' potential</b>':'')+'</div>'+
     '</div>'+
     '<div class="kpi-tile">'+
       '<div class="kpi-tile-label">Total Pipeline</div>'+
@@ -1412,7 +1443,10 @@ function renderFunnel(targetId, preview){
       items.forEach(function(o){
         var acct=DB.accounts.find(function(a){return a.name===o.account;});
         cards+=
-          '<div class="funnel-card" onclick="'+(acct?'openDetail('+acct.id+')':'')+'">'+
+          '<div class="funnel-card" draggable="true" data-opp-id="'+o.id+'" '+
+            'ondragstart="onDragStart(event,'+o.id+')" ondragend="onDragEnd(event)" '+
+            'ontouchstart="onTouchStart(event,'+o.id+')" ontouchmove="onTouchMove(event)" ontouchend="onTouchEnd(event)" '+
+            'onclick="'+(acct?'openDetail('+acct.id+')':'')+'">'+
             '<div class="funnel-card-title">'+o.name+'</div>'+
             '<div class="funnel-card-meta">'+o.account+'</div>'+
             '<div class="funnel-card-val">'+fmt(o.value)+'</div>'+
@@ -1420,10 +1454,11 @@ function renderFunnel(targetId, preview){
             '<button onclick="event.stopPropagation();deleteOpp('+o.id+')" style="margin-top:6px;background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕ Remove</button>'+
           '</div>';
       });
-      if(!items.length) cards='<div class="funnel-empty">No deals at this stage</div>';
+      if(!items.length) cards='<div class="funnel-empty">No deals at this stage<br><span style="font-size:10px">Drop a card here</span></div>';
     }
     html+=
-      '<div class="funnel-col'+(preview?'':' active-deal')+'" style="'+(preview?'min-width:170px':'')+'">'+
+      '<div class="funnel-col'+(preview?'':' active-deal')+'" style="'+(preview?'min-width:170px':'')+'" data-stage="'+stage.n+'" '+
+        (preview?'':'ondragover="onColDragOver(event,'+stage.n+')" ondragleave="onColDragLeave(event)" ondrop="onColDrop(event,'+stage.n+')"')+'>'+
         '<div class="funnel-col-head">'+
           '<div class="funnel-stage-num">Stage '+stage.n+'</div>'+
           '<div class="funnel-stage-name">'+stage.name+'</div>'+
@@ -1435,13 +1470,153 @@ function renderFunnel(targetId, preview){
   });
   el.innerHTML=html;
   if(!preview){
-    $('nb-pipeline').textContent = DB.opportunities.length;
+    var activeCount = DB.opportunities.filter(function(o){return o.stage>0;}).length;
+    $('nb-pipeline').textContent = activeCount;
   }
 }
 
 function deleteOpp(id){
   DB.opportunities=DB.opportunities.filter(function(o){return o.id!==id;});
   persist(); renderFunnel('funnel-board-full'); renderDashboard();
+}
+
+
+// ===== POTENTIAL DEALS + DRAG & DROP =====
+function renderPotentialDeals(){
+  var row=$('potential-deals-row');
+  if(!row) return;
+  var potentials = DB.opportunities.filter(function(o){ return o.stage===0; });
+  if(!potentials.length){
+    row.innerHTML='<div class="potential-empty">No potential deals yet. Add fleet/device data to an account and one will appear here automatically.</div>';
+    return;
+  }
+  var html='';
+  potentials.forEach(function(o){
+    html+=
+      '<div class="potential-card" draggable="true" data-opp-id="'+o.id+'" '+
+        'ondragstart="onDragStart(event,'+o.id+')" ondragend="onDragEnd(event)" '+
+        'ontouchstart="onTouchStart(event,'+o.id+')" ontouchmove="onTouchMove(event)" ontouchend="onTouchEnd(event)">'+
+        '<div class="potential-card-title">'+o.name+'</div>'+
+        '<div class="potential-card-val">'+fmt(o.value)+'</div>'+
+        '<div class="potential-card-actions">'+
+          '<button class="btn btn-primary btn-sm" onclick="activateDeal('+o.id+')">→ Activate to Stage 1</button>'+
+          '<button class="btn btn-ghost btn-sm" onclick="deleteOpp('+o.id+')">✕</button>'+
+        '</div>'+
+      '</div>';
+  });
+  row.innerHTML=html;
+}
+
+function activateDeal(id){
+  var o=DB.opportunities.find(function(x){return x.id===id;});
+  if(!o) return;
+  o.stage=1;
+  if(!o.close) o.close='';
+  persist();
+  renderPotentialDeals();
+  renderFunnel('funnel-board-full');
+  renderDashboard();
+}
+
+// --- Desktop HTML5 drag & drop ---
+var _draggedOppId=null;
+
+function onDragStart(ev,id){
+  _draggedOppId=id;
+  ev.target.classList.add('dragging');
+  try{ ev.dataTransfer.setData('text/plain', String(id)); ev.dataTransfer.effectAllowed='move'; }catch(e){}
+}
+function onDragEnd(ev){
+  ev.target.classList.remove('dragging');
+  document.querySelectorAll('.funnel-col.drag-over').forEach(function(c){c.classList.remove('drag-over');});
+  _draggedOppId=null;
+}
+function onColDragOver(ev,stageNum){
+  ev.preventDefault();
+  ev.currentTarget.classList.add('drag-over');
+}
+function onColDragLeave(ev){
+  ev.currentTarget.classList.remove('drag-over');
+}
+function onColDrop(ev,stageNum){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag-over');
+  var id=_draggedOppId;
+  if(!id) return;
+  moveOppToStage(id, stageNum);
+}
+
+function moveOppToStage(id, stageNum){
+  var o=DB.opportunities.find(function(x){return x.id===id;});
+  if(!o) return;
+  o.stage=stageNum;
+  persist();
+  renderPotentialDeals();
+  renderFunnel('funnel-board-full');
+  renderDashboard();
+}
+
+// --- Mobile touch drag & drop ---
+var _touchDraggedId=null;
+var _touchGhost=null;
+
+function onTouchStart(ev,id){
+  _touchDraggedId=id;
+  var card=ev.currentTarget;
+  card.classList.add('dragging');
+}
+function onTouchMove(ev){
+  if(!_touchDraggedId) return;
+  ev.preventDefault();
+  var touch=ev.touches[0];
+  document.querySelectorAll('.funnel-col.drag-over').forEach(function(c){c.classList.remove('drag-over');});
+  var el=document.elementFromPoint(touch.clientX, touch.clientY);
+  var col=el ? el.closest('.funnel-col[data-stage]') : null;
+  if(col) col.classList.add('drag-over');
+}
+function onTouchEnd(ev){
+  if(!_touchDraggedId) return;
+  var touch=ev.changedTouches[0];
+  var el=document.elementFromPoint(touch.clientX, touch.clientY);
+  var col=el ? el.closest('.funnel-col[data-stage]') : null;
+  document.querySelectorAll('.dragging').forEach(function(c){c.classList.remove('dragging');});
+  document.querySelectorAll('.funnel-col.drag-over').forEach(function(c){c.classList.remove('drag-over');});
+  if(col){
+    var stageNum=parseInt(col.getAttribute('data-stage'));
+    moveOppToStage(_touchDraggedId, stageNum);
+  }
+  _touchDraggedId=null;
+}
+
+
+// ===== NOTES TIMELINE (per-account, never overwrites) =====
+var _noteModalAccountId=null;
+
+function openNoteModal(accountId){
+  _noteModalAccountId=accountId;
+  $('fn-source').value='mine';
+  $('fn-source-name').value='';
+  toggleSourceNameField('fn-source','fn-source-name-wrap');
+  $('fn-date').value=today();
+  $('fn-text').value='';
+  openModal('m-note');
+}
+
+function saveNote(){
+  var text=$('fn-text').value.trim();
+  if(!text){ alert('Note text required'); return; }
+  var a=DB.accounts.find(function(x){return x.id===_noteModalAccountId;});
+  if(!a) return;
+  if(!a.notesLog) a.notesLog=[];
+  a.notesLog.push({
+    text:text,
+    source:$('fn-source').value,
+    sourceName:$('fn-source-name').value.trim(),
+    date:$('fn-date').value || today(),
+  });
+  persist();
+  closeModal('m-note');
+  openDetail(a.id); // refresh detail page to show new note in timeline
 }
 
 // ===== ACCOUNT DETAIL =====
@@ -1515,14 +1690,38 @@ function openDetail(id){
     fleetBreakdownHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No fleet logged yet. Edit this account to add device counts and age.</div>';
   }
 
-  var notesHtml=a.notes?a.notes:'No notes yet.';
-  var notesSourceBadge='';
+  // Build a unified, newest-first notes timeline: original account note (legacy) + notesLog entries
+  var allNotes=[];
   if(a.notes){
-    if(a.notesSource==='secondhand'){
-      notesSourceBadge='<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:var(--orange-dim);color:var(--orange);margin-bottom:8px">👂 Secondhand'+(a.notesSourceName?' · from '+a.notesSourceName:'')+'</div><br>';
-    } else {
-      notesSourceBadge='<div style="display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:var(--green-dim);color:var(--green);margin-bottom:8px">📝 My Own Notes</div><br>';
-    }
+    allNotes.push({
+      text:a.notes,
+      source:a.notesSource||'mine',
+      sourceName:a.notesSourceName||'',
+      date:a.lastContact||a.createdAt||'',
+      isOriginal:true,
+    });
+  }
+  (a.notesLog||[]).forEach(function(n){ allNotes.push(n); });
+  allNotes.sort(function(x,y){ return new Date(y.date||0) - new Date(x.date||0); });
+
+  var notesTimelineHtml='';
+  if(allNotes.length===0){
+    notesTimelineHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No notes yet. Click + Add Note to log your first one.</div>';
+  } else {
+    allNotes.forEach(function(n){
+      var badge = n.source==='secondhand'
+        ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--orange-dim);color:var(--orange)">👂 Secondhand'+(n.sourceName?' · '+n.sourceName:'')+'</span>'
+        : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--green-dim);color:var(--green)">📝 My Own</span>';
+      var dateLabel = n.date ? new Date(n.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Undated';
+      notesTimelineHtml+=
+        '<div class="note-timeline-item" style="padding:10px 0">'+
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">'+
+            '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text-muted)">'+dateLabel+'</span>'+
+            badge+
+          '</div>'+
+          '<div style="font-size:13px;line-height:1.6;color:var(--text)">'+n.text+'</div>'+
+        '</div>';
+    });
   }
 
   // Related funnel deals
@@ -1583,7 +1782,7 @@ function openDetail(id){
         champWarning+
       '</div>'+
       '<div class="detail-section"><div class="ds-title">Installed Fleet</div>'+fleetBreakdownHtml+'</div>'+
-      '<div class="detail-section"><div class="ds-title">Notes & Context</div>'+notesSourceBadge+'<div style="font-size:13px;line-height:1.6;color:var(--text)">'+notesHtml+'</div></div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Notes &amp; Context</span><button class="btn btn-ghost btn-sm" onclick="openNoteModal('+a.id+')">+ Add Note</button></div>'+notesTimelineHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Contact</button></div>'+contactsHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Task</button></div>'+tasksHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Funnel Stage / Deals</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Deal</button></div>'+dealsHtml+'</div>'+
@@ -1886,6 +2085,27 @@ function saveAccount(){
   } else {
     DB.accounts.push(Object.assign({id:DB.nextId.a++},data));
   }
+
+  // Auto-create a Potential Deal if this account has fleet data and no deal exists yet for it
+  if(fleetClean.length && calcTam>0){
+    var existingDeal = DB.opportunities.find(function(o){ return o.account===name; });
+    if(!existingDeal){
+      DB.opportunities.push({
+        id:DB.nextId.o++,
+        name:name+' — Fleet Upgrade Opportunity',
+        account:name,
+        value:calcTam,
+        stage:0, // 0 = Potential, not yet active
+        close:'',
+        autoCreated:true,
+      });
+    } else if(existingDeal.autoCreated && existingDeal.stage===0){
+      // keep potential deal value in sync with recalculated TAM until it's activated
+      existingDeal.value = calcTam;
+      existingDeal.name = name+' — Fleet Upgrade Opportunity';
+    }
+  }
+
   persist();
   clearAccountDraft();
   closeModal('m-account');
@@ -2113,30 +2333,66 @@ var DEVICE_ICONS = {
   'Monitors':'⚡','LUCAS':'🫀','AEDs':'🚨','Chairs':'🪑','Data':'📡','Other':'📦'
 };
 
-var DEVICE_TYPES = ['Monitors','LUCAS','AEDs','Chairs','Data'];
+var DEVICE_TYPES = ['Monitors','LUCAS','AEDs','Chairs'];
+// Maps the granular account-level device type to the broader Fleet Intel category
+function fleetIntelCategory(accountDeviceType){
+  if(!accountDeviceType) return 'Other';
+  if(accountDeviceType.indexOf('Monitor')===0) return 'Monitors';
+  if(accountDeviceType.indexOf('AED')===0) return 'AEDs';
+  if(accountDeviceType.indexOf('LUCAS')===0) return 'LUCAS';
+  if(accountDeviceType.indexOf('Chair')===0) return 'Chairs';
+  return 'Other';
+}
+
+// Derives a flat list of {account, accountId, type(account-level), category, count, age} from all accounts' fleet[] arrays
+function getAllInstalledDevices(){
+  var rows=[];
+  DB.accounts.forEach(function(a){
+    if(!a.fleet) return;
+    a.fleet.forEach(function(r){
+      rows.push({
+        account: a.name,
+        accountId: a.id,
+        type: r.type,
+        category: fleetIntelCategory(r.type),
+        count: Number(r.count)||0,
+        age: Number(r.age)||0,
+      });
+    });
+  });
+  return rows;
+}
+
+
+// Bridges account-level age (years) into a UL status bucket so Fleet Intel coloring stays consistent
+function ageToULStatus(age){
+  age=Number(age)||0;
+  if(age>=8) return 'beyondsl';
+  if(age>=6) return 'beyond';
+  if(age>=4) return 'approaching';
+  return 'within';
+}
 
 function renderFleetPage(){
+  var allDevices = getAllInstalledDevices();
   var types=DEVICE_TYPES.slice();
-  DB.devices.forEach(function(d){ if(types.indexOf(d.type)===-1) types.push(d.type); });
 
-  var totalUnits=DB.devices.reduce(function(s,d){return s+(d.count||0);},0);
-  var noProcare=DB.devices.filter(function(d){return d.procare==='none';}).reduce(function(s,d){return s+(d.count||0);},0);
-  var beyondUL=DB.devices.filter(function(d){return d.status==='beyond'||d.status==='beyondsl';}).reduce(function(s,d){return s+(d.count||0);},0);
-  var accountsWithDevices=[]; DB.devices.forEach(function(d){if(accountsWithDevices.indexOf(d.account)===-1)accountsWithDevices.push(d.account);});
+  var totalUnits=allDevices.reduce(function(s,d){return s+d.count;},0);
+  var beyondUL=allDevices.filter(function(d){return ageToULStatus(d.age)==='beyond'||ageToULStatus(d.age)==='beyondsl';}).reduce(function(s,d){return s+d.count;},0);
+  var accountsWithDevices=[]; allDevices.forEach(function(d){if(accountsWithDevices.indexOf(d.account)===-1)accountsWithDevices.push(d.account);});
 
   $('fleet-summary').innerHTML=
-    '<div class="kpi-tile"><div class="kpi-tile-label">Device Types Tracked</div><div class="kpi-tile-value">'+types.length+'</div></div>'+
+    '<div class="kpi-tile"><div class="kpi-tile-label">Device Categories</div><div class="kpi-tile-value">'+types.length+'</div></div>'+
     '<div class="kpi-tile"><div class="kpi-tile-label">Total Units</div><div class="kpi-tile-value">'+totalUnits+'</div></div>'+
     '<div class="kpi-tile"><div class="kpi-tile-label">Beyond UL / Service Life</div><div class="kpi-tile-value orange">'+beyondUL+'</div></div>'+
-    '<div class="kpi-tile"><div class="kpi-tile-label">No ProCare Contract</div><div class="kpi-tile-value orange">'+noProcare+'</div><div class="kpi-sub">units across <b>'+accountsWithDevices.length+'</b> accounts</div></div>';
+    '<div class="kpi-tile"><div class="kpi-tile-label">Accounts With Fleet Data</div><div class="kpi-tile-value">'+accountsWithDevices.length+'</div></div>';
 
   var html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px">';
   types.forEach(function(type){
-    var items=DB.devices.filter(function(d){return d.type===type;});
-    var units=items.reduce(function(s,d){return s+(d.count||0);},0);
+    var items=allDevices.filter(function(d){return d.category===type;});
+    var units=items.reduce(function(s,d){return s+d.count;},0);
     var accounts=[]; items.forEach(function(d){if(accounts.indexOf(d.account)===-1)accounts.push(d.account);});
-    var beyond=items.filter(function(d){return d.status==='beyond'||d.status==='beyondsl';}).reduce(function(s,d){return s+(d.count||0);},0);
-    var noPC=items.filter(function(d){return d.procare==='none';}).reduce(function(s,d){return s+(d.count||0);},0);
+    var beyond=items.filter(function(d){return ageToULStatus(d.age)==='beyond'||ageToULStatus(d.age)==='beyondsl';}).reduce(function(s,d){return s+d.count;},0);
     var icon=DEVICE_ICONS[type]||'📦';
     html+=
       '<div onclick="openDeviceDetail('+JSON.stringify(type)+')" style="cursor:pointer;background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:18px;transition:border-color .15s" onmouseover="this.style.borderColor=\'var(--accent)\'" onmouseout="this.style.borderColor=\'var(--navy-border)\'">'+
@@ -2145,46 +2401,45 @@ function renderFleetPage(){
         '<div style="font-family:DM Mono,monospace;font-size:24px;font-weight:700;color:var(--accent);margin-bottom:8px">'+units+'<span style="font-size:12px;color:var(--text-muted);font-weight:400"> units</span></div>'+
         '<div style="font-size:11.5px;color:var(--text-muted);margin-bottom:2px">'+accounts.length+' account'+(accounts.length!==1?'s':'')+'</div>'+
         (beyond>0?'<div style="font-size:11px;color:var(--orange);margin-top:6px">⚠ '+beyond+' Beyond UL</div>':'')+
-        (noPC>0?'<div style="font-size:11px;color:var(--orange)">🛡 '+noPC+' no ProCare</div>':'')+
+        (units===0?'<div style="font-size:11px;color:var(--text-dim);margin-top:6px">No data yet</div>':'')+
       '</div>';
   });
   html+='</div>';
   $('device-type-grid').innerHTML=html;
 }
 
-function openDeviceDetail(type){
-  var items=DB.devices.filter(function(d){return d.type===type;});
-  var icon=DEVICE_ICONS[type]||'📦';
-  var totalUnits=items.reduce(function(s,d){return s+(d.count||0);},0);
+function openDeviceDetail(category){
+  var items = getAllInstalledDevices().filter(function(d){return d.category===category;});
+  var icon=DEVICE_ICONS[category]||'📦';
+  var totalUnits=items.reduce(function(s,d){return s+d.count;},0);
+  var accountCount=[].concat(items.map(function(d){return d.account;})).filter(function(v,i,a){return a.indexOf(v)===i;}).length;
 
-  var sorted=[].concat(items).sort(function(a,b){return (b.age||0)-(a.age||0);});
+  var sorted=[].concat(items).sort(function(a,b){return b.age-a.age;});
 
   var rows='';
   if(sorted.length===0){
-    rows='<div class="empty"><div class="empty-icon">'+icon+'</div>No '+type+' records yet.</div>';
+    rows='<div class="empty"><div class="empty-icon">'+icon+'</div>No '+category+' logged yet. Add fleet/device data to an account to see it here automatically.</div>';
   } else {
     sorted.forEach(function(d){
-      var ul=UL_STATUS[d.status]||UL_STATUS.within;
-      var pc=PROCARE_STATUS[d.procare]||PROCARE_STATUS.none;
-      var acct=DB.accounts.find(function(a){return a.name===d.account;});
+      var ulKey=ageToULStatus(d.age);
+      var ul=UL_STATUS[ulKey]||UL_STATUS.within;
+      var def=DEVICE_TARGETS[d.type]||{target:'',price:0};
       rows+=
         '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+ul.color+';border-radius:var(--radius-md);padding:16px;margin-bottom:10px">'+
           '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">'+
             '<div>'+
-              '<div style="font-size:15px;font-weight:700;cursor:pointer" '+(acct?'onclick="openDetail('+acct.id+')"':'')+'>'+d.account+(acct?' →':'')+'</div>'+
+              '<div style="font-size:15px;font-weight:700;cursor:pointer" onclick="openDetail('+d.accountId+')">'+d.account+' →</div>'+
+              '<div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">'+d.type+(def.price>0?' · upgrades to '+def.target:'')+'</div>'+
             '</div>'+
             '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
               '<span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;background:'+ul.bg+';color:'+ul.color+'">'+ul.label+'</span>'+
-              '<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:'+pc.bg+';color:'+pc.color+'">'+pc.label+'</span>'+
-              '<button class="btn btn-ghost btn-sm" onclick="editDeviceRecord('+d.id+')">Edit</button>'+
-              '<button class="btn btn-danger btn-sm" onclick="deleteDeviceRecord('+d.id+','+JSON.stringify(type)+')">Delete</button>'+
+              '<button class="btn btn-ghost btn-sm" onclick="openDetail('+d.accountId+')">Edit on Account</button>'+
             '</div>'+
           '</div>'+
-          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:'+(d.notes?'10px':'0')+'">'+
-            '<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px"><div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Units</div><div style="font-family:DM Mono,monospace;font-size:22px;font-weight:700">'+(d.count||0)+'</div></div>'+
-            '<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px"><div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Avg Age</div><div style="font-family:DM Mono,monospace;font-size:22px;font-weight:700">'+(d.age||0)+'<span style="font-size:12px;color:var(--text-muted)"> yrs</span></div></div>'+
+          '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px">'+
+            '<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px"><div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Units</div><div style="font-family:DM Mono,monospace;font-size:22px;font-weight:700">'+d.count+'</div></div>'+
+            '<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px"><div style="font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Age</div><div style="font-family:DM Mono,monospace;font-size:22px;font-weight:700">'+d.age+'<span style="font-size:12px;color:var(--text-muted)"> yrs</span></div></div>'+
           '</div>'+
-          (d.notes?'<div style="background:var(--navy-mid);border-radius:6px;padding:10px 12px;font-size:12.5px;line-height:1.6;color:var(--text)">'+d.notes+'</div>':'')+
         '</div>';
     });
   }
@@ -2193,75 +2448,22 @@ function openDeviceDetail(type){
     '<button class="detail-back" onclick="goPage(\'fleet\',document.querySelector(\'.nav-link[onclick*=fleet]\'))">← Back to Fleet Intelligence</button>'+
     '<div class="detail-hero">'+
       '<div class="detail-top">'+
-        '<div><div class="detail-name">'+icon+' '+type+'</div><div class="detail-city">By account · sorted by age (oldest first)</div></div>'+
-        '<button class="btn btn-primary btn-sm" onclick="openDeviceUnitModal('+JSON.stringify(type)+')">+ Add Account Record</button>'+
+        '<div><div class="detail-name">'+icon+' '+category+'</div><div class="detail-city">By account · sorted by age (oldest first) · Pulled automatically from Account fleet data</div></div>'+
       '</div>'+
-      '<div class="detail-metrics" style="grid-template-columns:repeat(3,1fr)">'+
+      '<div class="detail-metrics" style="grid-template-columns:repeat(2,1fr)">'+
         '<div class="detail-metric"><div class="dm-label">Total Units</div><div class="dm-value">'+totalUnits+'</div></div>'+
-        '<div class="detail-metric"><div class="dm-label">Accounts</div><div class="dm-value">'+items.length+'</div></div>'+
-        '<div class="detail-metric"><div class="dm-label">No ProCare</div><div class="dm-value orange">'+items.filter(function(d){return d.procare==='none';}).reduce(function(s,d){return s+(d.count||0);},0)+'</div></div>'+
+        '<div class="detail-metric"><div class="dm-label">Accounts</div><div class="dm-value">'+accountCount+'</div></div>'+
       '</div>'+
     '</div>'+
     rows;
 
   document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
-  $('topbar-title').textContent=type;
+  $('topbar-title').textContent=category;
   $('topbar-sub').textContent='Fleet Intelligence · By account';
   document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
   $('page-devicedetail').classList.add('active');
   closeSidebar();
 }
-
-var _editingDeviceId=null, _deviceModalType=null;
-function openDeviceUnitModal(presetType){
-  if(DB.accounts.length===0){
-    if(confirm('You need at least one account before logging device records.\n\nGo to Accounts page to add one now?')){
-      goPage('accounts', document.querySelector('.nav-link[onclick*="accounts"]'));
-    }
-    return;
-  }
-  _editingDeviceId=null;
-  _deviceModalType=presetType||null;
-  $('m-device-title').textContent='Add Device Record';
-  $('fd-account').innerHTML=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('');
-  if(presetType) $('fd-type').value=presetType;
-  $('fd-count').value='';$('fd-age').value='';$('fd-status').value='within';$('fd-procare').value='none';$('fd-notes').value='';
-  openModal('m-device');
-}
-function editDeviceRecord(id){
-  var d=DB.devices.find(function(x){return x.id===id;});
-  if(!d) return;
-  _editingDeviceId=id;
-  $('m-device-title').textContent='Edit Device Record';
-  $('fd-account').innerHTML=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('');
-  $('fd-type').value=d.type;$('fd-account').value=d.account;
-  $('fd-count').value=d.count;$('fd-age').value=d.age;
-  $('fd-status').value=d.status;$('fd-procare').value=d.procare;$('fd-notes').value=d.notes||'';
-  openModal('m-device');
-}
-function saveDeviceRecord(){
-  var data={
-    type:$('fd-type').value, account:$('fd-account').value,
-    count:parseInt($('fd-count').value)||0, age:parseInt($('fd-age').value)||0,
-    status:$('fd-status').value, procare:$('fd-procare').value,
-    notes:$('fd-notes').value.trim(),
-  };
-  if(_editingDeviceId){
-    var i=DB.devices.findIndex(function(x){return x.id===_editingDeviceId;});
-    if(i>-1) DB.devices[i]=Object.assign({},DB.devices[i],data);
-  } else {
-    DB.devices.push(Object.assign({id:DB.nextId.d++},data));
-  }
-  persist();closeModal('m-device');
-  if(_deviceModalType||(_editingDeviceId&&data.type)) openDeviceDetail(data.type);
-  else renderFleetPage();
-}
-function deleteDeviceRecord(id,type){
-  if(!confirm('Delete this device record?')) return;
-  DB.devices=DB.devices.filter(function(x){return x.id!==id;});
-  persist();openDeviceDetail(type);
-}
-
 
 // ===== EXPORT / IMPORT =====
 function exportData(){
@@ -2293,8 +2495,7 @@ function importData(event){
       if(!DB.profile) DB.profile={name:'',role:'Sales Representative',territory:''};
       if(!DB.opportunities) DB.opportunities=[];
       if(!DB.playbook) DB.playbook=[];
-      if(!DB.devices) DB.devices=[];
-      if(!DB.nextId) DB.nextId={a:1,t:1,o:1,c:1,i:1,p:1,d:1};
+      if(!DB.nextId) DB.nextId={a:1,t:1,o:1,c:1,i:1,p:1};
       persist();
       renderProfile();
       goPage('dashboard', document.querySelector('.nav-link'));

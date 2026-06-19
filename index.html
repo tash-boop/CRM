@@ -192,6 +192,8 @@ a{color:inherit;text-decoration:none;}
 .funnel-card.dragging,.potential-card.dragging{opacity:0.4;}
 .funnel-col.drag-over{background:var(--accent-dim);border-color:var(--accent);}
 .funnel-col{transition:background .15s,border-color .15s;}
+#potential-deals-row{transition:background .15s,border-radius .15s;border:1px dashed transparent;border-radius:6px;}
+#potential-deals-row.drag-over{background:var(--accent-dim);border-color:var(--accent);}
 .note-timeline-item{border-bottom:1px solid var(--navy-border);}
 .note-timeline-item:last-child{border-bottom:none;}
 
@@ -448,7 +450,7 @@ input[type=number]{-moz-appearance:textfield;}
           </div>
           <button class="btn btn-ghost btn-sm" onclick="openOppModal()">+ Add Non-Device Deal</button>
         </div>
-        <div id="potential-deals-row" style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;min-height:60px"></div>
+        <div id="potential-deals-row" style="padding:14px 18px;display:flex;gap:10px;flex-wrap:wrap;min-height:60px" ondragover="onPotentialDragOver(event)" ondragleave="onPotentialDragLeave(event)" ondrop="onPotentialDrop(event)"></div>
       </div>
 
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px">
@@ -457,6 +459,7 @@ input[type=number]{-moz-appearance:textfield;}
           <div class="card-sub">Intelligence → Champion Development → Problem Development → Executive Alignment → Quote Requested → Quote Sent → Clinical Validation → Formal Evaluation → Financial Approval → Contract & PO</div>
           <div class="card-sub" style="margin-top:4px;color:var(--accent)">↕ Drag any card to move it between stages</div>
         </div>
+        <button class="btn btn-ghost btn-sm" onclick="openAllDealsView()">📋 View All Deals (list)</button>
       </div>
       <div class="funnel-board" id="funnel-board-full"></div>
     </div>
@@ -893,6 +896,16 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
+
+<!-- MODAL: All Deals (flat admin list, every deal regardless of stage) -->
+<div class="modal-bg" id="m-all-deals">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-head"><div class="modal-title">All Deals</div><button class="modal-x" onclick="closeModal('m-all-deals')">✕</button></div>
+    <div class="modal-body" id="all-deals-body" style="max-height:65vh;overflow-y:auto"></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-all-deals')">Close</button></div>
+  </div>
+</div>
+
 <script charset="utf-8">
 
 // ===== DATA =====
@@ -990,14 +1003,19 @@ function renderFleetInputRows(){
           '<input class="finput" style="font-size:12px;padding:7px 8px" type="text" inputmode="decimal" placeholder="Age yrs" value="'+(r.age||'')+'" data-field="age" oninput="updateFleetRow('+i+',\'age\',this.value)">'+
           '<button type="button" onclick="removeFleetRow('+i+')" style="background:none;border:none;color:var(--text-dim);font-size:16px;cursor:pointer;padding:4px">✕</button>'+
         '</div>'+
-        (isAlreadyCurrent ? '' :
-        '<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:6px;margin-bottom:6px">'+
-          '<select class="fselect" style="font-size:11.5px;padding:6px 8px" onchange="updateFleetRow('+i+',\'stage\',this.value)">'+
-            '<option value="0"'+((r.stage||0)===0?' selected':'')+'>Potential (not yet active)</option>'+
-            FUNNEL_STAGES.map(function(s){return '<option value="'+s.n+'"'+(r.stage===s.n?' selected':'')+'>Stage '+s.n+' — '+s.name+'</option>';}).join('')+
-          '</select>'+
-          '<input class="finput" style="font-size:11.5px;padding:6px 8px" placeholder="Champion for THIS product" value="'+(r.champion||'')+'" oninput="updateFleetRow('+i+',\'champion\',this.value)">'+
-        '</div>')+
+        (isAlreadyCurrent ? '' : (function(){
+          var linkedDeal = r.lineId ? DB.opportunities.find(function(o){return o.lineId===r.lineId;}) : null;
+          var locked = linkedDeal && linkedDeal.autoCreated===false;
+          var lockHint = locked ? '<div style="font-size:10px;color:var(--text-dim);margin-bottom:4px">🔒 This deal was manually moved in the pipeline — the dropdown below is now just a record, edit the stage from Pipeline instead.</div>' : '';
+          return lockHint+
+          '<div style="display:grid;grid-template-columns:1.3fr 1fr;gap:6px;margin-bottom:6px">'+
+            '<select class="fselect" style="font-size:11.5px;padding:6px 8px'+(locked?';opacity:0.6':'')+'" onchange="updateFleetRow('+i+',\'stage\',this.value)">'+
+              '<option value="0"'+((r.stage||0)===0?' selected':'')+'>Potential (not yet active)</option>'+
+              FUNNEL_STAGES.map(function(s){return '<option value="'+s.n+'"'+(r.stage===s.n?' selected':'')+'>Stage '+s.n+' — '+s.name+'</option>';}).join('')+
+            '</select>'+
+            '<input class="finput" style="font-size:11.5px;padding:6px 8px" placeholder="Champion for THIS product" value="'+(r.champion||'')+'" oninput="updateFleetRow('+i+',\'champion\',this.value)">'+
+          '</div>';
+        })())+
         '<div class="fleet-row-detail" data-detail="'+i+'">'+
           (isAlreadyCurrent
             ? '<div style="font-size:11px;color:var(--text-dim)">Already current Stryker product — no upgrade TAM from this line.</div>'
@@ -1437,8 +1455,9 @@ function renderKPIs(){
   var totalPipeline = DB.accounts.reduce(function(s,a){ return s+(a.oppVal||0); }, 0);
   var totalTAM = DB.accounts.reduce(function(s,a){ return s+tamMid(a); }, 0);
 
-  // Active Deals = sum of value for opportunities that have been activated into the funnel (stage 1-10). Stage 0 = Potential, not yet active.
-  var activeOpps = DB.opportunities.filter(function(o){ return o.stage>0; });
+  // Active Deals = sum of EVERY deal currently sitting anywhere in the 10-stage pipeline (stage 1-10).
+  // Stage 0 = Potential, sitting in the holding area, NOT counted until dragged/activated into Stage 1+.
+  var activeOpps = DB.opportunities.filter(function(o){ return o.stage>=1 && o.stage<=10; });
   var activeDeals = activeOpps.reduce(function(s,o){ return s+(o.value||0); }, 0);
   var activeDealCount = activeOpps.length;
   var potentialCount = DB.opportunities.filter(function(o){ return o.stage===0; }).length;
@@ -1461,7 +1480,7 @@ function renderKPIs(){
     '<div class="kpi-tile">'+
       '<div class="kpi-tile-label">Active Deals</div>'+
       '<div class="kpi-tile-value yellow">'+fmtK(activeDeals)+'</div>'+
-      '<div class="kpi-sub">'+activeDealCount+' deal'+(activeDealCount!==1?'s':'')+' in the pipeline'+(potentialCount?' · <b style="color:var(--text-muted)">'+potentialCount+' potential</b>':'')+'</div>'+
+      '<div class="kpi-sub">'+activeDealCount+' deal'+(activeDealCount!==1?'s':'')+' across all 10 pipeline stages'+(potentialCount?' · <b style="color:var(--text-muted)">'+potentialCount+' more in Potential</b>':'')+'</div>'+
     '</div>'+
     '<div class="kpi-tile">'+
       '<div class="kpi-tile-label">Total Pipeline</div>'+
@@ -1598,6 +1617,44 @@ function editOpp(id){
 }
 var _editingManualOppId=null;
 
+
+// ===== ALL DEALS — flat admin list, guaranteed Edit/Delete on every single deal, no matter its stage =====
+function openAllDealsView(){
+  var body=$('all-deals-body');
+  if(!body) return;
+  var deals=[].concat(DB.opportunities).sort(function(a,b){return (b.value||0)-(a.value||0);});
+  if(deals.length===0){
+    body.innerHTML='<div class="empty"><div class="empty-icon">📭</div>No deals at all yet.</div>';
+    openModal('m-all-deals');
+    return;
+  }
+  var rows='';
+  deals.forEach(function(o){
+    var stageLabel = o.stage===0 ? 'Potential (not active)' : 'Stage '+o.stage+' — '+((FUNNEL_STAGES.find(function(s){return s.n===o.stage;})||{}).name||'Unknown');
+    var stageColor = o.stage===0 ? 'var(--text-dim)' : 'var(--accent)';
+    rows+=
+      '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px">'+
+          '<div>'+
+            '<div style="font-size:14px;font-weight:700">'+o.name+'</div>'+
+            '<div style="font-size:12px;color:var(--text-muted);margin-top:2px">'+o.account+(o.champion?' · 👤 '+o.champion:'')+'</div>'+
+          '</div>'+
+          '<div style="font-family:DM Mono,monospace;font-size:15px;font-weight:700;color:var(--green)">'+fmt(o.value)+'</div>'+
+        '</div>'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">'+
+          '<span style="font-size:11px;font-weight:700;color:'+stageColor+'">'+stageLabel+'</span>'+
+          '<div style="display:flex;gap:14px">'+
+            '<button onclick="closeModal(\'m-all-deals\');editOpp('+o.id+')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer">✏ Edit</button>'+
+            (o.stage===0?'<button onclick="activateDeal('+o.id+');openAllDealsView()" style="background:none;border:none;color:var(--green);font-size:12px;cursor:pointer">→ Activate</button>':'')+
+            '<button onclick="if(confirm(\'Delete this deal? This cannot be undone.\')){deleteOpp('+o.id+');openAllDealsView();}" style="background:none;border:none;color:var(--red);font-size:12px;cursor:pointer">✕ Delete</button>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+  body.innerHTML=rows;
+  openModal('m-all-deals');
+}
+
 // Dashboard stage zoom-in: click any funnel column on the dashboard to see every deal/account at that stage
 function openStageZoom(stageNum){
   var stage = FUNNEL_STAGES.find(function(s){return s.n===stageNum;});
@@ -1705,6 +1762,22 @@ function onColDrop(ev,stageNum){
   moveOppToStage(id, stageNum);
 }
 
+// Potential Deals row also accepts drops — dragging a card backward out of the pipeline returns it to stage 0
+function onPotentialDragOver(ev){
+  ev.preventDefault();
+  ev.currentTarget.classList.add('drag-over');
+}
+function onPotentialDragLeave(ev){
+  ev.currentTarget.classList.remove('drag-over');
+}
+function onPotentialDrop(ev){
+  ev.preventDefault();
+  ev.currentTarget.classList.remove('drag-over');
+  var id=_draggedOppId;
+  if(!id) return;
+  moveOppToStage(id, 0);
+}
+
 function moveOppToStage(id, stageNum){
   var o=DB.opportunities.find(function(x){return x.id===id;});
   if(!o) return;
@@ -1729,21 +1802,26 @@ function onTouchMove(ev){
   if(!_touchDraggedId) return;
   ev.preventDefault();
   var touch=ev.touches[0];
-  document.querySelectorAll('.funnel-col.drag-over').forEach(function(c){c.classList.remove('drag-over');});
+  document.querySelectorAll('.funnel-col.drag-over, #potential-deals-row.drag-over').forEach(function(c){c.classList.remove('drag-over');});
   var el=document.elementFromPoint(touch.clientX, touch.clientY);
   var col=el ? el.closest('.funnel-col[data-stage]') : null;
+  var potentialZone=el ? el.closest('#potential-deals-row') : null;
   if(col) col.classList.add('drag-over');
+  else if(potentialZone) potentialZone.classList.add('drag-over');
 }
 function onTouchEnd(ev){
   if(!_touchDraggedId) return;
   var touch=ev.changedTouches[0];
   var el=document.elementFromPoint(touch.clientX, touch.clientY);
   var col=el ? el.closest('.funnel-col[data-stage]') : null;
+  var potentialZone=el ? el.closest('#potential-deals-row') : null;
   document.querySelectorAll('.dragging').forEach(function(c){c.classList.remove('dragging');});
-  document.querySelectorAll('.funnel-col.drag-over').forEach(function(c){c.classList.remove('drag-over');});
+  document.querySelectorAll('.funnel-col.drag-over, #potential-deals-row.drag-over').forEach(function(c){c.classList.remove('drag-over');});
   if(col){
     var stageNum=parseInt(col.getAttribute('data-stage'));
     moveOppToStage(_touchDraggedId, stageNum);
+  } else if(potentialZone){
+    moveOppToStage(_touchDraggedId, 0);
   }
   _touchDraggedId=null;
 }
@@ -2198,14 +2276,16 @@ function editAccount(id){
   $('m-acct-title').textContent='Edit Account';
   var bEl=$('account-draft-banner'); if(bEl) bEl.innerHTML='';
   _fleetRows = (a.fleet && a.fleet.length) ? JSON.parse(JSON.stringify(a.fleet)) : [];
-  renderFleetInputRows();
   var calcForThis = calcFleetTAM(_fleetRows);
-  var wasOverridden = (a.oppVal!==undefined && a.oppVal!==calcForThis && _fleetRows.length>0);
+  var wasOverridden = !!a.oppValOverridden;
+  // Set checkbox/readonly state BEFORE rendering fleet rows, since renderFleetInputRows triggers
+  // a calculation pass that respects whatever the checkbox says at that moment.
   $('fa-opp-val-override').checked = wasOverridden;
   $('fa-opp-val').readOnly = !wasOverridden;
   $('fa-opp-val').style.opacity = wasOverridden ? '1' : '0.75';
+  if(wasOverridden) $('fa-opp-val').value = a.oppVal||'';
+  renderFleetInputRows(); // safe now — will not overwrite the override value just set above
   if(!wasOverridden) $('fa-opp-val').value = calcForThis>0 ? calcForThis : (a.oppVal||'');
-  else $('fa-opp-val').value = a.oppVal||'';
   $('fa-name').value=a.name;$('fa-city').value=a.city;
   var pSel=$('fa-parent');
   pSel.innerHTML='<option value="">— None / Standalone —</option>'+DB.accounts.filter(function(x){return x.id!==a.id;}).map(function(x){return '<option value="'+x.name+'">'+x.name+'</option>';}).join('');
@@ -2236,11 +2316,14 @@ function saveAccount(){
     };
   });
   var calcTam = calcFleetTAM(fleetClean);
+  var oppValOverridden = !!($('fa-opp-val-override') && $('fa-opp-val-override').checked);
   var data={
     name:name,city:$('fa-city').value.trim(),parent:$('fa-parent').value||'',
     fleet:fleetClean,
     tamMin:calcTam, tamMax:calcTam, // kept for any legacy code paths; both equal the calculated figure
-    oppVal:parseInt($('fa-opp-val').value)||0,status:$('fa-status').value,
+    oppVal:parseInt($('fa-opp-val').value)||0,
+    oppValOverridden:oppValOverridden,
+    status:$('fa-status').value,
     vendor:$('fa-vendor').value.trim(),product:$('fa-product').value.trim(),
     clinical:$('fa-clinical').value.trim(),biomed:$('fa-biomed').value.trim(),
     champScore:parseInt($('fa-champ').value)||0,prob:parseInt($('fa-prob').value)||0,
@@ -2289,8 +2372,10 @@ function saveAccount(){
       existing.value = lineVal;
       existing.name = dealName;
       existing.champion = r.champion;
-      // Only auto-sync stage if the deal was auto-created and hasn't been manually moved past where the line says
-      if(existing.autoCreated){ existing.stage = r.stage||0; }
+      // Only auto-sync stage from the device-line dropdown if this deal has never been manually moved/activated.
+      // Once a deal is dragged or activated anywhere in the pipeline, autoCreated flips to false and stays false —
+      // the device line's Stage dropdown becomes purely informational at that point, not a live control.
+      if(existing.autoCreated===true){ existing.stage = r.stage||0; }
     } else {
       DB.opportunities.push({
         id:DB.nextId.o++,

@@ -525,6 +525,11 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="frow">
         <div class="fg full"><label class="flabel">Fiscal Year Label</label><input class="finput" id="fq-fy" placeholder="FY2026"></div>
       </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Quota Period Start</label><input class="finput" type="date" id="fq-start"></div>
+        <div class="fg"><label class="flabel">Quota Period End</label><input class="finput" type="date" id="fq-end"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px;line-height:1.5">Pace calculations (selling days, daily run-rate, on-pace status) are measured from your start date — e.g. your job/territory start date — not necessarily Jan 1.</div>
       <div style="font-size:12px;color:var(--text-muted);line-height:1.6">This is your True North. % to Quota = Sold ÷ Goal. Update this anytime a deal closes.</div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-quota')">Cancel</button><button class="btn btn-primary" onclick="saveQuota()">Save</button></div>
@@ -1185,14 +1190,20 @@ function openQuotaModal(){
   $('fq-goal').value=q.goal||'';
   $('fq-sold').value=q.sold||'';
   $('fq-fy').value=q.fy||'FY2026';
+  var defaultEnd=new Date(new Date().getFullYear(),11,31).toISOString().split('T')[0];
+  $('fq-start').value=q.startDate||today();
+  $('fq-end').value=q.endDate||defaultEnd;
   openModal('m-quota');
 }
 function saveQuota(){
   function cleanNum(v){ return parseFloat(String(v).replace(/[$,\s]/g,''))||0; }
+  var defaultEnd=new Date(new Date().getFullYear(),11,31).toISOString().split('T')[0];
   DB.quota={
     goal: cleanNum($('fq-goal').value),
     sold: cleanNum($('fq-sold').value),
     fy: $('fq-fy').value.trim()||'FY2026',
+    startDate: $('fq-start').value || today(),
+    endDate: $('fq-end').value || defaultEnd,
   };
   persist();
   closeModal('m-quota');
@@ -1256,13 +1267,18 @@ function renderPace(){
   }
   var remaining=Math.max(0, goal-sold);
   var now=new Date();
-  var fyEnd=new Date(now.getFullYear(),11,31); // Dec 31 this year
-  // If we're already past Dec 31 logic edge case, still compute (won't normally hit)
-  var fyStart=new Date(now.getFullYear(),0,1);
+  now.setHours(0,0,0,0);
 
-  var sellingDaysTotal=countSellingDays(fyStart, fyEnd);
-  var sellingDaysElapsed=countSellingDays(fyStart, now);
-  var sellingDaysRemaining=Math.max(0, countSellingDays(now, fyEnd) - (isSellingDay(now)?1:0)); // exclude today from "remaining", today counts as elapsed if a selling day
+  var defaultEnd=new Date(now.getFullYear(),11,31);
+  var periodStart = q.startDate ? new Date(q.startDate+'T00:00:00') : new Date(now.getFullYear(),0,1);
+  var periodEnd = q.endDate ? new Date(q.endDate+'T00:00:00') : defaultEnd;
+
+  // If "now" is before the period start (shouldn't normally happen), treat elapsed as 0
+  var effectiveNow = now < periodStart ? periodStart : now;
+
+  var sellingDaysTotal=countSellingDays(periodStart, periodEnd);
+  var sellingDaysElapsed=countSellingDays(periodStart, effectiveNow);
+  var sellingDaysRemaining=Math.max(0, countSellingDays(effectiveNow, periodEnd) - (isSellingDay(effectiveNow)?1:0));
 
   var expectedSoldByNow = sellingDaysTotal>0 ? goal*(sellingDaysElapsed/sellingDaysTotal) : 0;
   var paceGap = sold - expectedSoldByNow; // positive = ahead, negative = behind
@@ -1273,14 +1289,17 @@ function renderPace(){
   var statusLabel = paceGap>=0 ? '✓ Ahead of Pace' : (statusClass==='ontrack' ? '~ Roughly On Pace' : '⚠ Behind Pace');
   var gapText = paceGap>=0 ? '+'+fmt(Math.round(paceGap))+' ahead of where you should be' : fmt(Math.round(Math.abs(paceGap)))+' behind where you should be';
 
+  var startLabel = periodStart.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  var endLabel = periodEnd.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
   box.innerHTML=
     '<div class="pace-row">'+
-      '<div class="pace-stat"><div class="pace-stat-label">Selling Days Left (FY)</div><div class="pace-stat-value">'+sellingDaysRemaining+'</div></div>'+
+      '<div class="pace-stat"><div class="pace-stat-label">Selling Days Left</div><div class="pace-stat-value">'+sellingDaysRemaining+'</div></div>'+
       '<div class="pace-stat"><div class="pace-stat-label">Required Daily Run-Rate</div><div class="pace-stat-value" style="color:var(--accent)">'+fmt(Math.round(requiredDailyRate))+'/day</div></div>'+
       '<div class="pace-stat"><div class="pace-stat-label">Pace vs Expected</div><div class="pace-stat-value" style="color:'+(paceGap>=0?'var(--green)':'var(--red)')+'">'+gapText+'</div></div>'+
       '<span class="pace-badge '+statusClass+'">'+statusLabel+'</span>'+
     '</div>'+
-    '<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px">Excludes weekends and the week of Dec 22–31. Based on a calendar fiscal year ('+now.getFullYear()+').</div>';
+    '<div style="font-size:10.5px;color:var(--text-dim);margin-top:8px">Period: '+startLabel+' – '+endLabel+'. Excludes weekends and the week of Dec 22–31. <a href="#" onclick="openQuotaModal();return false;" style="color:var(--text-muted);text-decoration:underline">Edit period</a></div>';
 }
 
 // ===== DASHBOARD =====

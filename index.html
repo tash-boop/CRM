@@ -1191,10 +1191,14 @@ function toggleTamExplainer(){
 // ===== UTILS =====
 function $(id){ return document.getElementById(id); }
 function fmt(n){ return '$'+Number(n||0).toLocaleString(); }
+function cleanNumber(v){ return parseFloat(String(v||'').replace(/[$,\s]/g,''))||0; }
 function fmtK(n){ n=Number(n||0); return n>=1e6?'$'+(n/1e6).toFixed(1)+'M':'$'+(n/1e3).toFixed(0)+'K'; }
 function today(){ return new Date().toISOString().split('T')[0]; }
 function daysSince(d){ return d?Math.max(0,Math.floor((Date.now()-new Date(d))/86400000)):999; }
 function tamMid(a){
+  // If the rep has manually overridden the opportunity value, that's the number that should drive
+  // the dashboard bar graph and KPIs — not the auto-calculated fleet TAM.
+  if(a.oppValOverridden && a.oppVal>0) return a.oppVal;
   if(a.fleet && a.fleet.length) return calcFleetTAM(a.fleet);
   return ((a.tamMin||0)+(a.tamMax||0))/2; // legacy fallback for old accounts
 }
@@ -2321,7 +2325,7 @@ function saveAccount(){
     name:name,city:$('fa-city').value.trim(),parent:$('fa-parent').value||'',
     fleet:fleetClean,
     tamMin:calcTam, tamMax:calcTam, // kept for any legacy code paths; both equal the calculated figure
-    oppVal:parseInt($('fa-opp-val').value)||0,
+    oppVal:cleanNumber($('fa-opp-val').value),
     oppValOverridden:oppValOverridden,
     status:$('fa-status').value,
     vendor:$('fa-vendor').value.trim(),product:$('fa-product').value.trim(),
@@ -2435,7 +2439,7 @@ function openOppModalFor(name){
 function saveOpp(){
   var name=$('fo-name').value.trim();
   if(!name){alert('Deal name required');return;}
-  var data={name:name,account:$('fo-account').value,value:parseInt($('fo-value').value)||0,stage:parseInt($('fo-stage').value)||1,close:$('fo-close').value};
+  var data={name:name,account:$('fo-account').value,value:cleanNumber($('fo-value').value),stage:parseInt($('fo-stage').value)||1,close:$('fo-close').value};
   if(_editingManualOppId){
     var i=DB.opportunities.findIndex(function(x){return x.id===_editingManualOppId;});
     if(i>-1) DB.opportunities[i]=Object.assign({},DB.opportunities[i],data);

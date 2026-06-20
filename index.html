@@ -7368,9 +7368,10 @@ function KCMOTerritoryMap() {
   }, "Missouri · Kansas · Arkansas"))));
 }
 
-  document.getElementById("loading-msg").style.display = "none";
-  var root = ReactDOM.createRoot(document.getElementById("root"));
-  root.render(React.createElement(KCMOTerritoryMap));
+  if(!window._territoryMapRoot){
+    window._territoryMapRoot = ReactDOM.createRoot(document.getElementById("territory-map-root"));
+  }
+  window._territoryMapRoot.render(React.createElement(KCMOTerritoryMap));
 
 } catch(territoryMapErr) {
   console.error('Territory map internal error:', territoryMapErr);

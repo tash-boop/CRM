@@ -35,6 +35,8 @@ a{color:inherit;text-decoration:none;}
 
 /* SIDEBAR */
 .sidebar{position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);background:#070d17;border-right:1px solid var(--navy-border);display:flex;flex-direction:column;z-index:200;transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.sidebar-hidden{transform:translateX(-100%) !important;}
+.layout-expanded{margin-left:0 !important;}
 .sidebar-brand{padding:18px 18px 14px;border-bottom:1px solid var(--navy-border);}
 .brand-row{display:flex;align-items:center;gap:10px;}
 .brand-mark{width:38px;height:38px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;color:var(--navy);letter-spacing:-.5px;flex-shrink:0;}
@@ -72,7 +74,7 @@ a{color:inherit;text-decoration:none;}
 .btn-danger{background:var(--red);color:#fff;}
 .btn-sm{padding:5px 10px;font-size:11.5px;}
 .theme-btn{background:var(--navy-light);border:1px solid var(--navy-border);color:var(--text);padding:6px 10px;border-radius:6px;font-size:15px;cursor:pointer;line-height:1;}
-.hamburger{display:none;background:none;border:none;color:var(--text);font-size:22px;line-height:1;}
+.hamburger{display:block;background:none;border:none;color:var(--text);font-size:22px;line-height:1;cursor:pointer;padding:4px 8px;}
 .content{padding:20px;flex:1;}
 .page{display:none;}
 .page.active{display:block;}
@@ -342,7 +344,7 @@ input[type=number]{-moz-appearance:textfield;}
 </aside>
 
 <!-- MAIN -->
-<div class="layout">
+<div class="layout" id="main-layout">
   <header class="topbar">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
     <div>
@@ -1396,7 +1398,18 @@ function restoreLastView(){
   }
   renderDashboard(); // fallback if the saved page no longer exists
 }
-function toggleSidebar(){ $('sidebar').classList.toggle('open'); $('mob-overlay').classList.toggle('open'); }
+function toggleSidebar(){
+  var sidebar=$('sidebar');
+  var layout=$('main-layout');
+  if(window.innerWidth<=700){
+    sidebar.classList.toggle('open');
+    $('mob-overlay').classList.toggle('open');
+  } else {
+    sidebar.classList.toggle('sidebar-hidden');
+    if(layout) layout.classList.toggle('layout-expanded');
+    try{ localStorage.setItem('truenorth_sidebar_collapsed', sidebar.classList.contains('sidebar-hidden')?'1':'0'); }catch(e){}
+  }
+}
 function closeSidebar(){ $('sidebar').classList.remove('open'); $('mob-overlay').classList.remove('open'); }
 
 // ===== THEME =====
@@ -2697,11 +2710,23 @@ function saveAccount(){
     champScore:parseInt($('fa-champ').value)||0,prob:parseInt($('fa-prob').value)||0,
     budget:$('fa-budget').value.trim(),lastContact:$('fa-contact').value,
     comp:$('fa-comp').value.trim(),next:$('fa-next').value.trim(),
-    notes:$('fa-notes').value.trim(),
-    notesSource:$('fa-notes-source').value,
-    notesSourceName:$('fa-notes-source-name').value.trim(),
-    notesDate:$('fa-notes-date').value || today(),
+    notes:'', // always blank — note is stored in notesLog[] below
+    notesSource:'mine',
+    notesSourceName:'',
+    notesDate:'',
   };
+  // If an initial note was typed in the Add Account modal, push it directly into notesLog[]
+  var initialNoteText = $('fa-notes').value.trim();
+  if(initialNoteText){
+    if(!data.notesLog) data.notesLog=[];
+    data.notesLog.push({
+      id:'n'+Date.now()+Math.random().toString(36).slice(2,7),
+      text:initialNoteText,
+      source:$('fa-notes-source').value,
+      sourceName:$('fa-notes-source-name').value.trim(),
+      date:$('fa-notes-date').value || today(),
+    });
+  }
   var oldName=null;
   var isNewAccount = !_editingAcctId;
   var contactUninitiated = !!($('fa-contact-uninitiated') && $('fa-contact-uninitiated').checked);
@@ -2710,7 +2735,19 @@ function saveAccount(){
 
   if(_editingAcctId){
     var i=DB.accounts.findIndex(function(x){return x.id===_editingAcctId;});
-    if(i>-1){ oldName=DB.accounts[i].name; DB.accounts[i]=Object.assign({},DB.accounts[i],data); }
+    if(i>-1){
+      oldName=DB.accounts[i].name;
+      var existingNotesLog = DB.accounts[i].notesLog||[];
+      var existingQuestions = DB.accounts[i].questions||[];
+      // Preserve notesLog and questions — they're managed separately and should NOT be overwritten by the save data object
+      DB.accounts[i]=Object.assign({},DB.accounts[i],data);
+      DB.accounts[i].notesLog = existingNotesLog;
+      DB.accounts[i].questions = existingQuestions;
+      // Append any new note entered in the edit modal
+      if(data.notesLog && data.notesLog.length){
+        data.notesLog.forEach(function(n){ DB.accounts[i].notesLog.push(n); });
+      }
+    }
     // If name changed, update references
     if(oldName && oldName!==name){
       DB.contacts.forEach(function(c){if(c.account===oldName)c.account=name;});
@@ -3254,6 +3291,30 @@ function resyncOverriddenDealValues(){
 }
 
 // ===== DATA INTEGRITY: every deal must be Stage 0 (Potential) or 1-10 (Active). No orphan states allowed. =====
+function repairNoteIds(){
+  // Existing notesLog entries saved before IDs were added will have no id field.
+  // The edit/delete buttons embed n.id in onclick strings, so undefined id = broken buttons.
+  // This gives every note a stable id if it doesn't already have one.
+  var fixed=0;
+  DB.accounts.forEach(function(a){
+    if(!a.notesLog) return;
+    a.notesLog.forEach(function(n){
+      if(!n.id){
+        n.id='n'+Date.now()+Math.random().toString(36).slice(2,7);
+        fixed++;
+      }
+    });
+    if(a.questions) a.questions.forEach(function(q){
+      if(!q.id){
+        q.id='q'+Date.now()+Math.random().toString(36).slice(2,7);
+        fixed++;
+      }
+    });
+  });
+  if(fixed>0) persist();
+  return fixed;
+}
+
 function migrateLegacyAccountNotes(){
   // The original single 'notes' field is folded into notesLog[] as a real, editable, deletable entry —
   // so going forward there is exactly ONE place notes live, with no special-cased "original note" anymore.
@@ -3374,7 +3435,18 @@ function renderTerritoryMap(){
 
 // ===== INIT =====
 initTheme();
+// Restore sidebar collapsed state on desktop
+(function(){
+  try{
+    if(window.innerWidth>700 && localStorage.getItem('truenorth_sidebar_collapsed')==='1'){
+      var sb=$('sidebar'); var ly=$('main-layout');
+      if(sb) sb.classList.add('sidebar-hidden');
+      if(ly) ly.classList.add('layout-expanded');
+    }
+  }catch(e){}
+})();
 renderProfile();
+repairNoteIds();
 var migratedNotesCount = migrateLegacyAccountNotes();
 var migratedCount = migrateLegacyDeviceTypes();
 var repairedCount = repairOpportunityStages();

@@ -421,7 +421,7 @@ input[type=number]{-moz-appearance:textfield;}
       </div>
 
       <!-- LATE-STAGE DEAL BREAKDOWN (Stage 5+: Quote Requested onward) -->
-      <div class="card">
+      <div class="card" style="margin-bottom:16px">
         <div class="card-header">
           <div>
             <div class="card-title">Late-Stage Deals — Quote Requested & Beyond</div>
@@ -429,6 +429,17 @@ input[type=number]{-moz-appearance:textfield;}
           </div>
         </div>
         <div id="late-stage-breakdown" style="padding:14px 18px"></div>
+      </div>
+
+      <!-- TERRITORY GOAL: LUCAS IN EVERY RURAL HOSPITAL -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">🌾 Territory Goal — A LUCAS in Every Rural Hospital</div>
+            <div class="card-sub">Live progress across every account marked as Rural Hospital</div>
+          </div>
+        </div>
+        <div id="lucas-goal-tracker" style="padding:14px 18px"></div>
       </div>
 
     </div><!-- /dashboard -->
@@ -635,6 +646,15 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="frow">
         <div class="fg full"><label class="flabel">Parent Account (optional)</label><select class="fselect" id="fa-parent"><option value="">— None / Standalone —</option></select></div>
       </div>
+      <div class="frow">
+        <div class="fg full" style="background:var(--navy-mid);border-radius:6px;padding:10px 12px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+            <input type="checkbox" id="fa-rural" style="margin:0">
+            <span style="font-size:12.5px;font-weight:600">🌾 Rural Hospital</span>
+          </label>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px;margin-left:24px">Tracked toward your goal: a LUCAS in every rural hospital in your territory.</div>
+        </div>
+      </div>
 
       <div class="fg full" style="margin-bottom:13px">
         <label class="flabel">Installed Fleet — Drives Calculated TAM</label>
@@ -713,6 +733,9 @@ input[type=number]{-moz-appearance:textfield;}
             <option value="secondhand">👂 Secondhand (heard from someone else)</option>
           </select>
         </div>
+        <div class="fg"><label class="flabel">Note Date</label><input class="finput" type="date" id="fa-notes-date"></div>
+      </div>
+      <div class="frow">
         <div class="fg" id="fa-notes-source-name-wrap" style="display:none">
           <label class="flabel">Source Name</label>
           <input class="finput" id="fa-notes-source-name" placeholder="e.g. Ethan (prior rep), Nathan, manager">
@@ -899,7 +922,7 @@ input[type=number]{-moz-appearance:textfield;}
 <!-- MODAL: Add Note (timeline entry) -->
 <div class="modal-bg" id="m-note">
   <div class="modal">
-    <div class="modal-head"><div class="modal-title">Add Note</div><button class="modal-x" onclick="closeModal('m-note')">✕</button></div>
+    <div class="modal-head"><div class="modal-title" id="m-note-title">Add Note</div><button class="modal-x" onclick="closeModal('m-note')">✕</button></div>
     <div class="modal-body">
       <div class="frow">
         <div class="fg"><label class="flabel">Note Source</label>
@@ -989,19 +1012,23 @@ var DEVICE_TYPE_OPTIONS = [
   'Monitor – LP35 (already current)',
   'AED – Other/Older',
   'AED – LPCR2 (already current)',
-  'LUCAS (already current)',
+  'LUCAS – None Yet (no mechanical CPR device)',
+  'LUCAS – Aging Unit (replacement opportunity)',
+  'LUCAS – Have One, Clinical Need for Additional',
   'Chair',
 ];
 
 var DEVICE_TARGETS = {
-  'Monitor – Zoll (any)':              {target:'LIFEPAK 35', price:22500},
-  'Monitor – LP15':                    {target:'LIFEPAK 35', price:22500},
-  'Monitor – LP20':                    {target:'LIFEPAK 35', price:22500},
-  'Monitor – LP35 (already current)':  {target:'Already on LP35', price:0},
-  'AED – Other/Older':                 {target:'LPCR2', price:3400},
-  'AED – LPCR2 (already current)':     {target:'Already on LPCR2', price:0},
-  'LUCAS (already current)':           {target:'Already on LUCAS', price:0},
-  'Chair':                             {target:'Stryker Chair Upgrade', price:4000},
+  'Monitor – Zoll (any)':                              {target:'LIFEPAK 35', price:22500},
+  'Monitor – LP15':                                     {target:'LIFEPAK 35', price:22500},
+  'Monitor – LP20':                                     {target:'LIFEPAK 35', price:22500},
+  'Monitor – LP35 (already current)':                   {target:'Already on LP35', price:0},
+  'AED – Other/Older':                                  {target:'LPCR2', price:3400},
+  'AED – LPCR2 (already current)':                      {target:'Already on LPCR2', price:0},
+  'LUCAS – None Yet (no mechanical CPR device)':        {target:'LUCAS 3', price:20000},
+  'LUCAS – Aging Unit (replacement opportunity)':       {target:'LUCAS 3 (replacement)', price:20000},
+  'LUCAS – Have One, Clinical Need for Additional':     {target:'LUCAS 3 (additional unit)', price:20000},
+  'Chair':                                              {target:'Stryker Chair Upgrade', price:4000},
 };
 
 // Age-weighting: older fleet = more likely to convert. Weight scales 0.4 (brand new) -> 1.0 (10+ yrs)
@@ -1235,7 +1262,18 @@ function toggleTamExplainer(){
 
 // ===== CONTACT UNINITIATED — auto-creates a "meet the team" task =====
 function toggleContactUninitiatedHint(){
-  // purely visual feedback hook if we want to expand this later; checkbox state itself is read directly at save time
+  var checkbox = $('fa-contact-uninitiated');
+  var dateField = $('fa-contact');
+  if(!checkbox || !dateField) return;
+  if(checkbox.checked){
+    dateField.value = ''; // no contact made yet — there is no last contact date
+    dateField.disabled = true;
+    dateField.placeholder = 'N/A — contact not yet initiated';
+    dateField.style.opacity = '0.5';
+  } else {
+    dateField.disabled = false;
+    dateField.style.opacity = '1';
+  }
 }
 
 // ===== UTILS =====
@@ -1540,6 +1578,7 @@ function renderDashboard(){
   renderTAM();
   renderFunnel('funnel-board-preview', true);
   renderLateStageBreakdown();
+  renderLucasGoalTracker();
 }
 
 function renderKPIs(){
@@ -1562,7 +1601,8 @@ function renderKPIs(){
   var counts={green:0,yellow:0,orange:0,red:0};
   DB.accounts.forEach(function(a){ if(counts[a.status]!==undefined) counts[a.status]++; });
 
-  var avgDays = DB.accounts.length ? DB.accounts.reduce(function(s,a){return s+daysSince(a.lastContact);},0)/DB.accounts.length : 0;
+  var contactedAccounts = DB.accounts.filter(function(a){ return !!a.lastContact; });
+  var avgDays = contactedAccounts.length ? contactedAccounts.reduce(function(s,a){return s+daysSince(a.lastContact);},0)/contactedAccounts.length : 0;
   var overdue = DB.tasks.filter(function(t){return !t.done&&t.due&&t.due<today();}).length;
 
   var dots='';
@@ -1631,6 +1671,45 @@ function renderTAM(){
   });
 }
 
+
+
+// ===== TERRITORY GOAL TRACKER: LUCAS in every rural hospital =====
+function accountHasLucas(account){
+  if(!account.fleet || !account.fleet.length) return false;
+  return account.fleet.some(function(r){
+    return r.type && r.type.indexOf('LUCAS')===0 && r.type!=='LUCAS – None Yet (no mechanical CPR device)';
+  });
+}
+
+function renderLucasGoalTracker(){
+  var el = $('lucas-goal-tracker');
+  if(!el) return;
+  var ruralAccounts = DB.accounts.filter(function(a){ return !!a.isRural; });
+  if(ruralAccounts.length===0){
+    el.innerHTML = '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No accounts marked as Rural Hospital yet. Check the "🌾 Rural Hospital" box when adding or editing an account to track it toward this goal.</div>';
+    return;
+  }
+  var withLucas = ruralAccounts.filter(accountHasLucas);
+  var pct = Math.round((withLucas.length / ruralAccounts.length) * 100);
+
+  var rows = '';
+  ruralAccounts.slice().sort(function(a,b){ return accountHasLucas(a)===accountHasLucas(b) ? 0 : (accountHasLucas(a)?1:-1); }).forEach(function(a){
+    var has = accountHasLucas(a);
+    rows +=
+      '<div onclick="openDetail('+a.id+')" style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--navy-border);cursor:pointer">'+
+        '<span style="font-size:12.5px">'+a.name+'</span>'+
+        '<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:'+(has?'var(--green-dim)':'var(--orange-dim)')+';color:'+(has?'var(--green)':'var(--orange)')+'">'+(has?'✓ Has LUCAS':'No LUCAS yet')+'</span>'+
+      '</div>';
+  });
+
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px">'+
+      '<span style="font-size:13px;font-weight:700">'+withLucas.length+' of '+ruralAccounts.length+' rural hospitals</span>'+
+      '<span style="font-family:DM Mono,monospace;font-size:16px;font-weight:700;color:var(--accent)">'+pct+'%</span>'+
+    '</div>'+
+    '<div class="bar-wrap" style="height:10px;margin-bottom:14px"><div class="bar-fill green" style="width:'+pct+'%"></div></div>'+
+    rows;
+}
 
 // ===== LATE-STAGE DEAL BREAKDOWN (Stage 5+: Quote Requested onward) =====
 function renderLateStageBreakdown(){
@@ -2002,16 +2081,79 @@ function onTouchEnd(ev){
 }
 
 
+
+// ===== OPEN QUESTIONS (free-text, per account) =====
+function addQuestion(accountId){
+  var text = prompt('What do you want to ask or find out at this account?');
+  if(!text || !text.trim()) return;
+  var a=DB.accounts.find(function(x){return x.id===accountId;});
+  if(!a) return;
+  if(!a.questions) a.questions=[];
+  a.questions.push({
+    id:'q'+Date.now()+Math.random().toString(36).slice(2,7),
+    text:text.trim(),
+    answered:false,
+  });
+  persist();
+  openDetail(a.id);
+}
+
+function editQuestion(accountId, questionId){
+  var a=DB.accounts.find(function(x){return x.id===accountId;});
+  if(!a || !a.questions) return;
+  var q=a.questions.find(function(x){return x.id===questionId;});
+  if(!q) return;
+  var text = prompt('Edit question:', q.text);
+  if(text===null) return; // cancelled
+  if(!text.trim()) return;
+  q.text=text.trim();
+  persist();
+  openDetail(a.id);
+}
+
+function deleteQuestion(accountId, questionId){
+  var a=DB.accounts.find(function(x){return x.id===accountId;});
+  if(!a || !a.questions) return;
+  a.questions = a.questions.filter(function(q){ return q.id!==questionId; });
+  persist();
+  openDetail(a.id);
+}
+
+function toggleQuestionAnswered(accountId, questionId){
+  var a=DB.accounts.find(function(x){return x.id===accountId;});
+  if(!a || !a.questions) return;
+  var q=a.questions.find(function(x){return x.id===questionId;});
+  if(!q) return;
+  q.answered = !q.answered;
+  persist();
+  openDetail(a.id);
+}
+
 // ===== NOTES TIMELINE (per-account, never overwrites) =====
 var _noteModalAccountId=null;
+var _editingNoteId=null;
 
-function openNoteModal(accountId){
+function openNoteModal(accountId, noteId){
   _noteModalAccountId=accountId;
-  $('fn-source').value='mine';
-  $('fn-source-name').value='';
+  _editingNoteId=noteId||null;
+
+  if(noteId){
+    var a=DB.accounts.find(function(x){return x.id===accountId;});
+    var n=a && a.notesLog ? a.notesLog.find(function(x){return x.id===noteId;}) : null;
+    if(!n) return;
+    $('m-note-title').textContent='Edit Note';
+    $('fn-source').value=n.source||'mine';
+    $('fn-source-name').value=n.sourceName||'';
+    $('fn-date').value=n.date||today();
+    $('fn-text').value=n.text||'';
+  } else {
+    $('m-note-title').textContent='Add Note';
+    $('fn-source').value='mine';
+    $('fn-source-name').value='';
+    $('fn-date').value=today();
+    $('fn-text').value='';
+  }
   toggleSourceNameField('fn-source','fn-source-name-wrap');
-  $('fn-date').value=today();
-  $('fn-text').value='';
   openModal('m-note');
 }
 
@@ -2021,15 +2163,35 @@ function saveNote(){
   var a=DB.accounts.find(function(x){return x.id===_noteModalAccountId;});
   if(!a) return;
   if(!a.notesLog) a.notesLog=[];
-  a.notesLog.push({
+
+  var data={
     text:text,
     source:$('fn-source').value,
     sourceName:$('fn-source-name').value.trim(),
     date:$('fn-date').value || today(),
-  });
+  };
+
+  if(_editingNoteId){
+    var i=a.notesLog.findIndex(function(x){return x.id===_editingNoteId;});
+    if(i>-1) a.notesLog[i]=Object.assign({},a.notesLog[i],data);
+  } else {
+    data.id='n'+Date.now()+Math.random().toString(36).slice(2,7);
+    a.notesLog.push(data);
+  }
+
   persist();
   closeModal('m-note');
-  openDetail(a.id); // refresh detail page to show new note in timeline
+  _editingNoteId=null;
+  openDetail(a.id); // refresh detail page to show the change in the timeline
+}
+
+function deleteNote(accountId, noteId){
+  if(!confirm('Delete this note? This cannot be undone.')) return;
+  var a=DB.accounts.find(function(x){return x.id===accountId;});
+  if(!a || !a.notesLog) return;
+  a.notesLog = a.notesLog.filter(function(n){ return n.id!==noteId; });
+  persist();
+  openDetail(a.id);
 }
 
 
@@ -2113,19 +2275,27 @@ function openDetail(id){
     fleetBreakdownHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No fleet logged yet. Edit this account to add device counts and age.</div>';
   }
 
-  // Build a unified, newest-first notes timeline: original account note (legacy) + notesLog entries
-  var allNotes=[];
-  if(a.notes){
-    allNotes.push({
-      text:a.notes,
-      source:a.notesSource||'mine',
-      sourceName:a.notesSourceName||'',
-      date:a.lastContact||a.createdAt||'',
-      isOriginal:true,
+  // notesLog[] is now the single source of truth for all notes (legacy a.notes is migrated in on app load).
+  var allNotes = (a.notesLog||[]).slice().sort(function(x,y){ return new Date(y.date||0) - new Date(x.date||0); });
+
+  // Open Questions — quick free-text list of things to ask/find out at this account
+  var questionsHtml='';
+  var questions = a.questions || [];
+  if(questions.length===0){
+    questionsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No open questions logged yet. Add anything you want to ask or find out at this account.</div>';
+  } else {
+    questions.slice().sort(function(x,y){ return (x.answered?1:0)-(y.answered?1:0); }).forEach(function(q){
+      questionsHtml+=
+        '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--navy-border)">'+
+          '<div onclick="toggleQuestionAnswered('+a.id+',\''+q.id+'\')" style="width:16px;height:16px;border-radius:4px;border:2px solid '+(q.answered?'var(--green)':'var(--navy-border)')+';background:'+(q.answered?'var(--green)':'transparent')+';flex-shrink:0;margin-top:2px;cursor:pointer"></div>'+
+          '<div style="flex:1;min-width:0;font-size:13px;line-height:1.5;'+(q.answered?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</div>'+
+          '<div style="display:flex;gap:8px;flex-shrink:0">'+
+            '<button onclick="editQuestion('+a.id+',\''+q.id+'\')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">✏</button>'+
+            '<button onclick="deleteQuestion('+a.id+',\''+q.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕</button>'+
+          '</div>'+
+        '</div>';
     });
   }
-  (a.notesLog||[]).forEach(function(n){ allNotes.push(n); });
-  allNotes.sort(function(x,y){ return new Date(y.date||0) - new Date(x.date||0); });
 
   var notesTimelineHtml='';
   if(allNotes.length===0){
@@ -2141,6 +2311,10 @@ function openDetail(id){
           '<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;flex-wrap:wrap">'+
             '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text-muted)">'+dateLabel+'</span>'+
             badge+
+            '<div style="margin-left:auto;display:flex;gap:10px">'+
+              '<button onclick="openNoteModal('+a.id+',\''+n.id+'\')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">✏ Edit</button>'+
+              '<button onclick="deleteNote('+a.id+',\''+n.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕ Delete</button>'+
+            '</div>'+
           '</div>'+
           '<div style="font-size:13px;line-height:1.6;color:var(--text)">'+n.text+'</div>'+
         '</div>';
@@ -2189,7 +2363,7 @@ function openDetail(id){
         '<div class="ds-row"><span class="ds-key">Current Vendor</span><span class="ds-val">'+(a.vendor||'—')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Product / Solution</span><span class="ds-val">'+(a.product||'—')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Budget Cycle</span><span class="ds-val">'+(a.budget||'Unknown')+'</span></div>'+
-        '<div class="ds-row"><span class="ds-key">Last Contact</span><span class="ds-val mono">'+(a.lastContact||'—')+' ('+daysSince(a.lastContact)+'d ago)</span></div>'+
+        '<div class="ds-row"><span class="ds-key">Last Contact</span><span class="ds-val mono">'+(a.lastContact?(a.lastContact+' ('+daysSince(a.lastContact)+'d ago)'):'N/A — Contact not yet initiated')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Competitive Threats</span><span class="ds-val" style="font-size:11.5px">'+(a.comp||'Unknown')+'</span></div>'+
       '</div>'+
       '<div class="detail-section"><div class="ds-title">Champion Intelligence</div>'+
@@ -2207,9 +2381,10 @@ function openDetail(id){
       '</div>'+
       '<div class="detail-section"><div class="ds-title">Installed Fleet</div>'+fleetBreakdownHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Notes &amp; Context</span><button class="btn btn-ghost btn-sm" onclick="openNoteModal('+a.id+')">+ Add Note</button></div>'+notesTimelineHtml+'</div>'+
-      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Contact</button></div>'+contactsHtml+'</div>'+
-      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Task</button></div>'+tasksHtml+'</div>'+
-      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Deals (auto-created from device lines)</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor(\''+a.name.replace(/'/g,'&#39;')+'\')">+ Non-Device Deal</button></div>'+dealsHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>❓ Open Questions</span><button class="btn btn-ghost btn-sm" onclick="addQuestion('+a.id+')">+ Add Question</button></div>'+questionsHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount('+a.id+')">+ Contact</button></div>'+contactsHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor('+a.id+')">+ Task</button></div>'+tasksHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Deals (auto-created from device lines)</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor('+a.id+')">+ Non-Device Deal</button></div>'+dealsHtml+'</div>'+
     '</div>';
 
   document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
@@ -2242,7 +2417,7 @@ function renderAccountsTable(){
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><span class="status-pill '+st.cls+'">'+st.label+'</span></td>'+
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><span style="font-size:12px;font-weight:700;color:'+champColor(a.champScore||0)+'">'+(a.champScore||0)+'/10</span> <span style="font-size:11px;color:var(--text-muted)">'+champLabel(a.champScore||0)+'</span></td>'+
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border);font-family:DM Mono,monospace;font-size:13px;font-weight:700;color:var(--'+probColor(a.prob||0)+')">'+(a.prob||0)+'%</td>'+
-        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border);font-family:DM Mono,monospace;font-size:11.5px;color:'+dateColor+'">'+(a.lastContact||'—')+' ('+ds+'d)</td>'+
+        '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border);font-family:DM Mono,monospace;font-size:11.5px;color:'+dateColor+'">'+(a.lastContact?(a.lastContact+' ('+ds+'d)'):'N/A')+'</td>'+
         '<td style="padding:11px 14px;border-bottom:1px solid var(--navy-border)"><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();editAccount('+a.id+')">Edit</button></td>'+
       '</tr>';
   });
@@ -2434,16 +2609,18 @@ function openAccountModal(){
   $('m-acct-title').textContent='Add Account';
   ['fa-name','fa-city','fa-vendor','fa-product','fa-clinical','fa-biomed','fa-budget','fa-comp','fa-next','fa-notes','fa-notes-source-name'].forEach(function(f){$(f).value='';});
   $('fa-notes-source').value='mine';
+  $('fa-notes-date').value=today();
   toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap');
   _fleetRows=[];
   $('fa-contact-uninitiated').checked=false;
+  $('fa-rural').checked=false;
   renderFleetInputRows();
   $('fa-opp-val-override').checked=false;
   $('fa-opp-val').readOnly=true;
   $('fa-opp-val').style.opacity='0.75';
   $('fa-opp-val').value='';
   $('fa-prob').value='';$('fa-champ').value=5;$('fa-champ-val').textContent=5;
-  $('fa-status').value='green';$('fa-contact').value=today();
+  $('fa-status').value='green';$('fa-contact').value='';
   var pSel=$('fa-parent');
   pSel.innerHTML='<option value="">— None / Standalone —</option>'+DB.accounts.map(function(x){return '<option value="'+x.name+'">'+x.name+'</option>';}).join('');
 
@@ -2462,6 +2639,9 @@ function editAccount(id){
   _editingAcctId=id;
   $('m-acct-title').textContent='Edit Account';
   var bEl=$('account-draft-banner'); if(bEl) bEl.innerHTML='';
+  $('fa-contact-uninitiated').checked = !!a.contactUninitiated;
+  toggleContactUninitiatedHint();
+  $('fa-rural').checked = !!a.isRural; // applies disabled/N-A state to the date field to match
   _fleetRows = (a.fleet && a.fleet.length) ? JSON.parse(JSON.stringify(a.fleet)) : [];
   var calcForThis = calcFleetTAM(_fleetRows);
   var wasOverridden = !!a.oppValOverridden;
@@ -2482,11 +2662,12 @@ function editAccount(id){
   $('fa-clinical').value=a.clinical||'';$('fa-biomed').value=a.biomed||'';
   $('fa-champ').value=a.champScore||5;$('fa-champ-val').textContent=a.champScore||5;
   $('fa-prob').value=a.prob||'';
-  $('fa-budget').value=a.budget||'';$('fa-contact').value=a.lastContact||today();
+  $('fa-budget').value=a.budget||'';$('fa-contact').value=a.lastContact||'';
   $('fa-comp').value=a.comp||'';$('fa-next').value=a.next||'';
   $('fa-notes').value=a.notes||'';
   $('fa-notes-source').value=a.notesSource||'mine';
   $('fa-notes-source-name').value=a.notesSourceName||'';
+  $('fa-notes-date').value=a.notesDate||a.lastContact||today();
   toggleSourceNameField('fa-notes-source','fa-notes-source-name-wrap');  openModal('m-account');
 }
 function saveAccount(){
@@ -2519,11 +2700,13 @@ function saveAccount(){
     notes:$('fa-notes').value.trim(),
     notesSource:$('fa-notes-source').value,
     notesSourceName:$('fa-notes-source-name').value.trim(),
+    notesDate:$('fa-notes-date').value || today(),
   };
   var oldName=null;
   var isNewAccount = !_editingAcctId;
   var contactUninitiated = !!($('fa-contact-uninitiated') && $('fa-contact-uninitiated').checked);
   data.contactUninitiated = contactUninitiated;
+  data.isRural = !!($('fa-rural') && $('fa-rural').checked);
 
   if(_editingAcctId){
     var i=DB.accounts.findIndex(function(x){return x.id===_editingAcctId;});
@@ -2630,7 +2813,15 @@ function populateAccountSelects(){
   if($('fo-account')) $('fo-account').innerHTML=oppOpts||'<option value="">No accounts yet</option>';
 }
 function openTaskModal(){ populateAccountSelects(); $('ft-title').value=''; $('ft-due').value=today(); openModal('m-task'); }
-function openTaskModalFor(name){ populateAccountSelects(); $('ft-title').value=''; $('ft-due').value=today(); $('ft-account').value=name; openModal('m-task'); }
+function openTaskModalFor(accountId){
+  var acct = DB.accounts.find(function(a){ return a.id===accountId; });
+  if(!acct) return;
+  populateAccountSelects();
+  $('ft-title').value='';
+  $('ft-due').value=today();
+  $('ft-account').value=acct.name; // exact match — pulled directly from the account object
+  openModal('m-task');
+}
 function saveTask(){
   var title=$('ft-title').value.trim();
   if(!title){alert('Task title required');return;}
@@ -2645,10 +2836,12 @@ function openOppModal(){
   if(DB.accounts.length===0){ alert('Add an account first before adding a deal to the funnel.'); return; }
   openModal('m-opp');
 }
-function openOppModalFor(name){
+function openOppModalFor(accountId){
+  var acct = DB.accounts.find(function(a){ return a.id===accountId; });
+  if(!acct) return;
   populateAccountSelects();
   $('fo-name').value='';$('fo-value').value='';$('fo-close').value=today();$('fo-stage').value='1';
-  $('fo-account').value=name;
+  $('fo-account').value=acct.name; // exact match — pulled directly from the account object
   openModal('m-opp');
 }
 function saveOpp(){
@@ -2694,7 +2887,12 @@ function openContactModal(id){
   if(DB.accounts.length===0){ alert('Add an account first before adding a contact.'); return; }
   openModal('m-contact');
 }
-function openContactModalForAccount(acctName){ openContactModal(null); $('fc-account').value=acctName; }
+function openContactModalForAccount(accountId){
+  var acct = DB.accounts.find(function(a){ return a.id===accountId; });
+  if(!acct) return;
+  openContactModal(null);
+  $('fc-account').value = acct.name; // exact match guaranteed — pulled directly from the real account object, never escaped/re-encoded
+}
 function saveContact(){
   var name=$('fc-name').value.trim();
   if(!name){alert('Name required');return;}
@@ -3056,6 +3254,45 @@ function resyncOverriddenDealValues(){
 }
 
 // ===== DATA INTEGRITY: every deal must be Stage 0 (Potential) or 1-10 (Active). No orphan states allowed. =====
+function migrateLegacyAccountNotes(){
+  // The original single 'notes' field is folded into notesLog[] as a real, editable, deletable entry —
+  // so going forward there is exactly ONE place notes live, with no special-cased "original note" anymore.
+  var migrated=0;
+  DB.accounts.forEach(function(a){
+    if(a.notes && a.notes.trim()){
+      if(!a.notesLog) a.notesLog=[];
+      a.notesLog.push({
+        id:'n'+Date.now()+Math.random().toString(36).slice(2,7),
+        text:a.notes,
+        source:a.notesSource||'mine',
+        sourceName:a.notesSourceName||'',
+        date:a.notesDate||a.lastContact||a.createdAt||today(),
+      });
+      a.notes=''; // cleared — notesLog is now the single source of truth
+      migrated++;
+    }
+  });
+  if(migrated>0) persist();
+  return migrated;
+}
+
+function migrateLegacyDeviceTypes(){
+  // 'LUCAS (already current)' was split into 3 more specific options. Map old saved data forward
+  // so existing accounts don't show a blank/unmatched device line after this update.
+  var migrated=0;
+  DB.accounts.forEach(function(a){
+    if(!a.fleet) return;
+    a.fleet.forEach(function(r){
+      if(r.type==='LUCAS (already current)'){
+        r.type='LUCAS – Have One, Clinical Need for Additional';
+        migrated++;
+      }
+    });
+  });
+  if(migrated>0) persist();
+  return migrated;
+}
+
 function repairOpportunityStages(){
   var fixed=0;
   DB.opportunities.forEach(function(o){
@@ -3138,6 +3375,8 @@ function renderTerritoryMap(){
 // ===== INIT =====
 initTheme();
 renderProfile();
+var migratedNotesCount = migrateLegacyAccountNotes();
+var migratedCount = migrateLegacyDeviceTypes();
 var repairedCount = repairOpportunityStages();
 var resyncedCount = resyncOverriddenDealValues();
 restoreLastView(); // returns you to whatever page/account you had open, instead of always resetting to dashboard

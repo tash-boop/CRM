@@ -327,6 +327,9 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="nav-link" onclick="goPage('playbook',this)"><span class="nav-icon">📋</span> Playbook</button>
     <button class="nav-link" onclick="goPage('fleet',this)"><span class="nav-icon">🔬</span> Fleet Intel</button>
     <button class="nav-link" onclick="goPage('territorymap',this)"><span class="nav-icon">🗺️</span> Territory Map</button>
+    <button class="nav-link" onclick="goPage('calendar',this)"><span class="nav-icon">📅</span> Calendar</button>
+    <button class="nav-link" onclick="goPage('training',this)"><span class="nav-icon">📚</span> Training Notes</button>
+    <button class="nav-link" onclick="goPage('meetings',this)"><span class="nav-icon">🤝</span> Internal Meetings</button>
   </nav>
   <div class="sidebar-quick">
     <div class="quick-label">Quick Actions</div>
@@ -558,6 +561,21 @@ input[type=number]{-moz-appearance:textfield;}
 
     <!-- DEVICE DETAIL (per device type, broken down by account) -->
     <div class="page" id="page-devicedetail"><div id="device-detail-content"></div></div>
+
+    <!-- CALENDAR -->
+    <div class="page" id="page-calendar">
+      <div id="calendar-page-content"></div>
+    </div>
+
+    <!-- TRAINING NOTES -->
+    <div class="page" id="page-training">
+      <div id="training-page-content"></div>
+    </div>
+
+    <!-- INTERNAL MEETINGS -->
+    <div class="page" id="page-meetings">
+      <div id="meetings-page-content"></div>
+    </div>
 
     <!-- TERRITORY MAP -->
     <div class="page" id="page-territorymap">
@@ -975,6 +993,90 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
+
+<!-- MODAL: Training Log Entry -->
+<div class="modal-bg" id="m-training-log">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="tl-modal-title">Log Training Session</div><button class="modal-x" onclick="closeModal('m-training-log')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Session Title</label><input class="finput" id="tl-title" placeholder="e.g. LP35 Clinical In-Service with Dr. Smith"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Date</label><input class="finput" type="date" id="tl-date"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Notes — What did you learn?</label><textarea class="ftextarea" id="tl-notes" placeholder="Key takeaways, clinical insights, things to follow up on…" style="min-height:120px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-training-log')">Cancel</button><button class="btn btn-primary" onclick="saveTrainingLogEntry()">Save Entry</button></div>
+  </div>
+</div>
+
+<!-- MODAL: Internal Meeting Notes -->
+<div class="modal-bg" id="m-meeting">
+  <div class="modal">
+    <div class="modal-head"><div class="modal-title" id="mt-modal-title">Log Meeting</div><button class="modal-x" onclick="closeModal('m-meeting')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg"><label class="flabel">Meeting Type</label>
+          <select class="fselect" id="mt-type"></select>
+        </div>
+        <div class="fg"><label class="flabel">Date</label><input class="finput" type="date" id="mt-date"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Meeting Title / Topic</label><input class="finput" id="mt-title" placeholder="e.g. Weekly check-in — territory update"></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="mt-notes" placeholder="What was discussed, decisions made, context…" style="min-height:120px"></textarea></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Action Items</label><textarea class="ftextarea" id="mt-actions" placeholder="Things you committed to or need to follow up on…" style="min-height:70px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-meeting')">Cancel</button><button class="btn btn-primary" onclick="saveMeeting()">Save</button></div>
+  </div>
+</div>
+
+
+<!-- MODAL: Calendar Event -->
+<div class="modal-bg" id="m-event">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head"><div class="modal-title" id="ev-modal-title">Add Event</div><button class="modal-x" onclick="closeModal('m-event')">✕</button></div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Event Title</label><input class="finput" id="ev-title" placeholder="e.g. Site visit — North KC Hospital ED"></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label class="flabel">Date</label><input class="finput" type="date" id="ev-date"></div>
+        <div class="fg"><label class="flabel">Event Type</label>
+          <select class="fselect" id="ev-type">
+            <option>Account Visit</option>
+            <option>Demo</option>
+            <option>Follow-Up</option>
+            <option>Internal Meeting</option>
+            <option>Training</option>
+            <option>Phone Call</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Linked Account (optional)</label>
+          <select class="fselect" id="ev-account"></select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Prep Notes</label><textarea class="ftextarea" id="ev-prep" placeholder="What do you need to prepare, know, or bring? Open questions from the account will show up automatically on the event card." style="min-height:90px"></textarea></div>
+      </div>
+      <div class="frow">
+        <div class="fg full"><label class="flabel">Notes (post-meeting, optional)</label><textarea class="ftextarea" id="ev-notes" placeholder="Fill in after the meeting — what happened, what you learned…" style="min-height:70px"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-event')">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Save Event</button></div>
+  </div>
+</div>
+
 <script charset="utf-8">
 
 // ===== DATA =====
@@ -989,6 +1091,9 @@ function seed() {
     interactions: [],
     tasks: [],
     opportunities: [], // {id, name, account, value, stage(0=potential,1-10=funnel), close, autoCreated}
+    calendarEvents: [], // {id, title, date, endDate, accountId, type, prep, notes, questionChecklist[]}
+    trainingProducts: [], // {id, product, keyPoints, objectionHandlers, clinicalNotes, competitiveNotes, trainingLog[]}
+    meetings: [], // {id, type, person, date, notes, actionItems}
     playbook: [],
     nextId: {a:1, t:1, o:1, c:1, i:1, p:1, d:1},
   };
@@ -1346,6 +1451,9 @@ var PAGE_META={
   fleet:    ['Fleet Intelligence','Browse by device type · See age & ProCare status by account'],
   devicedetail: ['Device Detail',''],
   territorymap: ['Territory Map','Every account plotted geographically'],
+  calendar:     ['Calendar','Monthly view · Click a day to add events · Linked to accounts'],
+  training:     ['Training Notes','Product reference cards & training log'],
+  meetings:     ['Internal Meetings','Meeting notes by person / meeting type'],
 };
 
 function goPage(name, btn){
@@ -1364,6 +1472,9 @@ function goPage(name, btn){
   if(name==='playbook')  renderPlaybook();
   if(name==='fleet')     renderFleetPage();
   if(name==='territorymap') renderTerritoryMap();
+  if(name==='calendar')     renderCalendarPage();
+  if(name==='training')     renderTrainingPage();
+  if(name==='meetings')     renderMeetingsPage();
   closeSidebar();
   saveLastView({page:name});
 }
@@ -2291,6 +2402,33 @@ function openDetail(id){
   // notesLog[] is now the single source of truth for all notes (legacy a.notes is migrated in on app load).
   var allNotes = (a.notesLog||[]).slice().sort(function(x,y){ return new Date(y.date||0) - new Date(x.date||0); });
 
+  // Upcoming calendar events for this account
+  var accountEventsHtml='';
+  var todayD=today();
+  var acctEvents = DB.calendarEvents.filter(function(e){ return e.accountId===a.id; })
+    .sort(function(x,y){ return x.date.localeCompare(y.date); });
+  var upcomingEvents = acctEvents.filter(function(e){ return e.date>=todayD; });
+  var pastEvents = acctEvents.filter(function(e){ return e.date<todayD; });
+  if(acctEvents.length===0){
+    accountEventsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No events linked to this account yet.</div>';
+  } else {
+    var evSection=function(evList, label){
+      if(!evList.length) return '';
+      var rows=evList.slice(0,5).map(function(e){
+        var col=EVENT_TYPE_COLORS[e.type]||'var(--text-muted)';
+        var openQs=(a.questions||[]).filter(function(q){return !q.answered;});
+        var qBadge=(openQs.length&&e.date>=todayD)?' <span style="font-size:10px;color:var(--accent);margin-left:6px">'+openQs.length+' open Q</span>':'';
+        return '<div onclick="goCalendarDay(\''+e.date+'\');" style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--navy-border);cursor:pointer">'+
+          '<div><span style="font-size:6px;margin-right:6px;color:'+col+'">●</span>'+
+          '<span style="font-size:13px;font-weight:600">'+e.title+'</span>'+qBadge+'</div>'+
+          '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text-muted)">'+e.date+'</span>'+
+        '</div>';
+      }).join('');
+      return '<div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;margin-top:8px">'+label+'</div>'+rows;
+    };
+    accountEventsHtml=evSection(upcomingEvents,'Upcoming')+evSection(pastEvents,'Past');
+  }
+
   // Open Questions — quick free-text list of things to ask/find out at this account
   var questionsHtml='';
   var questions = a.questions || [];
@@ -2315,9 +2453,14 @@ function openDetail(id){
     notesTimelineHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No notes yet. Click + Add Note to log your first one.</div>';
   } else {
     allNotes.forEach(function(n){
-      var badge = n.source==='secondhand'
-        ? '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--orange-dim);color:var(--orange)">👂 Secondhand'+(n.sourceName?' · '+n.sourceName:'')+'</span>'
-        : '<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--green-dim);color:var(--green)">📝 My Own</span>';
+      var badge;
+      if(n.fromInteraction){
+        badge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--accent-dim);color:var(--accent)">💬 '+(n.interactionType||'Interaction')+' · '+n.contactName+'</span>';
+      } else if(n.source==='secondhand'){
+        badge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--orange-dim);color:var(--orange)">👂 Secondhand'+(n.sourceName?' · '+n.sourceName:'')+'</span>';
+      } else {
+        badge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--green-dim);color:var(--green)">📝 My Own</span>';
+      }
       var dateLabel = n.date ? new Date(n.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'Undated';
       notesTimelineHtml+=
         '<div class="note-timeline-item" style="padding:10px 0">'+
@@ -2395,6 +2538,7 @@ function openDetail(id){
       '<div class="detail-section"><div class="ds-title">Installed Fleet</div>'+fleetBreakdownHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Notes &amp; Context</span><button class="btn btn-ghost btn-sm" onclick="openNoteModal('+a.id+')">+ Add Note</button></div>'+notesTimelineHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>❓ Open Questions</span><button class="btn btn-ghost btn-sm" onclick="addQuestion('+a.id+')">+ Add Question</button></div>'+questionsHtml+'</div>'+
+      '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>📅 Upcoming Events</span><button class="btn btn-ghost btn-sm" onclick="openEventModalForAccount('+a.id+')">+ Add Event</button></div>'+accountEventsHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Key Contacts</span><button class="btn btn-ghost btn-sm" onclick="openContactModalForAccount('+a.id+')">+ Contact</button></div>'+contactsHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Related Tasks</span><button class="btn btn-ghost btn-sm" onclick="openTaskModalFor('+a.id+')">+ Task</button></div>'+tasksHtml+'</div>'+
       '<div class="detail-section"><div class="ds-title" style="display:flex;justify-content:space-between;align-items:center"><span>Deals (auto-created from device lines)</span><button class="btn btn-ghost btn-sm" onclick="openOppModalFor('+a.id+')">+ Non-Device Deal</button></div>'+dealsHtml+'</div>'+
@@ -2964,8 +3108,42 @@ function saveInteraction(){
   var notes=$('fi-notes').value.trim();
   if(!notes){alert('Notes required');return;}
   var date=$('fi-date').value;
-  DB.interactions.push({id:DB.nextId.i++,contactId:cId,contactName:c?c.name:'Unknown',account:c?c.account:'',type:$('fi-type').value,date:date,sentiment:$('fi-sentiment').value,notes:notes,followup:$('fi-followup').value.trim()});
-  if(c){ var acct=DB.accounts.find(function(a){return a.name===c.account;}); if(acct) acct.lastContact=date; }
+  var type=$('fi-type').value;
+  var followup=$('fi-followup').value.trim();
+  var sentiment=$('fi-sentiment').value;
+
+  DB.interactions.push({
+    id:DB.nextId.i++,
+    contactId:cId,
+    contactName:c?c.name:'Unknown',
+    account:c?c.account:'',
+    type:type,
+    date:date,
+    sentiment:sentiment,
+    notes:notes,
+    followup:followup,
+  });
+
+  // Auto-add to the account's notes timeline so it shows up there automatically
+  if(c){
+    var acct=DB.accounts.find(function(a){return a.name===c.account;});
+    if(acct){
+      acct.lastContact=date;
+      if(!acct.notesLog) acct.notesLog=[];
+      var noteText = '['+type+' with '+c.name+']  '+notes+(followup?'\n\nFollow-up: '+followup:'');
+      acct.notesLog.push({
+        id:'n'+Date.now()+Math.random().toString(36).slice(2,7),
+        text:noteText,
+        source:'mine',
+        sourceName:'',
+        date:date,
+        fromInteraction:true,   // flag so we can style it differently in the timeline
+        contactName:c.name,
+        interactionType:type,
+      });
+    }
+  }
+
   persist();closeModal('m-interaction');
   _selContactId=cId; renderContactsPage(); renderDashboard();
 }
@@ -3246,6 +3424,9 @@ function importData(event){
       if(!DB.profile) DB.profile={name:'',role:'Sales Representative',territory:''};
       if(!DB.opportunities) DB.opportunities=[];
       if(!DB.playbook) DB.playbook=[];
+      if(!DB.calendarEvents) DB.calendarEvents=[];
+      if(!DB.trainingProducts) DB.trainingProducts=[];
+      if(!DB.meetings) DB.meetings=[];
       if(!DB.nextId) DB.nextId={a:1,t:1,o:1,c:1,i:1,p:1};
       persist();
       renderProfile();
@@ -3432,6 +3613,522 @@ function renderTerritoryMap(){
       _territoryMapLoading = false;
     });
 }
+
+
+// ===== TRAINING NOTES =====
+var DEFAULT_PRODUCTS = ['LP35 (LIFEPAK 35)','LP15 (LIFEPAK 15)','AED / LPCR2','Evac Chairs','LUCAS 3'];
+var _selectedTrainingProduct = null;
+
+function ensureDefaultProducts(){
+  DEFAULT_PRODUCTS.forEach(function(name){
+    var exists = DB.trainingProducts.find(function(p){ return p.product===name; });
+    if(!exists){
+      DB.trainingProducts.push({
+        id:'tp'+Date.now()+Math.random().toString(36).slice(2,7),
+        product:name,
+        keyPoints:'',
+        objectionHandlers:'',
+        clinicalNotes:'',
+        competitiveNotes:'',
+        trainingLog:[],
+      });
+    }
+  });
+}
+
+function renderTrainingPage(){
+  ensureDefaultProducts();
+  var el = $('training-page-content');
+  if(!el) return;
+
+  var selectedId = _selectedTrainingProduct || (DB.trainingProducts[0] && DB.trainingProducts[0].id);
+  _selectedTrainingProduct = selectedId;
+  var prod = DB.trainingProducts.find(function(p){ return p.id===selectedId; });
+
+  var tabs = DB.trainingProducts.map(function(p){
+    var active = p.id===selectedId;
+    return '<button onclick="selectTrainingProduct(\''+p.id+'\')" style="padding:8px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:'+(active?'700':'500')+';background:'+(active?'var(--accent)':'var(--navy-mid)')+';color:'+(active?'#0a0c12':'var(--text-muted)')+'">'+p.product+'</button>';
+  }).join('');
+
+  var logHtml = '';
+  if(prod && prod.trainingLog && prod.trainingLog.length){
+    prod.trainingLog.slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);}).forEach(function(entry){
+      logHtml+='<div style="background:var(--navy-mid);border-radius:6px;padding:12px 14px;margin-bottom:10px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px">'+
+          '<span style="font-size:11.5px;font-weight:700;color:var(--text)">'+entry.title+'</span>'+
+          '<div style="display:flex;gap:8px;align-items:center">'+
+            '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text-muted)">'+entry.date+'</span>'+
+            '<button onclick="editTrainingLogEntry(\''+selectedId+'\',\''+entry.id+'\')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">✏</button>'+
+            '<button onclick="deleteTrainingLogEntry(\''+selectedId+'\',\''+entry.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕</button>'+
+          '</div>'+
+        '</div>'+
+        '<div style="font-size:12.5px;color:var(--text);line-height:1.6;white-space:pre-wrap">'+entry.notes+'</div>'+
+      '</div>';
+    });
+  } else {
+    logHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No training sessions logged for this product yet.</div>';
+  }
+
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px">'+
+      '<div><div class="card-title" style="font-family:Syne,sans-serif;font-size:16px">Training Notes</div>'+
+      '<div class="card-sub">Product reference cards you update over time, plus a log of training sessions</div></div>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">'+tabs+'</div>'+
+    (prod ?
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">'+
+        renderTrainingField('Key Clinical Talking Points','tp-key-points',prod.keyPoints,selectedId,'keyPoints')+
+        renderTrainingField('Objection Handlers','tp-objections',prod.objectionHandlers,selectedId,'objectionHandlers')+
+        renderTrainingField('Clinical / Technical Notes','tp-clinical',prod.clinicalNotes,selectedId,'clinicalNotes')+
+        renderTrainingField('Competitive Differentiators','tp-competitive',prod.competitiveNotes,selectedId,'competitiveNotes')+
+      '</div>'+
+      '<div class="card">'+
+        '<div class="card-header"><div><div class="card-title" style="font-size:14px">Training Log — '+prod.product+'</div><div class="card-sub">Dates, facilitators, and what you took away from each session</div></div>'+
+        '<button class="btn btn-primary btn-sm" onclick="openTrainingLogModal(\''+selectedId+'\')">+ Log Training Session</button></div>'+
+        '<div style="padding:14px 18px">'+logHtml+'</div>'+
+      '</div>'
+    : '<div style="color:var(--text-muted)">Select a product above.</div>');
+}
+
+function renderTrainingField(label, elId, value, productId, field){
+  return '<div class="card" style="padding:14px">'+
+    '<div style="font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:8px">'+label+'</div>'+
+    '<textarea id="'+elId+'" onblur="saveTrainingField(\''+productId+'\',\''+field+'\',this.value)" '+
+      'style="width:100%;min-height:120px;background:transparent;border:none;resize:vertical;font-size:13px;line-height:1.6;color:var(--text);outline:none;font-family:inherit" '+
+      'placeholder="Add notes here…">'+value+'</textarea>'+
+  '</div>';
+}
+
+function selectTrainingProduct(productId){
+  _selectedTrainingProduct = productId;
+  renderTrainingPage();
+}
+
+function saveTrainingField(productId, field, value){
+  var p = DB.trainingProducts.find(function(x){ return x.id===productId; });
+  if(!p) return;
+  p[field] = value;
+  persist();
+}
+
+var _editingTrainingLogId = null;
+var _trainingLogProductId = null;
+
+function openTrainingLogModal(productId, entryId){
+  _trainingLogProductId = productId;
+  _editingTrainingLogId = entryId||null;
+  $('tl-modal-title').textContent = entryId ? 'Edit Training Session' : 'Log Training Session';
+  if(entryId){
+    var p=DB.trainingProducts.find(function(x){return x.id===productId;});
+    var entry=p && p.trainingLog ? p.trainingLog.find(function(x){return x.id===entryId;}) : null;
+    if(entry){
+      $('tl-title').value=entry.title||'';
+      $('tl-date').value=entry.date||today();
+      $('tl-notes').value=entry.notes||'';
+    }
+  } else {
+    $('tl-title').value='';
+    $('tl-date').value=today();
+    $('tl-notes').value='';
+  }
+  openModal('m-training-log');
+}
+
+function saveTrainingLogEntry(){
+  var title=$('tl-title').value.trim();
+  if(!title){ alert('Session title required'); return; }
+  var p=DB.trainingProducts.find(function(x){return x.id===_trainingLogProductId;});
+  if(!p) return;
+  if(!p.trainingLog) p.trainingLog=[];
+  var data={title:title, date:$('tl-date').value||today(), notes:$('tl-notes').value.trim()};
+  if(_editingTrainingLogId){
+    var i=p.trainingLog.findIndex(function(x){return x.id===_editingTrainingLogId;});
+    if(i>-1) p.trainingLog[i]=Object.assign({},p.trainingLog[i],data);
+  } else {
+    data.id='tl'+Date.now()+Math.random().toString(36).slice(2,7);
+    p.trainingLog.push(data);
+  }
+  persist(); closeModal('m-training-log'); renderTrainingPage();
+}
+
+function editTrainingLogEntry(productId, entryId){ openTrainingLogModal(productId, entryId); }
+function deleteTrainingLogEntry(productId, entryId){
+  if(!confirm('Delete this training log entry?')) return;
+  var p=DB.trainingProducts.find(function(x){return x.id===productId;});
+  if(!p||!p.trainingLog) return;
+  p.trainingLog=p.trainingLog.filter(function(x){return x.id!==entryId;});
+  persist(); renderTrainingPage();
+}
+
+
+
+// ===== CALENDAR =====
+var _calYear  = new Date().getFullYear();
+var _calMonth = new Date().getMonth(); // 0-indexed
+var _calSelectedDay = null; // 'YYYY-MM-DD'
+var _editingEventId = null;
+
+function calDateStr(y,m,d){ return y+'-'+(m+1<10?'0':'')+(m+1)+'-'+(d<10?'0':'')+d; }
+function calParseDate(s){ var p=s.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+function calFmt(s){
+  if(!s) return '';
+  var d=calParseDate(s);
+  return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+function calMonthLabel(y,m){
+  return new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+}
+
+var EVENT_TYPES = ['Account Visit','Demo','Follow-Up','Internal Meeting','Training','Phone Call','Other'];
+var EVENT_TYPE_COLORS = {
+  'Account Visit':    'var(--accent)',
+  'Demo':             'var(--green)',
+  'Follow-Up':        'var(--yellow)',
+  'Internal Meeting': 'var(--orange)',
+  'Training':         '#a78bfa',
+  'Phone Call':       '#67e8f9',
+  'Other':            'var(--text-muted)',
+};
+
+function renderCalendarPage(){
+  var el = $('calendar-page-content');
+  if(!el) return;
+
+  var y=_calYear, m=_calMonth;
+  var firstDay = new Date(y,m,1).getDay(); // 0=Sun
+  var daysInMonth = new Date(y,m+1,0).getDate();
+  var todayStr = today();
+
+  // Day header
+  var dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var headerHtml = dayLabels.map(function(d){
+    return '<div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);padding:8px 0">'+d+'</div>';
+  }).join('');
+
+  // Build grid cells
+  var cells='';
+  var totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+  for(var i=0;i<totalCells;i++){
+    var dayNum = i - firstDay + 1;
+    var isCurrentMonth = dayNum>=1 && dayNum<=daysInMonth;
+    var dateStr = isCurrentMonth ? calDateStr(y,m,dayNum) : '';
+    var isToday = dateStr===todayStr;
+    var isSelected = dateStr===_calSelectedDay;
+    var dayEvents = dateStr ? DB.calendarEvents.filter(function(e){return e.date===dateStr;}) : [];
+
+    var evDots = dayEvents.slice(0,3).map(function(e){
+      var col = EVENT_TYPE_COLORS[e.type]||'var(--text-muted)';
+      return '<div style="width:6px;height:6px;border-radius:50%;background:'+col+';flex-shrink:0"></div>';
+    }).join('');
+    if(dayEvents.length>3) evDots+='<div style="font-size:9px;color:var(--text-dim)">+'+( dayEvents.length-3)+'</div>';
+
+    cells+=
+      '<div onclick="'+(isCurrentMonth?'calSelectDay(\''+dateStr+'\')':'')+'" '+
+        'style="min-height:70px;padding:6px;border-radius:6px;cursor:'+(isCurrentMonth?'pointer':'default')+';'+
+        'background:'+(isSelected?'var(--accent-dim)':isToday?'rgba(0,194,255,0.06)':'transparent')+';'+
+        'border:1px solid '+(isSelected?'var(--accent)':isToday?'var(--accent-glow)':'transparent')+';'+
+        'opacity:'+(isCurrentMonth?'1':'0.25')+';transition:background .1s">'+
+        '<div style="font-size:13px;font-weight:'+(isToday?'800':'600')+';color:'+(isToday?'var(--accent)':'var(--text)')+';margin-bottom:4px">'+
+          (isCurrentMonth?dayNum:'')+
+        '</div>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:3px">'+evDots+'</div>'+
+      '</div>';
+  }
+
+  // Day detail panel (right side when a day is selected)
+  var detailHtml='';
+  if(_calSelectedDay){
+    var selEvents = DB.calendarEvents.filter(function(e){return e.date===_calSelectedDay;});
+    selEvents.sort(function(a,b){return (a.startTime||'').localeCompare(b.startTime||'');});
+    var eventCards = selEvents.length===0
+      ? '<div style="font-size:12.5px;color:var(--text-muted);padding:12px 0">No events. Click + Add Event to schedule something.</div>'
+      : selEvents.map(function(e){
+          var col=EVENT_TYPE_COLORS[e.type]||'var(--text-muted)';
+          var acct = e.accountId ? DB.accounts.find(function(a){return a.id===e.accountId;}) : null;
+          var openQs = (acct && acct.questions) ? acct.questions.filter(function(q){return !q.answered;}) : [];
+          var qChecklist = (e.questionChecklist||[]);
+          var qHtml='';
+          if(openQs.length){
+            qHtml='<div style="margin-top:10px;background:var(--accent-dim);border-radius:6px;padding:10px 12px">'+
+              '<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Open Questions from Account</div>'+
+              openQs.map(function(q){
+                var checked = qChecklist.some(function(c){return c.qId===q.id && c.checked;});
+                return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px">'+
+                  '<div onclick="toggleEventQuestion(\''+e.id+'\',\''+q.id+'\')" '+
+                    'style="width:14px;height:14px;border-radius:3px;border:2px solid '+(checked?'var(--green)':'var(--navy-border)')+';'+
+                    'background:'+(checked?'var(--green)':'transparent')+';flex-shrink:0;margin-top:2px;cursor:pointer"></div>'+
+                  '<span style="font-size:12px;line-height:1.5;'+(checked?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</span>'+
+                '</div>';
+              }).join('')+
+            '</div>';
+          }
+          return '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+col+';border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px">'+
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
+              '<div>'+
+                '<div style="font-size:14px;font-weight:700;margin-bottom:3px">'+e.title+'</div>'+
+                '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
+                  '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+col+'22;color:'+col+'">'+e.type+'</span>'+
+                  (acct?'<span style="font-size:11.5px;color:var(--text-muted);cursor:pointer" onclick="openDetail('+acct.id+')">🏢 '+acct.name+' →</span>':'')+
+                '</div>'+
+              '</div>'+
+              '<div style="display:flex;gap:10px">'+
+                '<button onclick="openEventModal(\''+_calSelectedDay+'\',\''+e.id+'\')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer">✏ Edit</button>'+
+                '<button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer">✕</button>'+
+              '</div>'+
+            '</div>'+
+            (e.prep?'<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Prep Notes</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text)">'+e.prep+'</div></div>':'')+
+            qHtml+
+          '</div>';
+        }).join('');
+
+    detailHtml=
+      '<div style="margin-top:18px;border-top:1px solid var(--navy-border);padding-top:16px">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
+          '<div style="font-size:15px;font-weight:700">'+calFmt(_calSelectedDay)+'</div>'+
+          '<button class="btn btn-primary btn-sm" onclick="openEventModal(\''+_calSelectedDay+'\')">+ Add Event</button>'+
+        '</div>'+
+        eventCards+
+      '</div>';
+  }
+
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">'+
+      '<div class="card-title" style="font-family:Syne,sans-serif;font-size:16px">'+calMonthLabel(y,m)+'</div>'+
+      '<div style="display:flex;gap:8px">'+
+        '<button class="btn btn-ghost btn-sm" onclick="calNavigate(-1)">← Prev</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="calNavigate(0)">Today</button>'+
+        '<button class="btn btn-ghost btn-sm" onclick="calNavigate(1)">Next →</button>'+
+      '</div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px">'+headerHtml+'</div>'+
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+cells+'</div>'+
+    detailHtml;
+}
+
+function calNavigate(dir){
+  if(dir===0){ _calYear=new Date().getFullYear(); _calMonth=new Date().getMonth(); _calSelectedDay=null; }
+  else {
+    _calMonth+=dir;
+    if(_calMonth<0){_calMonth=11;_calYear--;}
+    if(_calMonth>11){_calMonth=0;_calYear++;}
+  }
+  renderCalendarPage();
+}
+
+function calSelectDay(dateStr){
+  _calSelectedDay = _calSelectedDay===dateStr ? null : dateStr;
+  renderCalendarPage();
+}
+
+function toggleEventQuestion(eventId, questionId){
+  var e=DB.calendarEvents.find(function(x){return x.id===eventId;});
+  if(!e) return;
+  if(!e.questionChecklist) e.questionChecklist=[];
+  var existing=e.questionChecklist.find(function(c){return c.qId===questionId;});
+  if(existing){ existing.checked=!existing.checked; }
+  else { e.questionChecklist.push({qId:questionId,checked:true}); }
+  persist(); renderCalendarPage();
+}
+
+function openEventModal(dateStr, eventId){
+  _editingEventId = eventId||null;
+  $('ev-modal-title').textContent = eventId ? 'Edit Event' : 'Add Event';
+  $('ev-date').value = dateStr||today();
+  // Populate account select
+  var acctOptions='<option value="">— No specific account —</option>'+
+    DB.accounts.map(function(a){return '<option value="'+a.id+'">'+a.name+'</option>';}).join('');
+  $('ev-account').innerHTML = acctOptions;
+  if(eventId){
+    var ev=DB.calendarEvents.find(function(x){return x.id===eventId;});
+    if(ev){
+      $('ev-title').value=ev.title||'';
+      $('ev-date').value=ev.date||dateStr||today();
+      $('ev-type').value=ev.type||'Account Visit';
+      $('ev-account').value=ev.accountId||'';
+      $('ev-prep').value=ev.prep||'';
+      $('ev-notes').value=ev.notes||'';
+    }
+  } else {
+    $('ev-title').value='';
+    $('ev-type').value='Account Visit';
+    $('ev-account').value='';
+    $('ev-prep').value='';
+    $('ev-notes').value='';
+  }
+  openModal('m-event');
+}
+
+function goCalendarDay(dateStr){
+  _calSelectedDay=dateStr;
+  var btn=document.querySelector('.nav-link[onclick*="calendar"]');
+  goPage('calendar', btn);
+}
+
+function openEventModalForAccount(accountId){
+  var dateStr = today();
+  _editingEventId=null;
+  $('ev-modal-title').textContent='Add Event';
+  $('ev-date').value=dateStr;
+  $('ev-type').value='Account Visit';
+  var acctOptions='<option value="">— No specific account —</option>'+
+    DB.accounts.map(function(a){return '<option value="'+a.id+'">'+a.name+'</option>';}).join('');
+  $('ev-account').innerHTML=acctOptions;
+  $('ev-account').value=String(accountId);
+  $('ev-title').value=''; $('ev-prep').value=''; $('ev-notes').value='';
+  openModal('m-event');
+}
+
+function saveEvent(){
+  var title=$('ev-title').value.trim();
+  if(!title){alert('Event title required');return;}
+  var accountId = $('ev-account').value ? parseInt($('ev-account').value) : null;
+  var data={
+    title:title,
+    date:$('ev-date').value||today(),
+    type:$('ev-type').value,
+    accountId:accountId,
+    prep:$('ev-prep').value.trim(),
+    notes:$('ev-notes').value.trim(),
+  };
+  if(_editingEventId){
+    var i=DB.calendarEvents.findIndex(function(x){return x.id===_editingEventId;});
+    if(i>-1) DB.calendarEvents[i]=Object.assign({},DB.calendarEvents[i],data);
+    _editingEventId=null;
+  } else {
+    data.id='ev'+Date.now()+Math.random().toString(36).slice(2,7);
+    data.questionChecklist=[];
+    DB.calendarEvents.push(data);
+  }
+  _calSelectedDay=data.date;
+  persist(); closeModal('m-event'); renderCalendarPage();
+}
+
+function deleteEvent(id){
+  if(!confirm('Delete this event?')) return;
+  DB.calendarEvents=DB.calendarEvents.filter(function(x){return x.id!==id;});
+  persist(); renderCalendarPage();
+}
+
+
+// ===== INTERNAL MEETINGS =====
+var DEFAULT_MEETING_TYPES = ['Weekly 1:1 with Chris','Nathan — Transition','Team Call','Manager Review','Other'];
+var _selectedMeetingType = null;
+
+function renderMeetingsPage(){
+  var el=$('meetings-page-content');
+  if(!el) return;
+
+  var allTypes = DEFAULT_MEETING_TYPES.slice();
+  DB.meetings.forEach(function(m){ if(allTypes.indexOf(m.type)===-1) allTypes.push(m.type); });
+
+  var selectedType = _selectedMeetingType || allTypes[0];
+  _selectedMeetingType = selectedType;
+
+  var tabs = allTypes.map(function(t){
+    var active=t===selectedType;
+    return '<button onclick="selectMeetingType(\''+encodeURIComponent(t)+'\')" style="padding:8px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12.5px;font-weight:'+(active?'700':'500')+';background:'+(active?'var(--accent)':'var(--navy-mid)')+';color:'+(active?'#0a0c12':'var(--text-muted)')+'">'+t+'</button>';
+  }).join('');
+
+  var typeMeetings = DB.meetings.filter(function(m){return m.type===selectedType;})
+    .slice().sort(function(a,b){return new Date(b.date)-new Date(a.date);});
+
+  var meetingsHtml='';
+  if(typeMeetings.length===0){
+    meetingsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No meetings logged here yet. Click + Log Meeting to add one.</div>';
+  } else {
+    typeMeetings.forEach(function(m){
+      var actionItems = (m.actionItems||'').trim();
+      meetingsHtml+=
+        '<div class="card" style="margin-bottom:12px;padding:16px 18px">'+
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;flex-wrap:wrap;gap:8px">'+
+            '<div>'+
+              '<div style="font-size:14px;font-weight:700">'+m.title+'</div>'+
+              '<div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">'+m.type+' · <span style="font-family:DM Mono,monospace">'+m.date+'</span></div>'+
+            '</div>'+
+            '<div style="display:flex;gap:10px">'+
+              '<button onclick="openMeetingModal(\''+m.id+'\')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer">✏ Edit</button>'+
+              '<button onclick="deleteMeeting(\''+m.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer">✕ Delete</button>'+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:13px;line-height:1.6;color:var(--text);white-space:pre-wrap;margin-bottom:'+(actionItems?'12px':'0')+'">'+m.notes+'</div>'+
+          (actionItems ?
+            '<div style="background:var(--accent-dim);border-radius:6px;padding:10px 12px">'+
+              '<div style="font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:5px">Action Items</div>'+
+              '<div style="font-size:12.5px;line-height:1.6;white-space:pre-wrap;color:var(--text)">'+actionItems+'</div>'+
+            '</div>' : '')+
+        '</div>';
+    });
+  }
+
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px">'+
+      '<div><div class="card-title" style="font-family:Syne,sans-serif;font-size:16px">Internal Meetings</div>'+
+      '<div class="card-sub">Notes organized by meeting type — tap a tab then log a session</div></div>'+
+      '<button class="btn btn-primary btn-sm" onclick="openMeetingModal()">+ Log Meeting</button>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px">'+tabs+'</div>'+
+    meetingsHtml;
+}
+
+function selectMeetingType(encodedType){
+  _selectedMeetingType = decodeURIComponent(encodedType);
+  renderMeetingsPage();
+}
+
+var _editingMeetingId=null;
+function openMeetingModal(meetingId){
+  _editingMeetingId=meetingId||null;
+  $('mt-modal-title').textContent = meetingId ? 'Edit Meeting Notes' : 'Log Meeting';
+  var allTypes=DEFAULT_MEETING_TYPES.slice();
+  DB.meetings.forEach(function(m){if(allTypes.indexOf(m.type)===-1)allTypes.push(m.type);});
+  $('mt-type').innerHTML=allTypes.map(function(t){return '<option value="'+t+'">'+t+'</option>';}).join('');
+  if(meetingId){
+    var m=DB.meetings.find(function(x){return x.id===meetingId;});
+    if(m){
+      $('mt-type').value=m.type;
+      $('mt-title').value=m.title||'';
+      $('mt-date').value=m.date||today();
+      $('mt-notes').value=m.notes||'';
+      $('mt-actions').value=m.actionItems||'';
+    }
+  } else {
+    $('mt-type').value=_selectedMeetingType||DEFAULT_MEETING_TYPES[0];
+    $('mt-title').value='';
+    $('mt-date').value=today();
+    $('mt-notes').value='';
+    $('mt-actions').value='';
+  }
+  openModal('m-meeting');
+}
+
+function saveMeeting(){
+  var title=$('mt-title').value.trim();
+  if(!title){alert('Meeting title required');return;}
+  var data={
+    type:$('mt-type').value,
+    title:title,
+    date:$('mt-date').value||today(),
+    notes:$('mt-notes').value.trim(),
+    actionItems:$('mt-actions').value.trim(),
+  };
+  if(_editingMeetingId){
+    var i=DB.meetings.findIndex(function(x){return x.id===_editingMeetingId;});
+    if(i>-1) DB.meetings[i]=Object.assign({},DB.meetings[i],data);
+    _editingMeetingId=null;
+  } else {
+    data.id='mt'+Date.now()+Math.random().toString(36).slice(2,7);
+    DB.meetings.push(data);
+  }
+  _selectedMeetingType=data.type;
+  persist(); closeModal('m-meeting'); renderMeetingsPage();
+}
+
+function deleteMeeting(id){
+  if(!confirm('Delete this meeting note?')) return;
+  DB.meetings=DB.meetings.filter(function(x){return x.id!==id;});
+  persist(); renderMeetingsPage();
+}
+
 
 // ===== INIT =====
 initTheme();

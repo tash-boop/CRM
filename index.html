@@ -2340,8 +2340,9 @@ var EVENT_TYPE_COLORS = {
 };
 
 function openDetail(id){
+  try {
   var a=DB.accounts.find(function(x){return x.id===id;});
-  if(!a) return;
+  if(!a){ console.error('openDetail: no account found for id', id); return; }
   var pColor=probColor(a.prob||0);
   var cColor=champColor(a.champScore||0);
   var cLabel=champLabel(a.champScore||0);
@@ -2562,6 +2563,10 @@ function openDetail(id){
   $('page-detail').classList.add('active');
   closeSidebar();
   saveLastView({page:'detail', accountId:a.id});
+  } catch(e) {
+    console.error('openDetail CRASHED:', e.message, e.stack);
+    alert('Could not open account detail. Error: ' + e.message + '\n\nCheck browser console (F12) for details.');
+  }
 }
 
 // ===== ACCOUNTS TABLE =====

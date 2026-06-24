@@ -1105,6 +1105,10 @@ var DB = load();
 if(!DB.quota) DB.quota = {goal:0, sold:0, fy:"FY2026"};
 if(!DB.profile) DB.profile = {name:"", role:"Sales Representative", territory:""};
 if(!DB.opportunities) DB.opportunities = [];
+if(!DB.calendarEvents) DB.calendarEvents = [];
+if(!DB.trainingProducts) DB.trainingProducts = [];
+if(!DB.meetings) DB.meetings = [];
+if(!DB.playbook) DB.playbook = [];
 if(!DB.playbook) DB.playbook = [];
 if(!DB.devices) DB.devices = [];
 
@@ -2417,7 +2421,7 @@ function openDetail(id){
   // Upcoming calendar events for this account
   var accountEventsHtml='';
   var todayD=today();
-  var acctEvents = DB.calendarEvents.filter(function(e){ return e.accountId===a.id; })
+  var acctEvents = (DB.calendarEvents||[]).filter(function(e){ return e.accountId===a.id; })
     .sort(function(x,y){ return x.date.localeCompare(y.date); });
   var upcomingEvents = acctEvents.filter(function(e){ return e.date>=todayD; });
   var pastEvents = acctEvents.filter(function(e){ return e.date<todayD; });

@@ -2328,6 +2328,17 @@ function markContactInitiated(accountId){
 }
 
 // ===== ACCOUNT DETAIL =====
+var EVENT_TYPES = ['Account Visit','Demo','Follow-Up','Internal Meeting','Training','Phone Call','Other'];
+var EVENT_TYPE_COLORS = {
+  'Account Visit':    'var(--accent)',
+  'Demo':             'var(--green)',
+  'Follow-Up':        'var(--yellow)',
+  'Internal Meeting': 'var(--orange)',
+  'Training':         '#a78bfa',
+  'Phone Call':       '#67e8f9',
+  'Other':            'var(--text-muted)',
+};
+
 function openDetail(id){
   var a=DB.accounts.find(function(x){return x.id===id;});
   if(!a) return;
@@ -3769,26 +3780,25 @@ var _calSelectedDay = null; // 'YYYY-MM-DD'
 var _editingEventId = null;
 
 function calDateStr(y,m,d){ return y+'-'+(m+1<10?'0':'')+(m+1)+'-'+(d<10?'0':'')+d; }
-function calParseDate(s){ var p=s.split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+function calParseDate(s){
+  if(!s) return new Date(NaN);
+  // Accept YYYY-MM-DD (possibly with time component); strip time if present
+  var dateOnly = s.indexOf('T') !== -1 ? s.split('T')[0] : s;
+  var p = dateOnly.split('-');
+  if(p.length !== 3) return new Date(NaN);
+  return new Date(+p[0], +p[1]-1, +p[2]);
+}
 function calFmt(s){
   if(!s) return '';
   var d=calParseDate(s);
+  if(isNaN(d.getTime())) return s; // fallback: show raw string rather than "Invalid Date"
   return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
 }
 function calMonthLabel(y,m){
   return new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
 }
 
-var EVENT_TYPES = ['Account Visit','Demo','Follow-Up','Internal Meeting','Training','Phone Call','Other'];
-var EVENT_TYPE_COLORS = {
-  'Account Visit':    'var(--accent)',
-  'Demo':             'var(--green)',
-  'Follow-Up':        'var(--yellow)',
-  'Internal Meeting': 'var(--orange)',
-  'Training':         '#a78bfa',
-  'Phone Call':       '#67e8f9',
-  'Other':            'var(--text-muted)',
-};
+// EVENT_TYPES and EVENT_TYPE_COLORS defined earlier (before openDetail)
 
 function renderCalendarPage(){
   var el = $('calendar-page-content');
@@ -4144,6 +4154,10 @@ initTheme();
 })();
 renderProfile();
 repairNoteIds();
+// Repair any calendar events that were saved with a full ISO datetime instead of YYYY-MM-DD
+DB.calendarEvents.forEach(function(e){
+  if(e.date && e.date.indexOf('T') !== -1) e.date = e.date.split('T')[0];
+});
 var migratedNotesCount = migrateLegacyAccountNotes();
 var migratedCount = migrateLegacyDeviceTypes();
 var repairedCount = repairOpportunityStages();

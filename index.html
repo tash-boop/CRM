@@ -3784,248 +3784,288 @@ function deleteTrainingLogEntry(productId, entryId){
 
 // ===== CALENDAR =====
 var _calYear  = new Date().getFullYear();
-var _calMonth = new Date().getMonth(); // 0-indexed
-var _calSelectedDay = null; // 'YYYY-MM-DD'
+var _calMonth = new Date().getMonth();
+var _calSelectedDay = null;
 var _editingEventId = null;
 
-function calDateStr(y,m,d){ return y+'-'+(m+1<10?'0':'')+(m+1)+'-'+(d<10?'0':'')+d; }
-function calParseDate(s){
-  if(!s) return new Date(NaN);
-  // Accept YYYY-MM-DD (possibly with time component); strip time if present
-  var dateOnly = s.indexOf('T') !== -1 ? s.split('T')[0] : s;
-  var p = dateOnly.split('-');
-  if(p.length !== 3) return new Date(NaN);
-  return new Date(+p[0], +p[1]-1, +p[2]);
-}
-function calFmt(s){
-  if(!s) return '';
-  var d=calParseDate(s);
-  if(isNaN(d.getTime())) return s; // fallback: show raw string rather than "Invalid Date"
-  return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
-}
-function calMonthLabel(y,m){
-  return new Date(y,m,1).toLocaleDateString('en-US',{month:'long',year:'numeric'});
-}
+var CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var CAL_DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-// EVENT_TYPES and EVENT_TYPE_COLORS defined earlier (before openDetail)
+var EVENT_COLORS = {
+  'Account Visit':    '#00C2FF',
+  'Demo':             '#22c55e',
+  'Follow-Up':        '#f59e0b',
+  'Internal Meeting': '#f97316',
+  'Training':         '#a78bfa',
+  'Phone Call':       '#67e8f9',
+  'Other':            '#6b7280',
+};
+
+function calPad(n){ return n < 10 ? '0'+n : ''+n; }
+function calMakeDateStr(y, m, d){ return y + '-' + calPad(m+1) + '-' + calPad(d); }
+function calFormatDisplay(dateStr){
+  // dateStr is always YYYY-MM-DD
+  if(!dateStr || dateStr.length < 8) return dateStr || '';
+  var y = parseInt(dateStr.slice(0,4),10);
+  var m = parseInt(dateStr.slice(5,7),10) - 1;
+  var d = parseInt(dateStr.slice(8,10),10);
+  if(isNaN(y)||isNaN(m)||isNaN(d)) return dateStr;
+  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var dt = new Date(y, m, d);
+  return days[dt.getDay()] + ', ' + CAL_MONTHS[m] + ' ' + d + ', ' + y;
+}
 
 function renderCalendarPage(){
-  var el = $('calendar-page-content');
+  var el = document.getElementById('calendar-page-content');
   if(!el) return;
 
-  var y=_calYear, m=_calMonth;
-  var firstDay = new Date(y,m,1).getDay(); // 0=Sun
-  var daysInMonth = new Date(y,m+1,0).getDate();
-  var todayStr = today();
+  var y = _calYear;
+  var m = _calMonth;
+  var todayStr = new Date().toISOString().slice(0,10);
 
-  // Day header
-  var dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  var headerHtml = dayLabels.map(function(d){
-    return '<div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);padding:8px 0">'+d+'</div>';
-  }).join('');
+  // Month/year header
+  var headerHtml =
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">' +
+      '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text)">' + CAL_MONTHS[m] + ' ' + y + '</div>' +
+      '<div style="display:flex;gap:8px">' +
+        '<button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Prev</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="calNav(0)">Today</button>' +
+        '<button class="btn btn-ghost btn-sm" onclick="calNav(1)">Next →</button>' +
+      '</div>' +
+    '</div>';
 
-  // Build grid cells
-  var cells='';
-  var totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
-  for(var i=0;i<totalCells;i++){
-    var dayNum = i - firstDay + 1;
-    var isCurrentMonth = dayNum>=1 && dayNum<=daysInMonth;
-    var dateStr = isCurrentMonth ? calDateStr(y,m,dayNum) : '';
-    var isToday = dateStr===todayStr;
-    var isSelected = dateStr===_calSelectedDay;
-    var dayEvents = dateStr ? DB.calendarEvents.filter(function(e){return e.date===dateStr;}) : [];
+  // Day-of-week labels
+  var dowHtml = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px">';
+  for(var di=0; di<7; di++){
+    dowHtml += '<div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);padding:6px 0">' + CAL_DAYS[di] + '</div>';
+  }
+  dowHtml += '</div>';
 
-    var evDots = dayEvents.slice(0,3).map(function(e){
-      var col = EVENT_TYPE_COLORS[e.type]||'var(--text-muted)';
-      return '<div style="width:6px;height:6px;border-radius:50%;background:'+col+';flex-shrink:0"></div>';
-    }).join('');
-    if(dayEvents.length>3) evDots+='<div style="font-size:9px;color:var(--text-dim)">+'+( dayEvents.length-3)+'</div>';
+  // Calendar grid
+  var firstDow = new Date(y, m, 1).getDay();
+  var daysInMonth = new Date(y, m+1, 0).getDate();
+  var totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+  var events = DB.calendarEvents || [];
 
-    cells+=
-      '<div onclick="'+(isCurrentMonth?'calSelectDay(\''+dateStr+'\')':'')+'" '+
-        'style="min-height:70px;padding:6px;border-radius:6px;cursor:'+(isCurrentMonth?'pointer':'default')+';'+
-        'background:'+(isSelected?'var(--accent-dim)':isToday?'rgba(0,194,255,0.06)':'transparent')+';'+
-        'border:1px solid '+(isSelected?'var(--accent)':isToday?'var(--accent-glow)':'transparent')+';'+
-        'opacity:'+(isCurrentMonth?'1':'0.25')+';transition:background .1s">'+
-        '<div style="font-size:13px;font-weight:'+(isToday?'800':'600')+';color:'+(isToday?'var(--accent)':'var(--text)')+';margin-bottom:4px">'+
-          (isCurrentMonth?dayNum:'')+
-        '</div>'+
-        '<div style="display:flex;flex-wrap:wrap;gap:3px">'+evDots+'</div>'+
+  var gridHtml = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+  for(var ci=0; ci<totalCells; ci++){
+    var dayNum = ci - firstDow + 1;
+    var inMonth = dayNum >= 1 && dayNum <= daysInMonth;
+    var dateStr = inMonth ? calMakeDateStr(y, m, dayNum) : '';
+    var isToday = dateStr === todayStr;
+    var isSel   = dateStr !== '' && dateStr === _calSelectedDay;
+
+    var dayEvents = dateStr ? events.filter(function(e){ return e.date === dateStr; }) : [];
+
+    var dotHtml = '';
+    var shown = dayEvents.slice(0, 3);
+    for(var ei=0; ei<shown.length; ei++){
+      var col = EVENT_COLORS[shown[ei].type] || '#6b7280';
+      dotHtml += '<div style="width:5px;height:5px;border-radius:50%;background:'+col+';display:inline-block;margin-right:2px"></div>';
+    }
+    if(dayEvents.length > 3) dotHtml += '<span style="font-size:9px;color:var(--text-muted)">+' + (dayEvents.length-3) + '</span>';
+
+    var bg   = isSel ? 'rgba(0,194,255,0.18)' : isToday ? 'rgba(0,194,255,0.07)' : 'transparent';
+    var bord = isSel ? '1.5px solid #00C2FF'  : isToday ? '1px solid rgba(0,194,255,0.35)' : '1px solid transparent';
+    var numColor = isToday ? '#00C2FF' : inMonth ? 'var(--text)' : 'transparent';
+    var numWeight = isToday ? '800' : '500';
+    var cursor = inMonth ? 'pointer' : 'default';
+    var onclick = inMonth ? 'onclick="calSelectDay(\''+dateStr+'\')"' : '';
+
+    gridHtml +=
+      '<div '+onclick+' style="min-height:64px;padding:6px;border-radius:6px;background:'+bg+';border:'+bord+';cursor:'+cursor+';transition:background .12s">' +
+        '<div style="font-size:13px;font-weight:'+numWeight+';color:'+numColor+';margin-bottom:4px">' + (inMonth ? dayNum : '') + '</div>' +
+        '<div>' + dotHtml + '</div>' +
       '</div>';
   }
+  gridHtml += '</div>';
 
-  // Day detail panel (right side when a day is selected)
-  var detailHtml='';
+  // Selected day panel
+  var panelHtml = '';
   if(_calSelectedDay){
-    var selEvents = DB.calendarEvents.filter(function(e){return e.date===_calSelectedDay;});
-    selEvents.sort(function(a,b){return (a.startTime||'').localeCompare(b.startTime||'');});
-    var eventCards = selEvents.length===0
-      ? '<div style="font-size:12.5px;color:var(--text-muted);padding:12px 0">No events. Click + Add Event to schedule something.</div>'
-      : selEvents.map(function(e){
-          var col=EVENT_TYPE_COLORS[e.type]||'var(--text-muted)';
-          var acct = e.accountId ? DB.accounts.find(function(a){return a.id===e.accountId;}) : null;
-          var openQs = (acct && acct.questions) ? acct.questions.filter(function(q){return !q.answered;}) : [];
-          var qChecklist = (e.questionChecklist||[]);
-          var qHtml='';
-          if(openQs.length){
-            qHtml='<div style="margin-top:10px;background:var(--accent-dim);border-radius:6px;padding:10px 12px">'+
-              '<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:6px">Open Questions from Account</div>'+
-              openQs.map(function(q){
-                var checked = qChecklist.some(function(c){return c.qId===q.id && c.checked;});
-                return '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px">'+
-                  '<div onclick="toggleEventQuestion(\''+e.id+'\',\''+q.id+'\')" '+
-                    'style="width:14px;height:14px;border-radius:3px;border:2px solid '+(checked?'var(--green)':'var(--navy-border)')+';'+
-                    'background:'+(checked?'var(--green)':'transparent')+';flex-shrink:0;margin-top:2px;cursor:pointer"></div>'+
-                  '<span style="font-size:12px;line-height:1.5;'+(checked?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</span>'+
-                '</div>';
-              }).join('')+
-            '</div>';
-          }
-          return '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+col+';border-radius:var(--radius-md);padding:14px 16px;margin-bottom:10px">'+
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
-              '<div>'+
-                '<div style="font-size:14px;font-weight:700;margin-bottom:3px">'+e.title+'</div>'+
-                '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'+
-                  '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+col+'22;color:'+col+'">'+e.type+'</span>'+
-                  (acct?'<span style="font-size:11.5px;color:var(--text-muted);cursor:pointer" onclick="openDetail('+acct.id+')">🏢 '+acct.name+' →</span>':'')+
-                '</div>'+
-              '</div>'+
-              '<div style="display:flex;gap:10px">'+
-                '<button onclick="openEventModal(\''+_calSelectedDay+'\',\''+e.id+'\')" style="background:none;border:none;color:var(--accent);font-size:12px;cursor:pointer">✏ Edit</button>'+
-                '<button onclick="deleteEvent(\''+e.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer">✕</button>'+
-              '</div>'+
-            '</div>'+
-            (e.prep?'<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Prep Notes</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text)">'+e.prep+'</div></div>':'')+
-            qHtml+
-          '</div>';
-        }).join('');
+    var selEvents = events.filter(function(e){ return e.date === _calSelectedDay; });
+    selEvents.sort(function(a,b){ return (a.title||'').localeCompare(b.title||''); });
 
-    detailHtml=
-      '<div style="margin-top:18px;border-top:1px solid var(--navy-border);padding-top:16px">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'+
-          '<div style="font-size:15px;font-weight:700">'+calFmt(_calSelectedDay)+'</div>'+
-          '<button class="btn btn-primary btn-sm" onclick="openEventModal(\''+_calSelectedDay+'\')">+ Add Event</button>'+
-        '</div>'+
-        eventCards+
+    var evCards = '';
+    if(selEvents.length === 0){
+      evCards = '<div style="font-size:13px;color:var(--text-muted);padding:8px 0">No events on this day. Click + Add Event to schedule something.</div>';
+    } else {
+      for(var si=0; si<selEvents.length; si++){
+        var ev = selEvents[si];
+        var ecol = EVENT_COLORS[ev.type] || '#6b7280';
+        var acct = ev.accountId ? (DB.accounts||[]).find(function(a){ return a.id===ev.accountId; }) : null;
+        var openQs = (acct && acct.questions) ? acct.questions.filter(function(q){ return !q.answered; }) : [];
+        var qChecklist = ev.questionChecklist || [];
+
+        var qHtml = '';
+        if(openQs.length){
+          qHtml = '<div style="margin-top:10px;background:rgba(0,194,255,0.07);border-radius:6px;padding:10px 12px">' +
+            '<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#00C2FF;margin-bottom:6px">Open Questions from Account</div>';
+          for(var qi=0; qi<openQs.length; qi++){
+            var q = openQs[qi];
+            var checked = qChecklist.some(function(c){ return c.qId===q.id && c.checked; });
+            qHtml +=
+              '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px">' +
+                '<div onclick="calToggleQ(\''+ev.id+'\',\''+q.id+'\')" style="width:14px;height:14px;min-width:14px;border-radius:3px;border:2px solid '+(checked?'#22c55e':'var(--navy-border)')+';background:'+(checked?'#22c55e':'transparent')+';cursor:pointer;margin-top:2px"></div>' +
+                '<span style="font-size:12px;line-height:1.5;'+(checked?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</span>' +
+              '</div>';
+          }
+          qHtml += '</div>';
+        }
+
+        evCards +=
+          '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+ecol+';border-radius:8px;padding:14px 16px;margin-bottom:10px">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
+              '<div>' +
+                '<div style="font-size:14px;font-weight:700;margin-bottom:4px">'+ev.title+'</div>' +
+                '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+ecol+'22;color:'+ecol+'">'+ev.type+'</span>' +
+                (acct ? ' <span style="font-size:11.5px;color:var(--text-muted);cursor:pointer;margin-left:6px" onclick="openDetail('+acct.id+')">🏢 '+acct.name+' →</span>' : '') +
+              '</div>' +
+              '<div style="display:flex;gap:10px">' +
+                '<button onclick="calEditEvent(\''+ev.id+'\')" style="background:none;border:none;color:#00C2FF;font-size:12px;cursor:pointer">✏ Edit</button>' +
+                '<button onclick="calDeleteEvent(\''+ev.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer">✕</button>' +
+              '</div>' +
+            '</div>' +
+            (ev.prep ? '<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Prep Notes</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text)">'+ev.prep+'</div></div>' : '') +
+            qHtml +
+          '</div>';
+      }
+    }
+
+    panelHtml =
+      '<div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--navy-border)">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">' +
+          '<div style="font-size:15px;font-weight:700;color:var(--text)">'+calFormatDisplay(_calSelectedDay)+'</div>' +
+          '<button class="btn btn-primary btn-sm" onclick="calOpenAddEvent()">+ Add Event</button>' +
+        '</div>' +
+        evCards +
       '</div>';
   }
 
-  el.innerHTML =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">'+
-      '<div class="card-title" style="font-family:Syne,sans-serif;font-size:16px">'+calMonthLabel(y,m)+'</div>'+
-      '<div style="display:flex;gap:8px">'+
-        '<button class="btn btn-ghost btn-sm" onclick="calNavigate(-1)">← Prev</button>'+
-        '<button class="btn btn-ghost btn-sm" onclick="calNavigate(0)">Today</button>'+
-        '<button class="btn btn-ghost btn-sm" onclick="calNavigate(1)">Next →</button>'+
-      '</div>'+
-    '</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px">'+headerHtml+'</div>'+
-    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">'+cells+'</div>'+
-    detailHtml;
+  el.innerHTML = headerHtml + dowHtml + gridHtml + panelHtml;
 }
 
-function calNavigate(dir){
-  if(dir===0){ _calYear=new Date().getFullYear(); _calMonth=new Date().getMonth(); _calSelectedDay=null; }
-  else {
-    _calMonth+=dir;
-    if(_calMonth<0){_calMonth=11;_calYear--;}
-    if(_calMonth>11){_calMonth=0;_calYear++;}
+function calNav(dir){
+  if(dir === 0){
+    _calYear  = new Date().getFullYear();
+    _calMonth = new Date().getMonth();
+    _calSelectedDay = null;
+  } else {
+    _calMonth += dir;
+    if(_calMonth < 0){ _calMonth = 11; _calYear--; }
+    if(_calMonth > 11){ _calMonth = 0; _calYear++; }
   }
   renderCalendarPage();
 }
 
 function calSelectDay(dateStr){
-  _calSelectedDay = _calSelectedDay===dateStr ? null : dateStr;
+  _calSelectedDay = (_calSelectedDay === dateStr) ? null : dateStr;
   renderCalendarPage();
 }
 
-function toggleEventQuestion(eventId, questionId){
-  var e=DB.calendarEvents.find(function(x){return x.id===eventId;});
-  if(!e) return;
-  if(!e.questionChecklist) e.questionChecklist=[];
-  var existing=e.questionChecklist.find(function(c){return c.qId===questionId;});
-  if(existing){ existing.checked=!existing.checked; }
-  else { e.questionChecklist.push({qId:questionId,checked:true}); }
-  persist(); renderCalendarPage();
+function calToggleQ(eventId, questionId){
+  var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
+  if(!ev) return;
+  if(!ev.questionChecklist) ev.questionChecklist = [];
+  var existing = ev.questionChecklist.find(function(c){ return c.qId===questionId; });
+  if(existing){ existing.checked = !existing.checked; }
+  else { ev.questionChecklist.push({qId:questionId, checked:true}); }
+  persist();
+  renderCalendarPage();
+}
+
+function calOpenAddEvent(){
+  _editingEventId = null;
+  $('ev-modal-title').textContent = 'Add Event';
+  $('ev-date').value = _calSelectedDay || new Date().toISOString().slice(0,10);
+  $('ev-type').value = 'Account Visit';
+  $('ev-prep').value = '';
+  $('ev-notes').value = '';
+  $('ev-title').value = '';
+  var acctOpts = '<option value="">— No specific account —</option>' +
+    (DB.accounts||[]).map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join('');
+  $('ev-account').innerHTML = acctOpts;
+  $('ev-account').value = '';
+  openModal('m-event');
+}
+
+function calEditEvent(eventId){
+  var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
+  if(!ev) return;
+  _editingEventId = eventId;
+  $('ev-modal-title').textContent = 'Edit Event';
+  $('ev-title').value = ev.title || '';
+  $('ev-date').value  = ev.date  || new Date().toISOString().slice(0,10);
+  $('ev-type').value  = ev.type  || 'Account Visit';
+  $('ev-prep').value  = ev.prep  || '';
+  $('ev-notes').value = ev.notes || '';
+  var acctOpts = '<option value="">— No specific account —</option>' +
+    (DB.accounts||[]).map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join('');
+  $('ev-account').innerHTML = acctOpts;
+  $('ev-account').value = ev.accountId ? String(ev.accountId) : '';
+  openModal('m-event');
+}
+
+function calDeleteEvent(eventId){
+  if(!confirm('Delete this event?')) return;
+  DB.calendarEvents = (DB.calendarEvents||[]).filter(function(x){ return x.id !== eventId; });
+  persist();
+  renderCalendarPage();
+}
+
+function saveEvent(){
+  var title = $('ev-title').value.trim();
+  if(!title){ alert('Event title required'); return; }
+  var accountIdRaw = $('ev-account').value;
+  var accountId = accountIdRaw ? parseInt(accountIdRaw, 10) : null;
+  var data = {
+    title:    title,
+    date:     $('ev-date').value || new Date().toISOString().slice(0,10),
+    type:     $('ev-type').value,
+    accountId:accountId,
+    prep:     $('ev-prep').value.trim(),
+    notes:    $('ev-notes').value.trim(),
+  };
+  if(!DB.calendarEvents) DB.calendarEvents = [];
+  if(_editingEventId){
+    var i = DB.calendarEvents.findIndex(function(x){ return x.id===_editingEventId; });
+    if(i > -1) DB.calendarEvents[i] = Object.assign({}, DB.calendarEvents[i], data);
+    _editingEventId = null;
+  } else {
+    data.id = 'ev' + Date.now() + Math.random().toString(36).slice(2,7);
+    data.questionChecklist = [];
+    DB.calendarEvents.push(data);
+  }
+  _calSelectedDay = data.date;
+  persist();
+  closeModal('m-event');
+  renderCalendarPage();
 }
 
 function openEventModal(dateStr, eventId){
-  _editingEventId = eventId||null;
-  $('ev-modal-title').textContent = eventId ? 'Edit Event' : 'Add Event';
-  $('ev-date').value = dateStr||today();
-  // Populate account select
-  var acctOptions='<option value="">— No specific account —</option>'+
-    DB.accounts.map(function(a){return '<option value="'+a.id+'">'+a.name+'</option>';}).join('');
-  $('ev-account').innerHTML = acctOptions;
-  if(eventId){
-    var ev=DB.calendarEvents.find(function(x){return x.id===eventId;});
-    if(ev){
-      $('ev-title').value=ev.title||'';
-      $('ev-date').value=ev.date||dateStr||today();
-      $('ev-type').value=ev.type||'Account Visit';
-      $('ev-account').value=ev.accountId||'';
-      $('ev-prep').value=ev.prep||'';
-      $('ev-notes').value=ev.notes||'';
-    }
-  } else {
-    $('ev-title').value='';
-    $('ev-type').value='Account Visit';
-    $('ev-account').value='';
-    $('ev-prep').value='';
-    $('ev-notes').value='';
-  }
+  if(eventId){ calEditEvent(eventId); }
+  else { _calSelectedDay = dateStr || _calSelectedDay; calOpenAddEvent(); }
+}
+
+function openEventModalForAccount(accountId){
+  _editingEventId = null;
+  $('ev-modal-title').textContent = 'Add Event';
+  $('ev-date').value = new Date().toISOString().slice(0,10);
+  $('ev-type').value = 'Account Visit';
+  $('ev-title').value = '';
+  $('ev-prep').value = '';
+  $('ev-notes').value = '';
+  var acctOpts = '<option value="">— No specific account —</option>' +
+    (DB.accounts||[]).map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join('');
+  $('ev-account').innerHTML = acctOpts;
+  $('ev-account').value = String(accountId);
   openModal('m-event');
 }
 
 function goCalendarDay(dateStr){
-  _calSelectedDay=dateStr;
-  var btn=document.querySelector('.nav-link[onclick*="calendar"]');
+  _calSelectedDay = dateStr;
+  var btn = document.querySelector('.nav-link[onclick*="calendar"]');
   goPage('calendar', btn);
-}
-
-function openEventModalForAccount(accountId){
-  var dateStr = today();
-  _editingEventId=null;
-  $('ev-modal-title').textContent='Add Event';
-  $('ev-date').value=dateStr;
-  $('ev-type').value='Account Visit';
-  var acctOptions='<option value="">— No specific account —</option>'+
-    DB.accounts.map(function(a){return '<option value="'+a.id+'">'+a.name+'</option>';}).join('');
-  $('ev-account').innerHTML=acctOptions;
-  $('ev-account').value=String(accountId);
-  $('ev-title').value=''; $('ev-prep').value=''; $('ev-notes').value='';
-  openModal('m-event');
-}
-
-function saveEvent(){
-  var title=$('ev-title').value.trim();
-  if(!title){alert('Event title required');return;}
-  var accountId = $('ev-account').value ? parseInt($('ev-account').value) : null;
-  var data={
-    title:title,
-    date:$('ev-date').value||today(),
-    type:$('ev-type').value,
-    accountId:accountId,
-    prep:$('ev-prep').value.trim(),
-    notes:$('ev-notes').value.trim(),
-  };
-  if(_editingEventId){
-    var i=DB.calendarEvents.findIndex(function(x){return x.id===_editingEventId;});
-    if(i>-1) DB.calendarEvents[i]=Object.assign({},DB.calendarEvents[i],data);
-    _editingEventId=null;
-  } else {
-    data.id='ev'+Date.now()+Math.random().toString(36).slice(2,7);
-    data.questionChecklist=[];
-    DB.calendarEvents.push(data);
-  }
-  _calSelectedDay=data.date;
-  persist(); closeModal('m-event'); renderCalendarPage();
-}
-
-function deleteEvent(id){
-  if(!confirm('Delete this event?')) return;
-  DB.calendarEvents=DB.calendarEvents.filter(function(x){return x.id!==id;});
-  persist(); renderCalendarPage();
 }
 
 

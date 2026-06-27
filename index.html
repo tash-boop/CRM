@@ -329,6 +329,7 @@ input[type=number]{-moz-appearance:textfield;}
     <button class="nav-link" onclick="goPage('territorymap',this)"><span class="nav-icon">🗺️</span> Territory Map</button>
     <button class="nav-link" onclick="goPage('calendar',this)"><span class="nav-icon">📅</span> Calendar</button>
     <button class="nav-link" onclick="goPage('training',this)"><span class="nav-icon">📚</span> Training Notes</button>
+    <button class="nav-link" onclick="goPage('prodknowledge',this)"><span class="nav-icon">🧠</span> Product Knowledge</button>
     <button class="nav-link" onclick="goPage('meetings',this)"><span class="nav-icon">🤝</span> Internal Meetings</button>
   </nav>
   <div class="sidebar-quick">
@@ -563,7 +564,7 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="page" id="page-devicedetail"><div id="device-detail-content"></div></div>
 
     <!-- CALENDAR -->
-    <div class="page" id="page-calendar">
+    <div class="page" id="page-calendar" style="padding:20px;overflow-y:auto">
       <div id="calendar-page-content"></div>
     </div>
 
@@ -575,6 +576,11 @@ input[type=number]{-moz-appearance:textfield;}
     <!-- INTERNAL MEETINGS -->
     <div class="page" id="page-meetings">
       <div id="meetings-page-content"></div>
+    </div>
+
+    <!-- PRODUCT KNOWLEDGE -->
+    <div class="page" id="page-prodknowledge">
+      <div id="prodknowledge-content"></div>
     </div>
 
     <!-- TERRITORY MAP -->
@@ -960,7 +966,7 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg full"><label class="flabel">Date</label><input class="finput" type="date" id="fn-date"></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Note</label><textarea class="ftextarea" id="fn-text" placeholder="What happened, what you learned, next steps…" style="min-height:100px"></textarea></div>
+        <div class="fg full"><label class="flabel">Note</label><textarea class="ftextarea" id="fn-text" oninput="onNoteModalChange()" placeholder="What happened, what you learned, next steps…" style="min-height:100px"></textarea></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-note')">Cancel</button><button class="btn btn-primary" onclick="saveNote()">Save Note</button></div>
@@ -1028,10 +1034,10 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg full"><label class="flabel">Meeting Title / Topic</label><input class="finput" id="mt-title" placeholder="e.g. Weekly check-in — territory update"></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="mt-notes" placeholder="What was discussed, decisions made, context…" style="min-height:120px"></textarea></div>
+        <div class="fg full"><label class="flabel">Notes</label><textarea class="ftextarea" id="mt-notes" oninput="onMeetingModalChange()" placeholder="What was discussed, decisions made, context…" style="min-height:120px"></textarea></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Action Items</label><textarea class="ftextarea" id="mt-actions" placeholder="Things you committed to or need to follow up on…" style="min-height:70px"></textarea></div>
+        <div class="fg full"><label class="flabel">Action Items</label><textarea class="ftextarea" id="mt-actions" oninput="onMeetingModalChange()" placeholder="Things you committed to or need to follow up on…" style="min-height:70px"></textarea></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-meeting')">Cancel</button><button class="btn btn-primary" onclick="saveMeeting()">Save</button></div>
@@ -1077,6 +1083,60 @@ input[type=number]{-moz-appearance:textfield;}
   </div>
 </div>
 
+
+<!-- MODAL: Product Knowledge Q&A -->
+<div class="modal-bg" id="m-prodknowledge">
+  <div class="modal" style="max-width:580px">
+    <div class="modal-head">
+      <div class="modal-title" id="pk-modal-title">Add Q&A Entry</div>
+      <button class="modal-x" onclick="closeModal('m-prodknowledge')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">Product</label>
+          <select class="fselect" id="pk-product"></select>
+        </div>
+        <div class="fg">
+          <label class="flabel">Category</label>
+          <select class="fselect" id="pk-category">
+            <option>Clinical</option>
+            <option>Technical</option>
+            <option>Procurement</option>
+            <option>Competitive</option>
+            <option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full">
+          <label class="flabel">Type</label>
+          <select class="fselect" id="pk-qtype">
+            <option value="self">📖 Something I Need to Know</option>
+            <option value="customer">💬 Customer Question / Objection</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full">
+          <label class="flabel">Question</label>
+          <textarea class="ftextarea" id="pk-question" placeholder="e.g. What are the LUCAS 3 contraindications? / Customer asks: why is the LP35 more expensive than Zoll?" style="min-height:70px"></textarea>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full">
+          <label class="flabel">Answer / Your Best Response</label>
+          <textarea class="ftextarea" id="pk-answer" placeholder="Write your answer, talking points, or response here. Be as detailed as you want — this is your reference." style="min-height:120px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-prodknowledge')">Cancel</button>
+      <button class="btn btn-primary" onclick="pkSave()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script charset="utf-8">
 
 // ===== DATA =====
@@ -1094,6 +1154,7 @@ function seed() {
     calendarEvents: [], // {id, title, date, endDate, accountId, type, prep, notes, questionChecklist[]}
     trainingProducts: [], // {id, product, keyPoints, objectionHandlers, clinicalNotes, competitiveNotes, trainingLog[]}
     meetings: [], // {id, type, person, date, notes, actionItems}
+    prodKnowledge: [], // {id, product, category, qtype, question, answer, rating, lastReviewed}
     playbook: [],
     nextId: {a:1, t:1, o:1, c:1, i:1, p:1, d:1},
   };
@@ -1108,6 +1169,7 @@ if(!DB.opportunities) DB.opportunities = [];
 if(!DB.calendarEvents) DB.calendarEvents = [];
 if(!DB.trainingProducts) DB.trainingProducts = [];
 if(!DB.meetings) DB.meetings = [];
+if(!DB.prodKnowledge) DB.prodKnowledge = [];
 if(!DB.playbook) DB.playbook = [];
 if(!DB.playbook) DB.playbook = [];
 if(!DB.devices) DB.devices = [];
@@ -1457,6 +1519,7 @@ var PAGE_META={
   territorymap: ['Territory Map','Every account plotted geographically'],
   calendar:     ['Calendar','Monthly view · Click a day to add events · Linked to accounts'],
   training:     ['Training Notes','Product reference cards & training log'],
+  prodknowledge:['Product Knowledge','Q&A bank by product & category — study + field-ready answers'],
   meetings:     ['Internal Meetings','Meeting notes by person / meeting type'],
 };
 
@@ -1477,7 +1540,8 @@ function goPage(name, btn){
   if(name==='fleet')     renderFleetPage();
   if(name==='territorymap') renderTerritoryMap();
   if(name==='calendar')     renderCalendarPage();
-  if(name==='training')     renderTrainingPage();
+  if(name==='training')       renderTrainingPage();
+  if(name==='prodknowledge')  renderProdKnowledgePage();
   if(name==='meetings')     renderMeetingsPage();
   closeSidebar();
   saveLastView({page:name});
@@ -2282,6 +2346,9 @@ function openNoteModal(accountId, noteId){
     $('fn-text').value='';
   }
   toggleSourceNameField('fn-source','fn-source-name-wrap');
+  // Restore any draft typed during a previous session that wasn't saved
+  if(!noteId) restoreNoteDraftIfAny(accountId);
+  _modalHasUnsaved = false; // reset — draft restore doesn't count as unsaved
   openModal('m-note');
 }
 
@@ -2308,6 +2375,8 @@ function saveNote(){
   }
 
   persist();
+  draftClear(DRAFT_KEY_NOTE);
+  _modalHasUnsaved=false;
   closeModal('m-note');
   _editingNoteId=null;
   openDetail(a.id); // refresh detail page to show the change in the timeline
@@ -3447,6 +3516,7 @@ function importData(event){
       if(!DB.calendarEvents) DB.calendarEvents=[];
       if(!DB.trainingProducts) DB.trainingProducts=[];
       if(!DB.meetings) DB.meetings=[];
+      if(!DB.prodKnowledge) DB.prodKnowledge=[];
       if(!DB.nextId) DB.nextId={a:1,t:1,o:1,c:1,i:1,p:1};
       persist();
       renderProfile();
@@ -3783,13 +3853,16 @@ function deleteTrainingLogEntry(productId, entryId){
 
 
 // ===== CALENDAR =====
-var _calYear  = new Date().getFullYear();
-var _calMonth = new Date().getMonth();
+var _calYear      = new Date().getFullYear();
+var _calMonth     = new Date().getMonth();
+var _calView      = 'month'; // 'month' | 'week'
+var _calWeekStart = null;    // Monday of current week view (YYYY-MM-DD)
 var _calSelectedDay = null;
 var _editingEventId = null;
 
-var CAL_MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-var CAL_DAYS   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var CAL_MONTHS  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var CAL_DAYS_SHORT = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+var CAL_DAYS_FULL  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
 var EVENT_COLORS = {
   'Account Visit':    '#00C2FF',
@@ -3803,166 +3876,312 @@ var EVENT_COLORS = {
 
 function calPad(n){ return n < 10 ? '0'+n : ''+n; }
 function calMakeDateStr(y, m, d){ return y + '-' + calPad(m+1) + '-' + calPad(d); }
-function calFormatDisplay(dateStr){
-  // dateStr is always YYYY-MM-DD
-  if(!dateStr || dateStr.length < 8) return dateStr || '';
-  var y = parseInt(dateStr.slice(0,4),10);
-  var m = parseInt(dateStr.slice(5,7),10) - 1;
-  var d = parseInt(dateStr.slice(8,10),10);
-  if(isNaN(y)||isNaN(m)||isNaN(d)) return dateStr;
-  var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-  var dt = new Date(y, m, d);
-  return days[dt.getDay()] + ', ' + CAL_MONTHS[m] + ' ' + d + ', ' + y;
+function calTodayStr(){ return new Date().toISOString().slice(0,10); }
+function calPartsFromStr(s){ // returns {y,m,d} integers from YYYY-MM-DD
+  if(!s || s.length < 10) return null;
+  return { y: parseInt(s.slice(0,4),10), m: parseInt(s.slice(5,7),10)-1, d: parseInt(s.slice(8,10),10) };
+}
+function calFormatLong(dateStr){
+  var p = calPartsFromStr(dateStr);
+  if(!p) return dateStr||'';
+  var dow = new Date(p.y, p.m, p.d).getDay();
+  return CAL_DAYS_FULL[dow] + ', ' + CAL_MONTHS[p.m] + ' ' + p.d + ', ' + p.y;
+}
+function calFormatShort(dateStr){
+  var p = calPartsFromStr(dateStr);
+  if(!p) return dateStr||'';
+  return CAL_MONTHS[p.m].slice(0,3) + ' ' + p.d;
+}
+function calAddDays(dateStr, n){
+  var p = calPartsFromStr(dateStr);
+  if(!p) return dateStr;
+  var dt = new Date(p.y, p.m, p.d);
+  dt.setDate(dt.getDate() + n);
+  return calMakeDateStr(dt.getFullYear(), dt.getMonth(), dt.getDate());
+}
+function calGetMonday(dateStr){
+  var p = calPartsFromStr(dateStr);
+  if(!p) return dateStr;
+  var dt = new Date(p.y, p.m, p.d);
+  var dow = dt.getDay();
+  var diff = dow === 0 ? -6 : 1 - dow; // Mon=0 offset
+  dt.setDate(dt.getDate() + diff);
+  return calMakeDateStr(dt.getFullYear(), dt.getMonth(), dt.getDate());
 }
 
 function renderCalendarPage(){
   var el = document.getElementById('calendar-page-content');
   if(!el) return;
+  if(!_calWeekStart) _calWeekStart = calGetMonday(calTodayStr());
+  el.innerHTML = _calView === 'week' ? calBuildWeekView() : calBuildMonthView();
+}
 
-  var y = _calYear;
-  var m = _calMonth;
-  var todayStr = new Date().toISOString().slice(0,10);
+// ─── SHARED TOOLBAR ────────────────────────────────────────────────
+function calToolbar(){
+  var label = _calView === 'month'
+    ? CAL_MONTHS[_calMonth] + ' ' + _calYear
+    : calFormatShort(_calWeekStart) + ' – ' + calFormatShort(calAddDays(_calWeekStart, 6)) + ', ' + calPartsFromStr(calWeekEnd())['y'];
 
-  // Month/year header
-  var headerHtml =
-    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">' +
-      '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text)">' + CAL_MONTHS[m] + ' ' + y + '</div>' +
-      '<div style="display:flex;gap:8px">' +
-        '<button class="btn btn-ghost btn-sm" onclick="calNav(-1)">← Prev</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="calNav(0)">Today</button>' +
-        '<button class="btn btn-ghost btn-sm" onclick="calNav(1)">Next →</button>' +
-      '</div>' +
-    '</div>';
+  return '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">' +
+    '<div style="display:flex;align-items:center;gap:12px">' +
+      '<div style="font-family:Syne,sans-serif;font-size:18px;font-weight:700;color:var(--text)">' + label + '</div>' +
+      '<button onclick="calNav(-1)" style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px">‹</button>' +
+      '<button onclick="calToday()" style="background:none;border:1px solid var(--navy-border);color:var(--text-muted);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px">Today</button>' +
+      '<button onclick="calNav(1)"  style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:6px;padding:4px 10px;cursor:pointer;font-size:14px">›</button>' +
+    '</div>' +
+    '<div style="display:flex;gap:8px;align-items:center">' +
+      '<button onclick="calSetView(\'month\')" style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:'+(_calView==='month'?'var(--accent)':'var(--navy-mid)')+';color:'+(_calView==='month'?'#0a0c12':'var(--text-muted)')+'">Month</button>' +
+      '<button onclick="calSetView(\'week\')"  style="padding:5px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;background:'+(_calView==='week'?'var(--accent)':'var(--navy-mid)')+';color:'+(_calView==='week'?'#0a0c12':'var(--text-muted)')+'">Week</button>' +
+      '<button class="btn btn-primary btn-sm" onclick="calOpenAdd()">+ Add Event</button>' +
+    '</div>' +
+  '</div>';
+}
+function calWeekEnd(){ return calAddDays(_calWeekStart, 6); }
 
-  // Day-of-week labels
-  var dowHtml = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px">';
-  for(var di=0; di<7; di++){
-    dowHtml += '<div style="text-align:center;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);padding:6px 0">' + CAL_DAYS[di] + '</div>';
-  }
-  dowHtml += '</div>';
-
-  // Calendar grid
-  var firstDow = new Date(y, m, 1).getDay();
-  var daysInMonth = new Date(y, m+1, 0).getDate();
-  var totalCells = Math.ceil((firstDow + daysInMonth) / 7) * 7;
+// ─── MONTH VIEW ────────────────────────────────────────────────────
+function calBuildMonthView(){
+  var todayStr   = calTodayStr();
+  var firstDow   = new Date(_calYear, _calMonth, 1).getDay();
+  var daysInMonth = new Date(_calYear, _calMonth+1, 0).getDate();
+  var totalCells  = Math.ceil((firstDow + daysInMonth) / 7) * 7;
   var events = DB.calendarEvents || [];
 
-  var gridHtml = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">';
+  // DOW headers
+  var dowRow = '<div style="display:grid;grid-template-columns:1fr 3fr;gap:0">' +
+    '<div></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">' +
+    CAL_DAYS_SHORT.map(function(d){
+      return '<div style="text-align:center;font-size:10.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);padding:4px 0">'+d+'</div>';
+    }).join('') + '</div></div>';
+
+  // Build cells
+  var cells = '';
   for(var ci=0; ci<totalCells; ci++){
     var dayNum = ci - firstDow + 1;
     var inMonth = dayNum >= 1 && dayNum <= daysInMonth;
-    var dateStr = inMonth ? calMakeDateStr(y, m, dayNum) : '';
+    var dateStr = inMonth ? calMakeDateStr(_calYear, _calMonth, dayNum) : '';
     var isToday = dateStr === todayStr;
-    var isSel   = dateStr !== '' && dateStr === _calSelectedDay;
+    var isSel   = dateStr && dateStr === _calSelectedDay;
+    var dayEvs  = dateStr ? events.filter(function(e){ return e.date === dateStr; }) : [];
 
-    var dayEvents = dateStr ? events.filter(function(e){ return e.date === dateStr; }) : [];
+    var evLines = dayEvs.slice(0,3).map(function(e){
+      var col = EVENT_COLORS[e.type]||'#6b7280';
+      return '<div style="font-size:10px;padding:1px 5px;border-radius:3px;background:'+col+'22;color:'+col+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:1px">'+e.title+'</div>';
+    }).join('');
+    if(dayEvs.length > 3) evLines += '<div style="font-size:9px;color:var(--text-muted);padding-left:2px">+'+(dayEvs.length-3)+' more</div>';
 
-    var dotHtml = '';
-    var shown = dayEvents.slice(0, 3);
-    for(var ei=0; ei<shown.length; ei++){
-      var col = EVENT_COLORS[shown[ei].type] || '#6b7280';
-      dotHtml += '<div style="width:5px;height:5px;border-radius:50%;background:'+col+';display:inline-block;margin-right:2px"></div>';
-    }
-    if(dayEvents.length > 3) dotHtml += '<span style="font-size:9px;color:var(--text-muted)">+' + (dayEvents.length-3) + '</span>';
-
-    var bg   = isSel ? 'rgba(0,194,255,0.18)' : isToday ? 'rgba(0,194,255,0.07)' : 'transparent';
-    var bord = isSel ? '1.5px solid #00C2FF'  : isToday ? '1px solid rgba(0,194,255,0.35)' : '1px solid transparent';
-    var numColor = isToday ? '#00C2FF' : inMonth ? 'var(--text)' : 'transparent';
-    var numWeight = isToday ? '800' : '500';
-    var cursor = inMonth ? 'pointer' : 'default';
+    var bg   = isSel ? 'rgba(0,194,255,0.15)' : isToday ? 'rgba(0,194,255,0.06)' : 'var(--navy-card)';
+    var bord = isSel ? '1.5px solid #00C2FF'   : isToday ? '1px solid rgba(0,194,255,0.4)' : '1px solid var(--navy-border)';
+    var numCol = isToday ? '#00C2FF' : inMonth ? 'var(--text)' : 'var(--text-dim)';
     var onclick = inMonth ? 'onclick="calSelectDay(\''+dateStr+'\')"' : '';
 
-    gridHtml +=
-      '<div '+onclick+' style="min-height:64px;padding:6px;border-radius:6px;background:'+bg+';border:'+bord+';cursor:'+cursor+';transition:background .12s">' +
-        '<div style="font-size:13px;font-weight:'+numWeight+';color:'+numColor+';margin-bottom:4px">' + (inMonth ? dayNum : '') + '</div>' +
-        '<div>' + dotHtml + '</div>' +
-      '</div>';
+    cells += '<div '+onclick+' style="min-height:80px;padding:6px;border-radius:6px;background:'+bg+';border:'+bord+';cursor:'+(inMonth?'pointer':'default')+';overflow:hidden">'+
+      '<div style="font-size:12px;font-weight:'+(isToday?'800':'600')+';color:'+numCol+';margin-bottom:3px">'+(inMonth?dayNum:'')+'</div>'+
+      evLines+
+    '</div>';
   }
-  gridHtml += '</div>';
 
-  // Selected day panel
-  var panelHtml = '';
+  var grid = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">'+cells+'</div>';
+
+  // Side panel (selected day)
+  var panel = '';
   if(_calSelectedDay){
-    var selEvents = events.filter(function(e){ return e.date === _calSelectedDay; });
-    selEvents.sort(function(a,b){ return (a.title||'').localeCompare(b.title||''); });
-
-    var evCards = '';
-    if(selEvents.length === 0){
-      evCards = '<div style="font-size:13px;color:var(--text-muted);padding:8px 0">No events on this day. Click + Add Event to schedule something.</div>';
-    } else {
-      for(var si=0; si<selEvents.length; si++){
-        var ev = selEvents[si];
-        var ecol = EVENT_COLORS[ev.type] || '#6b7280';
-        var acct = ev.accountId ? (DB.accounts||[]).find(function(a){ return a.id===ev.accountId; }) : null;
-        var openQs = (acct && acct.questions) ? acct.questions.filter(function(q){ return !q.answered; }) : [];
-        var qChecklist = ev.questionChecklist || [];
-
-        var qHtml = '';
-        if(openQs.length){
-          qHtml = '<div style="margin-top:10px;background:rgba(0,194,255,0.07);border-radius:6px;padding:10px 12px">' +
-            '<div style="font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:#00C2FF;margin-bottom:6px">Open Questions from Account</div>';
-          for(var qi=0; qi<openQs.length; qi++){
-            var q = openQs[qi];
-            var checked = qChecklist.some(function(c){ return c.qId===q.id && c.checked; });
-            qHtml +=
-              '<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:5px">' +
-                '<div onclick="calToggleQ(\''+ev.id+'\',\''+q.id+'\')" style="width:14px;height:14px;min-width:14px;border-radius:3px;border:2px solid '+(checked?'#22c55e':'var(--navy-border)')+';background:'+(checked?'#22c55e':'transparent')+';cursor:pointer;margin-top:2px"></div>' +
-                '<span style="font-size:12px;line-height:1.5;'+(checked?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</span>' +
-              '</div>';
-          }
-          qHtml += '</div>';
-        }
-
-        evCards +=
-          '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+ecol+';border-radius:8px;padding:14px 16px;margin-bottom:10px">' +
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:6px">' +
-              '<div>' +
-                '<div style="font-size:14px;font-weight:700;margin-bottom:4px">'+ev.title+'</div>' +
-                '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+ecol+'22;color:'+ecol+'">'+ev.type+'</span>' +
-                (acct ? ' <span style="font-size:11.5px;color:var(--text-muted);cursor:pointer;margin-left:6px" onclick="openDetail('+acct.id+')">🏢 '+acct.name+' →</span>' : '') +
-              '</div>' +
-              '<div style="display:flex;gap:10px">' +
-                '<button onclick="calEditEvent(\''+ev.id+'\')" style="background:none;border:none;color:#00C2FF;font-size:12px;cursor:pointer">✏ Edit</button>' +
-                '<button onclick="calDeleteEvent(\''+ev.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:12px;cursor:pointer">✕</button>' +
-              '</div>' +
-            '</div>' +
-            (ev.prep ? '<div style="margin-top:8px"><div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:3px">Prep Notes</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text)">'+ev.prep+'</div></div>' : '') +
-            qHtml +
-          '</div>';
-      }
-    }
-
-    panelHtml =
-      '<div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--navy-border)">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px">' +
-          '<div style="font-size:15px;font-weight:700;color:var(--text)">'+calFormatDisplay(_calSelectedDay)+'</div>' +
-          '<button class="btn btn-primary btn-sm" onclick="calOpenAddEvent()">+ Add Event</button>' +
-        '</div>' +
-        evCards +
-      '</div>';
+    panel = '<div style="min-width:260px;max-width:320px;flex-shrink:0">'+calDayPanel(_calSelectedDay)+'</div>';
   }
 
-  el.innerHTML = headerHtml + dowHtml + gridHtml + panelHtml;
+  return calToolbar() + dowRow +
+    '<div style="display:flex;gap:16px;align-items:flex-start">' +
+      '<div style="flex:1;min-width:0">'+grid+'</div>' +
+      panel +
+    '</div>';
 }
 
-function calNav(dir){
-  if(dir === 0){
-    _calYear  = new Date().getFullYear();
-    _calMonth = new Date().getMonth();
-    _calSelectedDay = null;
+// ─── WEEK VIEW ─────────────────────────────────────────────────────
+function calBuildWeekView(){
+  var todayStr = calTodayStr();
+  var events   = DB.calendarEvents || [];
+  var weekDays = [];
+  for(var wi=0; wi<7; wi++) weekDays.push(calAddDays(_calWeekStart, wi));
+
+  var cols = weekDays.map(function(dateStr){
+    var p = calPartsFromStr(dateStr);
+    var isToday = dateStr === todayStr;
+    var isSel   = dateStr === _calSelectedDay;
+    var dayEvs  = events.filter(function(e){ return e.date === dateStr; });
+    var dow = new Date(p.y, p.m, p.d).getDay();
+
+    var evCards = dayEvs.map(function(e){
+      var col = EVENT_COLORS[e.type]||'#6b7280';
+      var acct = e.accountId ? (DB.accounts||[]).find(function(a){ return a.id===e.accountId; }) : null;
+      return '<div onclick="calSelectDay(\''+dateStr+'\')" style="background:'+col+'18;border-left:3px solid '+col+';border-radius:4px;padding:6px 8px;margin-bottom:5px;cursor:pointer">'+
+        '<div style="font-size:11.5px;font-weight:700;color:var(--text);line-height:1.3">'+e.title+'</div>'+
+        (acct?'<div style="font-size:10px;color:var(--text-muted);margin-top:1px">🏢 '+acct.name+'</div>':'')+
+        '<div style="font-size:10px;color:'+col+';margin-top:2px">'+e.type+'</div>'+
+      '</div>';
+    }).join('');
+
+    return '<div style="flex:1;min-width:0;border-right:1px solid var(--navy-border)">' +
+      '<div onclick="calSelectDay(\''+dateStr+'\')" style="text-align:center;padding:8px 4px;cursor:pointer;border-bottom:1px solid var(--navy-border);background:'+(isSel?'rgba(0,194,255,0.12)':isToday?'rgba(0,194,255,0.06)':'transparent')+'">' +
+        '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)">'+CAL_DAYS_SHORT[dow]+'</div>'+
+        '<div style="font-size:18px;font-weight:800;color:'+(isToday?'#00C2FF':isSel?'var(--text)':'var(--text)')+';line-height:1.2">'+p.d+'</div>'+
+      '</div>'+
+      '<div style="padding:8px 6px;min-height:180px">'+(evCards||'<div style="font-size:11px;color:var(--text-dim);text-align:center;padding-top:12px">—</div>')+'</div>'+
+    '</div>';
+  }).join('');
+
+  var panel = _calSelectedDay
+    ? '<div style="min-width:280px;max-width:340px;flex-shrink:0;border-top:1px solid var(--navy-border);padding-top:16px">'+calDayPanel(_calSelectedDay)+'</div>'
+    : '';
+
+  return calToolbar() +
+    '<div style="border:1px solid var(--navy-border);border-radius:8px;overflow:hidden;margin-bottom:16px">' +
+      '<div style="display:flex">' + cols + '</div>' +
+    '</div>' +
+    panel;
+}
+
+// ─── DAY PANEL (shared by both views) ──────────────────────────────
+function calDayPanel(dateStr){
+  var events = (DB.calendarEvents||[]).filter(function(e){ return e.date===dateStr; });
+  events.sort(function(a,b){ return (a.title||'').localeCompare(b.title||''); });
+
+  var evHtml = '';
+  if(events.length === 0){
+    evHtml = '<div style="font-size:12.5px;color:var(--text-muted);padding:10px 0">No events. Click + Add Event to schedule something.</div>';
   } else {
+    events.forEach(function(ev){
+      var col  = EVENT_COLORS[ev.type]||'#6b7280';
+      var acct = ev.accountId ? (DB.accounts||[]).find(function(a){ return a.id===ev.accountId; }) : null;
+      var openQs = (acct && acct.questions) ? acct.questions.filter(function(q){ return !q.answered; }) : [];
+      var qChecklist = ev.questionChecklist || [];
+
+      // Open questions checklist
+      var qHtml = '';
+      if(openQs.length){
+        qHtml = '<div style="margin-top:10px;background:rgba(0,194,255,0.07);border-radius:6px;padding:10px 12px">' +
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:#00C2FF;margin-bottom:6px">Open Questions from Account</div>';
+        openQs.forEach(function(q){
+          var checked = qChecklist.some(function(c){ return c.qId===q.id && c.checked; });
+          qHtml += '<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:5px">' +
+            '<div onclick="calToggleQ(\''+ev.id+'\',\''+q.id+'\')" style="width:13px;height:13px;min-width:13px;border-radius:3px;border:2px solid '+(checked?'#22c55e':'var(--navy-border)')+';background:'+(checked?'#22c55e':'transparent')+';cursor:pointer;margin-top:2px"></div>' +
+            '<span style="font-size:12px;line-height:1.5;'+(checked?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</span>' +
+          '</div>';
+        });
+        qHtml += '</div>';
+      }
+
+      // Prep checklist items
+      var prepItems = ev.prepItems || [];
+      var prepHtml = '';
+      if(prepItems.length || true){ // always show prep section
+        prepHtml = '<div style="margin-top:10px">' +
+          '<div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">Prep Checklist</div>' +
+          prepItems.map(function(item){
+            return '<div style="display:flex;gap:7px;align-items:flex-start;margin-bottom:5px">' +
+              '<div onclick="calTogglePrepItem(\''+ev.id+'\',\''+item.id+'\')" style="width:13px;height:13px;min-width:13px;border-radius:3px;border:2px solid '+(item.done?'#22c55e':'var(--navy-border)')+';background:'+(item.done?'#22c55e':'transparent')+';cursor:pointer;margin-top:2px"></div>' +
+              '<span style="font-size:12px;line-height:1.5;'+(item.done?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+item.text+'</span>' +
+              '<button onclick="calDeletePrepItem(\''+ev.id+'\',\''+item.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:10px;cursor:pointer;margin-left:auto;padding:0">✕</button>' +
+            '</div>';
+          }).join('') +
+          '<div style="display:flex;gap:6px;margin-top:6px">' +
+            '<input id="prep-input-'+ev.id+'" placeholder="Add prep item…" style="flex:1;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:5px;padding:5px 8px;font-size:12px;color:var(--text);outline:none" onkeydown="if(event.key===\'Enter\')calAddPrepItem(\''+ev.id+'\')">' +
+            '<button onclick="calAddPrepItem(\''+ev.id+'\')" style="background:var(--accent-dim);border:none;color:var(--accent);border-radius:5px;padding:5px 10px;font-size:12px;cursor:pointer">Add</button>' +
+          '</div>' +
+        '</div>';
+      }
+
+      // Free-text prep notes
+      var prepNotesHtml = ev.prep
+        ? '<div style="margin-top:10px"><div style="font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px">Prep Notes</div><div style="font-size:12.5px;line-height:1.6;white-space:pre-wrap;color:var(--text)">'+ev.prep+'</div></div>'
+        : '';
+
+      evHtml +=
+        '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-left:3px solid '+col+';border-radius:8px;padding:14px;margin-bottom:10px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+            '<div>' +
+              '<div style="font-size:14px;font-weight:700;margin-bottom:4px">'+ev.title+'</div>' +
+              '<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+col+'22;color:'+col+'">'+ev.type+'</span>' +
+              (acct?'<span style="font-size:11px;color:var(--text-muted);margin-left:8px;cursor:pointer" onclick="openDetail('+acct.id+')">🏢 '+acct.name+' →</span>':'') +
+            '</div>' +
+            '<div style="display:flex;gap:8px;flex-shrink:0">' +
+              '<button onclick="calEditEvent(\''+ev.id+'\')" style="background:none;border:none;color:#00C2FF;font-size:11px;cursor:pointer">✏ Edit</button>' +
+              '<button onclick="calDeleteEvent(\''+ev.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕</button>' +
+            '</div>' +
+          '</div>' +
+          prepNotesHtml + qHtml + prepHtml +
+        '</div>';
+    });
+  }
+
+  return '<div style="position:sticky;top:80px">' +
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">' +
+      '<div style="font-size:14px;font-weight:700;color:var(--text)">'+calFormatLong(dateStr)+'</div>' +
+      '<button class="btn btn-primary btn-sm" onclick="calOpenAdd()">+ Add Event</button>' +
+    '</div>' +
+    evHtml +
+  '</div>';
+}
+
+// ─── NAVIGATION ────────────────────────────────────────────────────
+function calNav(dir){
+  if(_calView === 'month'){
     _calMonth += dir;
     if(_calMonth < 0){ _calMonth = 11; _calYear--; }
     if(_calMonth > 11){ _calMonth = 0; _calYear++; }
+  } else {
+    _calWeekStart = calAddDays(_calWeekStart, dir * 7);
+    var p = calPartsFromStr(_calWeekStart);
+    _calYear = p.y; _calMonth = p.m;
   }
   renderCalendarPage();
 }
-
+function calToday(){
+  var t = calTodayStr();
+  var p = calPartsFromStr(t);
+  _calYear = p.y; _calMonth = p.m;
+  _calWeekStart = calGetMonday(t);
+  _calSelectedDay = t;
+  renderCalendarPage();
+}
+function calSetView(v){
+  _calView = v;
+  if(v === 'week' && _calSelectedDay) _calWeekStart = calGetMonday(_calSelectedDay);
+  else if(v === 'week') _calWeekStart = calGetMonday(calTodayStr());
+  renderCalendarPage();
+}
 function calSelectDay(dateStr){
   _calSelectedDay = (_calSelectedDay === dateStr) ? null : dateStr;
   renderCalendarPage();
 }
 
+// ─── PREP CHECKLIST ────────────────────────────────────────────────
+function calAddPrepItem(eventId){
+  var input = document.getElementById('prep-input-'+eventId);
+  if(!input || !input.value.trim()) return;
+  var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
+  if(!ev) return;
+  if(!ev.prepItems) ev.prepItems = [];
+  ev.prepItems.push({ id:'pi'+Date.now()+Math.random().toString(36).slice(2,5), text:input.value.trim(), done:false });
+  persist();
+  renderCalendarPage();
+}
+function calTogglePrepItem(eventId, itemId){
+  var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
+  if(!ev || !ev.prepItems) return;
+  var item = ev.prepItems.find(function(x){ return x.id===itemId; });
+  if(item) item.done = !item.done;
+  persist();
+  renderCalendarPage();
+}
+function calDeletePrepItem(eventId, itemId){
+  var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
+  if(!ev || !ev.prepItems) return;
+  ev.prepItems = ev.prepItems.filter(function(x){ return x.id!==itemId; });
+  persist();
+  renderCalendarPage();
+}
+
+// ─── OPEN QUESTION TOGGLE ──────────────────────────────────────────
 function calToggleQ(eventId, questionId){
   var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
   if(!ev) return;
@@ -3974,57 +4193,51 @@ function calToggleQ(eventId, questionId){
   renderCalendarPage();
 }
 
-function calOpenAddEvent(){
+// ─── ADD / EDIT EVENT MODAL ────────────────────────────────────────
+function calOpenAdd(){
   _editingEventId = null;
   $('ev-modal-title').textContent = 'Add Event';
-  $('ev-date').value = _calSelectedDay || new Date().toISOString().slice(0,10);
-  $('ev-type').value = 'Account Visit';
-  $('ev-prep').value = '';
-  $('ev-notes').value = '';
   $('ev-title').value = '';
-  var acctOpts = '<option value="">— No specific account —</option>' +
+  $('ev-date').value  = _calSelectedDay || calTodayStr();
+  $('ev-type').value  = 'Account Visit';
+  $('ev-prep').value  = '';
+  $('ev-notes').value = '';
+  $('ev-account').innerHTML = '<option value="">— No specific account —</option>' +
     (DB.accounts||[]).map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join('');
-  $('ev-account').innerHTML = acctOpts;
   $('ev-account').value = '';
   openModal('m-event');
 }
-
 function calEditEvent(eventId){
   var ev = (DB.calendarEvents||[]).find(function(x){ return x.id===eventId; });
   if(!ev) return;
   _editingEventId = eventId;
   $('ev-modal-title').textContent = 'Edit Event';
-  $('ev-title').value = ev.title || '';
-  $('ev-date').value  = ev.date  || new Date().toISOString().slice(0,10);
-  $('ev-type').value  = ev.type  || 'Account Visit';
-  $('ev-prep').value  = ev.prep  || '';
-  $('ev-notes').value = ev.notes || '';
-  var acctOpts = '<option value="">— No specific account —</option>' +
+  $('ev-title').value = ev.title||'';
+  $('ev-date').value  = ev.date||calTodayStr();
+  $('ev-type').value  = ev.type||'Account Visit';
+  $('ev-prep').value  = ev.prep||'';
+  $('ev-notes').value = ev.notes||'';
+  $('ev-account').innerHTML = '<option value="">— No specific account —</option>' +
     (DB.accounts||[]).map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join('');
-  $('ev-account').innerHTML = acctOpts;
   $('ev-account').value = ev.accountId ? String(ev.accountId) : '';
   openModal('m-event');
 }
-
 function calDeleteEvent(eventId){
   if(!confirm('Delete this event?')) return;
-  DB.calendarEvents = (DB.calendarEvents||[]).filter(function(x){ return x.id !== eventId; });
-  persist();
-  renderCalendarPage();
+  DB.calendarEvents = (DB.calendarEvents||[]).filter(function(x){ return x.id!==eventId; });
+  persist(); renderCalendarPage();
 }
-
 function saveEvent(){
   var title = $('ev-title').value.trim();
   if(!title){ alert('Event title required'); return; }
   var accountIdRaw = $('ev-account').value;
-  var accountId = accountIdRaw ? parseInt(accountIdRaw, 10) : null;
   var data = {
-    title:    title,
-    date:     $('ev-date').value || new Date().toISOString().slice(0,10),
-    type:     $('ev-type').value,
-    accountId:accountId,
-    prep:     $('ev-prep').value.trim(),
-    notes:    $('ev-notes').value.trim(),
+    title:     title,
+    date:      $('ev-date').value || calTodayStr(),
+    type:      $('ev-type').value,
+    accountId: accountIdRaw ? parseInt(accountIdRaw,10) : null,
+    prep:      $('ev-prep').value.trim(),
+    notes:     $('ev-notes').value.trim(),
   };
   if(!DB.calendarEvents) DB.calendarEvents = [];
   if(_editingEventId){
@@ -4032,41 +4245,32 @@ function saveEvent(){
     if(i > -1) DB.calendarEvents[i] = Object.assign({}, DB.calendarEvents[i], data);
     _editingEventId = null;
   } else {
-    data.id = 'ev' + Date.now() + Math.random().toString(36).slice(2,7);
+    data.id = 'ev'+Date.now()+Math.random().toString(36).slice(2,5);
     data.questionChecklist = [];
+    data.prepItems = [];
     DB.calendarEvents.push(data);
   }
   _calSelectedDay = data.date;
-  persist();
-  closeModal('m-event');
-  renderCalendarPage();
+  persist(); closeModal('m-event'); renderCalendarPage();
 }
 
+// ─── COMPAT WRAPPERS (called from account detail page) ────────────
 function openEventModal(dateStr, eventId){
   if(eventId){ calEditEvent(eventId); }
-  else { _calSelectedDay = dateStr || _calSelectedDay; calOpenAddEvent(); }
+  else { if(dateStr) _calSelectedDay = dateStr; calOpenAdd(); }
 }
-
 function openEventModalForAccount(accountId){
-  _editingEventId = null;
-  $('ev-modal-title').textContent = 'Add Event';
-  $('ev-date').value = new Date().toISOString().slice(0,10);
-  $('ev-type').value = 'Account Visit';
-  $('ev-title').value = '';
-  $('ev-prep').value = '';
-  $('ev-notes').value = '';
-  var acctOpts = '<option value="">— No specific account —</option>' +
-    (DB.accounts||[]).map(function(a){ return '<option value="'+a.id+'">'+a.name+'</option>'; }).join('');
-  $('ev-account').innerHTML = acctOpts;
-  $('ev-account').value = String(accountId);
-  openModal('m-event');
+  calOpenAdd();
+  setTimeout(function(){
+    $('ev-account').value = String(accountId);
+  }, 50);
 }
-
 function goCalendarDay(dateStr){
   _calSelectedDay = dateStr;
   var btn = document.querySelector('.nav-link[onclick*="calendar"]');
   goPage('calendar', btn);
 }
+
 
 
 // ===== INTERNAL MEETINGS =====
@@ -4156,7 +4360,10 @@ function openMeetingModal(meetingId){
     $('mt-date').value=today();
     $('mt-notes').value='';
     $('mt-actions').value='';
+    // Restore any draft from a previous session
+    restoreMeetingDraftIfAny();
   }
+  _modalHasUnsaved = false;
   openModal('m-meeting');
 }
 
@@ -4179,13 +4386,306 @@ function saveMeeting(){
     DB.meetings.push(data);
   }
   _selectedMeetingType=data.type;
-  persist(); closeModal('m-meeting'); renderMeetingsPage();
+  persist(); draftClear(DRAFT_KEY_MEETING); _modalHasUnsaved=false; closeModal('m-meeting'); renderMeetingsPage();
 }
 
 function deleteMeeting(id){
   if(!confirm('Delete this meeting note?')) return;
   DB.meetings=DB.meetings.filter(function(x){return x.id!==id;});
   persist(); renderMeetingsPage();
+}
+
+
+
+// ===== MODAL DRAFT SAVE + UNSAVED CHANGES GUARD =====
+var DRAFT_KEY_NOTE     = 'truenorth_draft_note';
+var DRAFT_KEY_MEETING  = 'truenorth_draft_meeting';
+var _modalHasUnsaved   = false;
+
+function draftSave(key, data){
+  try{ localStorage.setItem(key, JSON.stringify(data)); }catch(e){}
+}
+function draftLoad(key){
+  try{ var r=localStorage.getItem(key); return r?JSON.parse(r):null; }catch(e){ return null; }
+}
+function draftClear(key){
+  try{ localStorage.removeItem(key); }catch(e){}
+}
+
+// Call this whenever a modal textarea changes
+function onNoteModalChange(){
+  _modalHasUnsaved = true;
+  draftSave(DRAFT_KEY_NOTE, {
+    accountId: _noteModalAccountId,
+    editingId: _editingNoteId,
+    text:   $('fn-text')  ? $('fn-text').value  : '',
+    date:   $('fn-date')  ? $('fn-date').value  : '',
+    source: $('fn-source')? $('fn-source').value: 'mine',
+    sourceName: $('fn-source-name') ? $('fn-source-name').value : '',
+  });
+}
+function onMeetingModalChange(){
+  _modalHasUnsaved = true;
+  draftSave(DRAFT_KEY_MEETING, {
+    editingId: _editingMeetingId,
+    type:    $('mt-type')   ? $('mt-type').value   : '',
+    title:   $('mt-title')  ? $('mt-title').value  : '',
+    date:    $('mt-date')   ? $('mt-date').value    : '',
+    notes:   $('mt-notes')  ? $('mt-notes').value   : '',
+    actions: $('mt-actions')? $('mt-actions').value : '',
+  });
+}
+
+// Restore note draft if one exists when opening the note modal
+function restoreNoteDraftIfAny(accountId){
+  var draft = draftLoad(DRAFT_KEY_NOTE);
+  if(!draft || draft.accountId !== accountId) return false;
+  if($('fn-text'))       $('fn-text').value       = draft.text       || '';
+  if($('fn-date'))       $('fn-date').value        = draft.date       || '';
+  if($('fn-source'))     $('fn-source').value      = draft.source     || 'mine';
+  if($('fn-source-name'))$('fn-source-name').value = draft.sourceName || '';
+  toggleSourceNameField('fn-source','fn-source-name-wrap');
+  return true;
+}
+
+// Restore meeting draft if one exists
+function restoreMeetingDraftIfAny(){
+  var draft = draftLoad(DRAFT_KEY_MEETING);
+  if(!draft) return false;
+  if($('mt-type'))    $('mt-type').value    = draft.type    || '';
+  if($('mt-title'))   $('mt-title').value   = draft.title   || '';
+  if($('mt-date'))    $('mt-date').value     = draft.date    || '';
+  if($('mt-notes'))   $('mt-notes').value    = draft.notes   || '';
+  if($('mt-actions')) $('mt-actions').value  = draft.actions || '';
+  return true;
+}
+
+// Warn on page refresh/close if there's an open modal with unsaved content
+window.addEventListener('beforeunload', function(e){
+  if(_modalHasUnsaved){
+    e.preventDefault();
+    e.returnValue = 'You have unsaved notes. Leave anyway?';
+    return e.returnValue;
+  }
+});
+
+// Clear unsaved flag when a modal is properly saved or closed deliberately
+var _origCloseModal = closeModal;
+closeModal = function(id){
+  if(id === 'm-note')    { draftClear(DRAFT_KEY_NOTE);    _modalHasUnsaved = false; }
+  if(id === 'm-meeting') { draftClear(DRAFT_KEY_MEETING); _modalHasUnsaved = false; }
+  _origCloseModal(id);
+};
+
+// ===== PRODUCT KNOWLEDGE =====
+var PK_PRODUCTS = [
+  'LP35 (LIFEPAK 35)',
+  'LP15 (LIFEPAK 15)',
+  'LUCAS 3',
+  'AED / LPCR2',
+  'Evac Chairs',
+];
+var PK_CATEGORIES = ['Clinical','Technical','Procurement','Competitive','Other'];
+var PK_QTYPES = [
+  { id:'self',     label:'📖 Things I Need to Know',  desc:'Study reference — specs, indications, integrations' },
+  { id:'customer', label:'💬 Customer Questions',      desc:'Questions & objections you get asked in the field' },
+];
+
+var _pkProduct  = null;
+var _pkCategory = null;
+var _pkQtype    = null;
+var _pkSearch   = '';
+var _editingPkId = null;
+
+function renderProdKnowledgePage(){
+  var el = $('prodknowledge-content');
+  if(!el) return;
+  if(!DB.prodKnowledge) DB.prodKnowledge = [];
+
+  // Default selections
+  if(!_pkProduct)  _pkProduct  = PK_PRODUCTS[0];
+  if(!_pkQtype)    _pkQtype    = 'all';
+  if(!_pkCategory) _pkCategory = 'all';
+
+  // Filter
+  var items = DB.prodKnowledge.filter(function(q){ return q.product === _pkProduct; });
+  if(_pkQtype    !== 'all') items = items.filter(function(q){ return q.qtype === _pkQtype; });
+  if(_pkCategory !== 'all') items = items.filter(function(q){ return q.category === _pkCategory; });
+  if(_pkSearch.trim()) {
+    var s = _pkSearch.toLowerCase();
+    items = items.filter(function(q){
+      return (q.question||'').toLowerCase().indexOf(s) !== -1 ||
+             (q.answer||'').toLowerCase().indexOf(s) !== -1;
+    });
+  }
+
+  // Sort: unrated first, then by rating desc
+  items = items.slice().sort(function(a,b){
+    var ra = a.rating||0, rb = b.rating||0;
+    if(!ra && rb) return -1;
+    if(ra && !rb) return 1;
+    return rb - ra;
+  });
+
+  // Product tabs
+  var productTabs = PK_PRODUCTS.map(function(p){
+    var active = p === _pkProduct;
+    var count = DB.prodKnowledge.filter(function(q){ return q.product===p; }).length;
+    return '<button onclick="pkSetProduct(\''+encodeURIComponent(p)+'\')" style="padding:8px 14px;border-radius:8px;border:none;cursor:pointer;font-size:12.5px;font-weight:'+(active?'700':'500')+';background:'+(active?'var(--accent)':'var(--navy-mid)')+';color:'+(active?'#0a0c12':'var(--text-muted)')+'">'+
+      p+(count?' <span style="opacity:.7">('+count+')</span>':'')+'</button>';
+  }).join('');
+
+  // Filter bar
+  var qtypeBtns = [{id:'all',label:'All'}].concat(PK_QTYPES.map(function(t){ return {id:t.id,label:t.label}; })).map(function(t){
+    var active = _pkQtype === t.id;
+    return '<button onclick="pkSetQtype(\''+t.id+'\')" style="padding:5px 11px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-weight:'+(active?'700':'400')+';background:'+(active?'var(--navy-light)':'transparent')+';color:'+(active?'var(--text)':'var(--text-muted)')+'">'+t.label+'</button>';
+  }).join('');
+
+  var catBtns = [{id:'all',label:'All'}].concat(PK_CATEGORIES.map(function(c){ return {id:c,label:c}; })).map(function(c){
+    var active = _pkCategory === c.id;
+    return '<button onclick="pkSetCategory(\''+c.id+'\')" style="padding:5px 11px;border-radius:6px;border:none;cursor:pointer;font-size:11.5px;font-weight:'+(active?'700':'400')+';background:'+(active?'var(--navy-light)':'transparent')+';color:'+(active?'var(--text)':'var(--text-muted)')+'">'+c.label+'</button>';
+  }).join('');
+
+  // Q&A cards
+  var cards = '';
+  if(items.length === 0){
+    cards = '<div style="padding:40px;text-align:center;color:var(--text-muted);font-size:13px">'+
+      'No entries yet for this filter.<br>Click <b>+ Add Q&A</b> to start building your knowledge bank.</div>';
+  } else {
+    items.forEach(function(q){
+      var qt = PK_QTYPES.find(function(t){ return t.id===q.qtype; });
+      var qtLabel = qt ? qt.label : q.qtype;
+      var catColor = {
+        'Clinical':'#22c55e','Technical':'#00C2FF','Procurement':'#f59e0b',
+        'Competitive':'#f97316','Other':'#6b7280'
+      }[q.category]||'#6b7280';
+      var stars = '';
+      for(var s=1;s<=5;s++){
+        stars += '<span onclick="pkSetRating(\''+q.id+'\','+s+')" style="cursor:pointer;font-size:14px;color:'+(s<=(q.rating||0)?'#f59e0b':'var(--navy-border)')+'">★</span>';
+      }
+      var reviewed = q.lastReviewed ? '<span style="font-family:DM Mono,monospace;font-size:10px;color:var(--text-dim)">Last reviewed '+q.lastReviewed+'</span>' : '';
+
+      cards +=
+        '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:10px;padding:16px 18px;margin-bottom:12px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;flex-wrap:wrap">' +
+            '<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">' +
+              '<span style="font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+catColor+'22;color:'+catColor+'">'+q.category+'</span>'+
+              '<span style="font-size:10.5px;color:var(--text-muted)">'+qtLabel+'</span>'+
+            '</div>'+
+            '<div style="display:flex;gap:6px;align-items:center">' +
+              stars +
+              '<button onclick="pkEdit(\''+q.id+'\')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer;margin-left:8px">✏ Edit</button>'+
+              '<button onclick="pkDelete(\''+q.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕</button>'+
+            '</div>'+
+          '</div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.4">'+q.question+'</div>'+
+          '<div style="font-size:13px;line-height:1.65;color:var(--text-muted);white-space:pre-wrap">'+q.answer+'</div>'+
+          (reviewed ? '<div style="margin-top:8px">'+reviewed+'</div>' : '')+
+        '</div>';
+    });
+  }
+
+  // Stats bar
+  var totalAll   = DB.prodKnowledge.filter(function(q){ return q.product===_pkProduct; }).length;
+  var rated      = DB.prodKnowledge.filter(function(q){ return q.product===_pkProduct && q.rating; }).length;
+  var weak       = DB.prodKnowledge.filter(function(q){ return q.product===_pkProduct && (q.rating||0) <= 2 && q.rating; }).length;
+  var statsBar   = totalAll
+    ? '<div style="display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-bottom:14px">'+
+        '<span><b style="color:var(--text)">'+totalAll+'</b> entries</span>'+
+        '<span><b style="color:var(--text)">'+rated+'</b> rated</span>'+
+        (weak ? '<span><b style="color:var(--red)">'+weak+'</b> need work</span>' : '')+
+      '</div>'
+    : '';
+
+  el.innerHTML =
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:8px">'+
+      '<div>'+
+        '<div class="card-title" style="font-family:Syne,sans-serif;font-size:16px">🧠 Product Knowledge</div>'+
+        '<div class="card-sub">Your Q&A bank — things you need to know + questions customers ask</div>'+
+      '</div>'+
+      '<button class="btn btn-primary btn-sm" onclick="pkOpenModal()">+ Add Q&A</button>'+
+    '</div>'+
+    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">'+productTabs+'</div>'+
+    '<div style="background:var(--navy-mid);border-radius:8px;padding:10px 14px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:14px;align-items:center">'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+qtypeBtns+'</div>'+
+      '<div style="width:1px;height:20px;background:var(--navy-border)"></div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+catBtns+'</div>'+
+      '<div style="margin-left:auto">'+
+        '<input oninput="pkSetSearch(this.value)" value="'+_pkSearch+'" placeholder="Search questions & answers…" style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:6px;padding:5px 10px;font-size:12px;color:var(--text);outline:none;width:200px">'+
+      '</div>'+
+    '</div>'+
+    statsBar+
+    cards;
+}
+
+function pkSetProduct(encoded){ _pkProduct=decodeURIComponent(encoded); renderProdKnowledgePage(); }
+function pkSetQtype(v)   { _pkQtype=v;    renderProdKnowledgePage(); }
+function pkSetCategory(v){ _pkCategory=v; renderProdKnowledgePage(); }
+function pkSetSearch(v)  { _pkSearch=v;   renderProdKnowledgePage(); }
+function pkSetRating(id, r){
+  var q = DB.prodKnowledge.find(function(x){ return x.id===id; });
+  if(!q) return;
+  q.rating = (q.rating===r) ? 0 : r; // click same star to clear
+  q.lastReviewed = new Date().toISOString().slice(0,10);
+  persist(); renderProdKnowledgePage();
+}
+
+function pkOpenModal(id){
+  _editingPkId = id || null;
+  $('pk-modal-title').textContent = id ? 'Edit Q&A Entry' : 'Add Q&A Entry';
+  // populate product select
+  $('pk-product').innerHTML = PK_PRODUCTS.map(function(p){
+    return '<option value="'+p+'">'+p+'</option>';
+  }).join('');
+  if(id){
+    var q = DB.prodKnowledge.find(function(x){ return x.id===id; });
+    if(q){
+      $('pk-product').value  = q.product  || PK_PRODUCTS[0];
+      $('pk-category').value = q.category || 'Clinical';
+      $('pk-qtype').value    = q.qtype    || 'self';
+      $('pk-question').value = q.question || '';
+      $('pk-answer').value   = q.answer   || '';
+    }
+  } else {
+    $('pk-product').value  = _pkProduct || PK_PRODUCTS[0];
+    $('pk-category').value = 'Clinical';
+    $('pk-qtype').value    = 'self';
+    $('pk-question').value = '';
+    $('pk-answer').value   = '';
+  }
+  openModal('m-prodknowledge');
+}
+function pkEdit(id){ pkOpenModal(id); }
+function pkDelete(id){
+  if(!confirm('Delete this entry?')) return;
+  DB.prodKnowledge = DB.prodKnowledge.filter(function(x){ return x.id!==id; });
+  persist(); renderProdKnowledgePage();
+}
+function pkSave(){
+  var question = $('pk-question').value.trim();
+  var answer   = $('pk-answer').value.trim();
+  if(!question){ alert('Question is required'); return; }
+  var data = {
+    product:  $('pk-product').value,
+    category: $('pk-category').value,
+    qtype:    $('pk-qtype').value,
+    question: question,
+    answer:   answer,
+    lastReviewed: new Date().toISOString().slice(0,10),
+  };
+  if(!DB.prodKnowledge) DB.prodKnowledge = [];
+  if(_editingPkId){
+    var i = DB.prodKnowledge.findIndex(function(x){ return x.id===_editingPkId; });
+    if(i > -1) DB.prodKnowledge[i] = Object.assign({}, DB.prodKnowledge[i], data);
+    _editingPkId = null;
+  } else {
+    data.id = 'pk'+Date.now()+Math.random().toString(36).slice(2,5);
+    data.rating = 0;
+    DB.prodKnowledge.push(data);
+  }
+  // Switch view to show the product we just saved to
+  _pkProduct = data.product;
+  persist(); closeModal('m-prodknowledge'); renderProdKnowledgePage();
 }
 
 

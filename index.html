@@ -448,6 +448,17 @@ input[type=number]{-moz-appearance:textfield;}
         <div id="lucas-goal-tracker" style="padding:14px 18px"></div>
       </div>
 
+      <!-- TERRITORY COVERAGE -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">📍 Territory Coverage</div>
+            <div class="card-sub">Visited · Contacted · Not yet reached — click any account to open it</div>
+          </div>
+        </div>
+        <div id="coverage-tracker" style="padding:14px 18px"></div>
+      </div>
+
     </div><!-- /dashboard -->
 
     <!-- ACCOUNTS -->
@@ -564,8 +575,8 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="page" id="page-devicedetail"><div id="device-detail-content"></div></div>
 
     <!-- CALENDAR -->
-    <div class="page" id="page-calendar" style="padding:20px;overflow-y:auto">
-      <div id="calendar-page-content"></div>
+    <div class="page" id="page-calendar">
+      <div id="calendar-page-content" style="padding:20px;min-height:400px"></div>
     </div>
 
     <!-- TRAINING NOTES -->
@@ -679,6 +690,14 @@ input[type=number]{-moz-appearance:textfield;}
             <span style="font-size:12.5px;font-weight:600">🌾 Rural Hospital</span>
           </label>
           <div style="font-size:11px;color:var(--text-dim);margin-top:4px;margin-left:24px">Tracked toward your goal: a LUCAS in every rural hospital in your territory.</div>
+        </div>
+        <div class="fg full" style="background:var(--navy-mid);border-radius:6px;padding:10px 12px;margin-top:8px">
+          <label class="flabel" style="margin-bottom:6px">Engagement Status</label>
+          <select class="fselect" id="fa-visit-status">
+            <option value="not_contacted">⬜ Not Yet Contacted</option>
+            <option value="contacted">🟡 Contacted — Not Yet Visited</option>
+            <option value="visited">🟢 Visited in Person</option>
+          </select>
         </div>
       </div>
 
@@ -839,6 +858,21 @@ input[type=number]{-moz-appearance:textfield;}
   <div class="modal">
     <div class="modal-head"><div class="modal-title" id="m-contact-title">Add Contact</div><button class="modal-x" onclick="closeModal('m-contact')">✕</button></div>
     <div class="modal-body">
+      <!-- Photo upload -->
+      <div class="frow">
+        <div class="fg full" style="display:flex;align-items:center;gap:16px">
+          <div id="fc-photo-preview" onclick="document.getElementById('fc-photo-input').click()"
+            style="width:64px;height:64px;border-radius:50%;background:var(--navy-mid);border:2px dashed var(--navy-border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;overflow:hidden;font-size:24px">
+            👤
+          </div>
+          <div style="flex:1">
+            <label class="flabel">Contact Photo <span style="color:var(--text-dim);font-weight:400">(optional — click circle to upload)</span></label>
+            <input type="file" id="fc-photo-input" accept="image/*" style="display:none" onchange="previewContactPhoto(this)">
+            <input type="hidden" id="fc-photo-data">
+            <div style="font-size:11px;color:var(--text-dim);margin-top:4px">Tap the circle to upload a photo. JPG/PNG, stored locally.</div>
+          </div>
+        </div>
+      </div>
       <div class="frow">
         <div class="fg"><label class="flabel">Full Name</label><input class="finput" id="fc-name" placeholder="e.g. Jane Doe"></div>
         <div class="fg"><label class="flabel">Title / Role</label><input class="finput" id="fc-title-input" placeholder="Director of..."></div>
@@ -880,6 +914,18 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg" id="fc-source-name-wrap" style="display:none">
           <label class="flabel">Source Name</label>
           <input class="finput" id="fc-source-name" placeholder="e.g. Ethan (prior rep), Nathan">
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">Last Contact Date</label>
+          <input class="finput" type="date" id="fc-last-contact">
+        </div>
+        <div class="fg" style="display:flex;align-items:flex-end;padding-bottom:2px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--navy-mid);border-radius:6px;padding:9px 12px;width:100%">
+            <input type="checkbox" id="fc-not-yet-met" onchange="toggleContactNotYetMet()" style="margin:0">
+            <span style="font-size:12.5px;font-weight:600">Not yet met in person</span>
+          </label>
         </div>
       </div>
       <div class="frow"><div class="fg full"><label class="flabel">Notes / Key Intel</label><textarea class="ftextarea" id="fc-notes" placeholder="Personality, preferences, blockers…"></textarea></div></div>
@@ -1133,6 +1179,47 @@ input[type=number]{-moz-appearance:textfield;}
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="closeModal('m-prodknowledge')">Cancel</button>
       <button class="btn btn-primary" onclick="pkSave()">Save</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: Account Question -->
+<div class="modal-bg" id="m-question">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head">
+      <div class="modal-title" id="q-modal-title">Add Question</div>
+      <button class="modal-x" onclick="closeModal('m-question')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="frow">
+        <div class="fg full">
+          <label class="flabel">Question</label>
+          <textarea class="ftextarea" id="q-text" placeholder="What do you want to ask or find out at this account?&#10;&#10;e.g. Who actually signs off on capital purchases over $50K?&#10;Does the ED director know about LP35's ePCR integration?&#10;What's their current LUCAS maintenance contract situation?" style="min-height:130px"></textarea>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg">
+          <label class="flabel">Category</label>
+          <select class="fselect" id="q-category">
+            <option value="General">General</option>
+            <option value="Clinical">Clinical</option>
+            <option value="Procurement">Procurement</option>
+            <option value="Technical">Technical</option>
+            <option value="Competitive">Competitive</option>
+          </select>
+        </div>
+      </div>
+      <div class="frow">
+        <div class="fg full">
+          <label class="flabel">Answer / Notes (optional — fill in when you get the answer)</label>
+          <textarea class="ftextarea" id="q-answered-note" placeholder="When you find out the answer, record it here…" style="min-height:70px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('m-question')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuestion()">Save</button>
     </div>
   </div>
 </div>
@@ -1771,6 +1858,7 @@ function renderDashboard(){
   renderFunnel('funnel-board-preview', true);
   renderLateStageBreakdown();
   renderLucasGoalTracker();
+  renderCoverage();
 }
 
 function renderKPIs(){
@@ -2274,38 +2362,122 @@ function onTouchEnd(ev){
 
 
 
-// ===== OPEN QUESTIONS (free-text, per account) =====
-function addQuestion(accountId){
-  var text = prompt('What do you want to ask or find out at this account?');
-  if(!text || !text.trim()) return;
-  var a=DB.accounts.find(function(x){return x.id===accountId;});
-  if(!a) return;
-  if(!a.questions) a.questions=[];
-  a.questions.push({
-    id:'q'+Date.now()+Math.random().toString(36).slice(2,7),
-    text:text.trim(),
-    answered:false,
-  });
-  persist();
-  openDetail(a.id);
+
+// ===== CONTACT PHOTO + LAST CONTACT =====
+function previewContactPhoto(input){
+  if(!input.files || !input.files[0]) return;
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var data = e.target.result;
+    $('fc-photo-data').value = data;
+    var prev = $('fc-photo-preview');
+    prev.innerHTML = '';
+    prev.style.background = 'transparent';
+    var img = document.createElement('img');
+    img.src = data;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+    prev.appendChild(img);
+  };
+  reader.readAsDataURL(file);
 }
 
-function editQuestion(accountId, questionId){
-  var a=DB.accounts.find(function(x){return x.id===accountId;});
-  if(!a || !a.questions) return;
-  var q=a.questions.find(function(x){return x.id===questionId;});
-  if(!q) return;
-  var text = prompt('Edit question:', q.text);
-  if(text===null) return; // cancelled
-  if(!text.trim()) return;
-  q.text=text.trim();
+function toggleContactNotYetMet(){
+  var cb = $('fc-not-yet-met');
+  var dateField = $('fc-last-contact');
+  if(!cb || !dateField) return;
+  if(cb.checked){
+    dateField.value = '';
+    dateField.disabled = true;
+    dateField.style.opacity = '0.45';
+  } else {
+    dateField.disabled = false;
+    dateField.style.opacity = '1';
+  }
+}
+
+function resetContactPhotoPreview(){
+  var prev = $('fc-photo-preview');
+  if(prev){ prev.innerHTML = '👤'; prev.style.background = 'var(--navy-mid)'; }
+  $('fc-photo-data').value = '';
+}
+
+function setContactPhotoPreview(photoData){
+  var prev = $('fc-photo-preview');
+  if(!prev) return;
+  if(photoData){
+    prev.innerHTML = '';
+    prev.style.background = 'transparent';
+    var img = document.createElement('img');
+    img.src = photoData;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;border-radius:50%';
+    prev.appendChild(img);
+    $('fc-photo-data').value = photoData;
+  } else {
+    prev.innerHTML = '👤';
+    prev.style.background = 'var(--navy-mid)';
+    $('fc-photo-data').value = '';
+  }
+}
+
+
+// ===== OPEN QUESTIONS (per account) =====
+var _qModalAccountId = null;
+var _editingQId = null;
+
+function addQuestion(accountId){
+  openQuestionModal(accountId, null);
+}
+
+function openQuestionModal(accountId, questionId){
+  _qModalAccountId = accountId;
+  _editingQId = questionId || null;
+  $('q-modal-title').textContent = questionId ? 'Edit Question' : 'Add Question';
+  if(questionId){
+    var a=DB.accounts.find(function(x){return x.id===parseInt(accountId,10)||x.id===accountId;});
+    var q=a && a.questions ? a.questions.find(function(x){return x.id===questionId;}) : null;
+    if(q){
+      $('q-text').value = q.text||'';
+      $('q-category').value = q.category||'General';
+      $('q-answered-note').value = q.answeredNote||'';
+    }
+  } else {
+    $('q-text').value='';
+    $('q-category').value='General';
+    $('q-answered-note').value='';
+  }
+  openModal('m-question');
+}
+
+function saveQuestion(){
+  var text = $('q-text').value.trim();
+  if(!text){ alert('Question text required'); return; }
+  var a=DB.accounts.find(function(x){return x.id===_qModalAccountId;});
+  if(!a) return;
+  if(!a.questions) a.questions=[];
+  var data = {
+    text: text,
+    category: $('q-category').value || 'General',
+    answeredNote: $('q-answered-note').value.trim(),
+  };
+  if(_editingQId){
+    var i=a.questions.findIndex(function(x){return x.id===_editingQId;});
+    if(i>-1) a.questions[i]=Object.assign({},a.questions[i],data);
+    _editingQId=null;
+  } else {
+    data.id='q'+Date.now()+Math.random().toString(36).slice(2,7);
+    data.answered=false;
+    a.questions.push(data);
+  }
   persist();
+  closeModal('m-question');
   openDetail(a.id);
 }
 
 function deleteQuestion(accountId, questionId){
   var a=DB.accounts.find(function(x){return x.id===accountId;});
   if(!a || !a.questions) return;
+  if(!confirm('Delete this question?')) return;
   a.questions = a.questions.filter(function(q){ return q.id!==questionId; });
   persist();
   openDetail(a.id);
@@ -2330,7 +2502,7 @@ function openNoteModal(accountId, noteId){
   _editingNoteId=noteId||null;
 
   if(noteId){
-    var a=DB.accounts.find(function(x){return x.id===accountId;});
+    var a=DB.accounts.find(function(x){return x.id===parseInt(accountId,10)||x.id===accountId;});
     var n=a && a.notesLog ? a.notesLog.find(function(x){return x.id===noteId;}) : null;
     if(!n) return;
     $('m-note-title').textContent='Edit Note';
@@ -2355,11 +2527,12 @@ function openNoteModal(accountId, noteId){
 function saveNote(){
   var text=$('fn-text').value.trim();
   if(!text){ alert('Note text required'); return; }
-  var a=DB.accounts.find(function(x){return x.id===_noteModalAccountId;});
+  var a=DB.accounts.find(function(x){return x.id===parseInt(_noteModalAccountId,10)||x.id===_noteModalAccountId;});
   if(!a) return;
   if(!a.notesLog) a.notesLog=[];
 
   var data={
+    id: _editingNoteId || ('n'+Date.now()+Math.random().toString(36).slice(2,7)),
     text:text,
     source:$('fn-source').value,
     sourceName:$('fn-source-name').value.trim(),
@@ -2368,9 +2541,9 @@ function saveNote(){
 
   if(_editingNoteId){
     var i=a.notesLog.findIndex(function(x){return x.id===_editingNoteId;});
-    if(i>-1) a.notesLog[i]=Object.assign({},a.notesLog[i],data);
+    if(i>-1){ a.notesLog[i]=Object.assign({},a.notesLog[i],data); }
+    else { a.notesLog.push(data); } // safety: if id not found, push as new
   } else {
-    data.id='n'+Date.now()+Math.random().toString(36).slice(2,7);
     a.notesLog.push(data);
   }
 
@@ -2485,7 +2658,9 @@ function openDetail(id){
   }
 
   // notesLog[] is now the single source of truth for all notes (legacy a.notes is migrated in on app load).
-  var allNotes = (a.notesLog||[]).slice().sort(function(x,y){ return new Date(y.date||0) - new Date(x.date||0); });
+  // Defensive: ensure notesLog exists on this account object
+  if(!a.notesLog) a.notesLog = [];
+  var allNotes = a.notesLog.slice().sort(function(x,y){ return new Date(y.date||0) - new Date(x.date||0); });
 
   // Upcoming calendar events for this account
   var accountEventsHtml='';
@@ -2517,17 +2692,28 @@ function openDetail(id){
   // Open Questions — quick free-text list of things to ask/find out at this account
   var questionsHtml='';
   var questions = a.questions || [];
-  if(questions.length===0){
-    questionsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No open questions logged yet. Add anything you want to ask or find out at this account.</div>';
+  var openQs  = questions.filter(function(q){ return !q.answered; });
+  var closedQs = questions.filter(function(q){ return  q.answered; });
+  var sortedQs = openQs.concat(closedQs);
+  if(sortedQs.length===0){
+    questionsHtml='<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No open questions yet. Add anything you want to ask or find out at this account — contacts, budget, fleet details, etc.</div>';
   } else {
-    questions.slice().sort(function(x,y){ return (x.answered?1:0)-(y.answered?1:0); }).forEach(function(q){
+    sortedQs.forEach(function(q){
+      var catColor = {'Clinical':'#22c55e','Procurement':'#f59e0b','Technical':'#00C2FF','Competitive':'#f97316','General':'#6b7280'}[q.category||'General']||'#6b7280';
       questionsHtml+=
-        '<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--navy-border)">'+
-          '<div onclick="toggleQuestionAnswered('+a.id+',\''+q.id+'\')" style="width:16px;height:16px;border-radius:4px;border:2px solid '+(q.answered?'var(--green)':'var(--navy-border)')+';background:'+(q.answered?'var(--green)':'transparent')+';flex-shrink:0;margin-top:2px;cursor:pointer"></div>'+
-          '<div style="flex:1;min-width:0;font-size:13px;line-height:1.5;'+(q.answered?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</div>'+
-          '<div style="display:flex;gap:8px;flex-shrink:0">'+
-            '<button onclick="editQuestion('+a.id+',\''+q.id+'\')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">✏</button>'+
-            '<button onclick="deleteQuestion('+a.id+',\''+q.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕</button>'+
+        '<div style="background:var(--navy-mid);border:1px solid var(--navy-border);border-left:3px solid '+(q.answered?'var(--navy-border)':catColor)+';border-radius:6px;padding:12px 14px;margin-bottom:8px;opacity:'+(q.answered?'0.55':'1')+'">'+
+          '<div style="display:flex;align-items:flex-start;gap:10px">'+
+            '<div onclick="toggleQuestionAnswered('+a.id+',\''+q.id+'\')" title="Mark answered" '+
+              'style="width:16px;height:16px;min-width:16px;border-radius:4px;border:2px solid '+(q.answered?'#22c55e':catColor)+';background:'+(q.answered?'#22c55e':'transparent')+';cursor:pointer;margin-top:2px"></div>'+
+            '<div style="flex:1;min-width:0">'+
+              '<div style="font-size:13px;line-height:1.6;white-space:pre-wrap;'+(q.answered?'text-decoration:line-through;color:var(--text-muted)':'color:var(--text)')+'">'+q.text+'</div>'+
+              (q.category ? '<span style="display:inline-block;margin-top:5px;font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px;background:'+catColor+'22;color:'+catColor+'">'+q.category+'</span>' : '')+
+              (q.answered && q.answeredNote ? '<div style="font-size:12px;color:#22c55e;margin-top:6px;line-height:1.5">✓ '+q.answeredNote+'</div>' : '')+
+            '</div>'+
+            '<div style="display:flex;gap:8px;flex-shrink:0">'+
+              '<button onclick="openQuestionModal('+a.id+',\''+q.id+'\')" style="background:none;border:none;color:var(--accent);font-size:11px;cursor:pointer">✏</button>'+
+              '<button onclick="deleteQuestion('+a.id+',\''+q.id+'\')" style="background:none;border:none;color:var(--text-dim);font-size:11px;cursor:pointer">✕</button>'+
+            '</div>'+
           '</div>'+
         '</div>';
     });
@@ -2731,6 +2917,7 @@ function renderContactsPage(){
               '<div style="font-size:13px;font-weight:700;margin-bottom:2px">'+c.name+' <span style="font-size:12px">'+iv.icon+'</span>'+(c.source==='secondhand'?' <span style="font-size:10px">👂</span>':'')+'</div>'+
               '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div>'+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">'+c.account+'</div>'+
+              (c.notYetMet?'<div style="font-size:10px;color:var(--orange);margin-top:2px">⏳ Not yet met in person</div>':(c.lastContact?'<div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-family:DM Mono,monospace">Last contact: '+c.lastContact+'</div>':''))+
               (ROLE_TIER[c.roleTier]?'<div style="margin-top:4px"><span style="font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:10px;background:'+ROLE_TIER[c.roleTier].bg+';color:'+ROLE_TIER[c.roleTier].color+'">'+ROLE_TIER[c.roleTier].label+'</span></div>':'')+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">'+iCount+' interaction'+(iCount!==1?'s':'')+' '+(lastI?'· Last: '+lastI.date:'')+'</div>'+
             '</div>'+
@@ -2860,6 +3047,7 @@ function openAccountModal(){
   _fleetRows=[];
   $('fa-contact-uninitiated').checked=false;
   $('fa-rural').checked=false;
+  $('fa-visit-status').value='not_contacted';
   renderFleetInputRows();
   $('fa-opp-val-override').checked=false;
   $('fa-opp-val').readOnly=true;
@@ -2887,7 +3075,8 @@ function editAccount(id){
   var bEl=$('account-draft-banner'); if(bEl) bEl.innerHTML='';
   $('fa-contact-uninitiated').checked = !!a.contactUninitiated;
   toggleContactUninitiatedHint();
-  $('fa-rural').checked = !!a.isRural; // applies disabled/N-A state to the date field to match
+  $('fa-rural').checked = !!a.isRural;
+  $('fa-visit-status').value = a.visitStatus||'not_contacted'; // applies disabled/N-A state to the date field to match
   _fleetRows = (a.fleet && a.fleet.length) ? JSON.parse(JSON.stringify(a.fleet)) : [];
   var calcForThis = calcFleetTAM(_fleetRows);
   var wasOverridden = !!a.oppValOverridden;
@@ -2965,6 +3154,7 @@ function saveAccount(){
   var contactUninitiated = !!($('fa-contact-uninitiated') && $('fa-contact-uninitiated').checked);
   data.contactUninitiated = contactUninitiated;
   data.isRural = !!($('fa-rural') && $('fa-rural').checked);
+  data.visitStatus = $('fa-visit-status') ? $('fa-visit-status').value : 'not_contacted';
 
   if(_editingAcctId){
     var i=DB.accounts.findIndex(function(x){return x.id===_editingAcctId;});
@@ -3146,6 +3336,10 @@ function openContactModal(id){
     $('fc-source').value=c.source||'mine';
     $('fc-source-name').value=c.sourceName||'';
     toggleSourceNameField('fc-source','fc-source-name-wrap');
+    $('fc-last-contact').value=c.lastContact||'';
+    $('fc-not-yet-met').checked=!!c.notYetMet;
+    toggleContactNotYetMet();
+    setContactPhotoPreview(c.photo||null);
   } else {
     $('m-contact-title').textContent='Add Contact';
     ['fc-name','fc-title-input','fc-phone','fc-email','fc-notes','fc-source-name'].forEach(function(f){$(f).value='';});
@@ -3153,6 +3347,11 @@ function openContactModal(id){
     $('fc-tier').value='uninfluential';
     $('fc-source').value='mine';
     toggleSourceNameField('fc-source','fc-source-name-wrap');
+    $('fc-last-contact').value='';
+    $('fc-last-contact').disabled=false;
+    $('fc-last-contact').style.opacity='1';
+    $('fc-not-yet-met').checked=false;
+    resetContactPhotoPreview();
   }
   if(DB.accounts.length===0){ alert('Add an account first before adding a contact.'); return; }
   openModal('m-contact');
@@ -3166,6 +3365,8 @@ function openContactModalForAccount(accountId){
 function saveContact(){
   var name=$('fc-name').value.trim();
   if(!name){alert('Name required');return;}
+  var photoData = $('fc-photo-data') ? $('fc-photo-data').value : '';
+  var notYetMet = $('fc-not-yet-met') ? $('fc-not-yet-met').checked : false;
   var data={
     name:name,title:$('fc-title-input').value.trim(),
     account:$('fc-account').value,influence:$('fc-influence').value,
@@ -3174,6 +3375,9 @@ function saveContact(){
     notes:$('fc-notes').value.trim(),
     source:$('fc-source').value,
     sourceName:$('fc-source-name').value.trim(),
+    lastContact: notYetMet ? '' : ($('fc-last-contact') ? $('fc-last-contact').value : ''),
+    notYetMet: notYetMet,
+    photo: photoData || undefined,
   };
   if(_editingContactId){
     var i=DB.contacts.findIndex(function(x){return x.id===_editingContactId;});
@@ -3911,9 +4115,21 @@ function calGetMonday(dateStr){
 
 function renderCalendarPage(){
   var el = document.getElementById('calendar-page-content');
-  if(!el) return;
-  if(!_calWeekStart) _calWeekStart = calGetMonday(calTodayStr());
-  el.innerHTML = _calView === 'week' ? calBuildWeekView() : calBuildMonthView();
+  if(!el){ console.error('calendar-page-content not found'); return; }
+  try {
+    if(!_calWeekStart) _calWeekStart = calGetMonday(calTodayStr());
+    var html = _calView === 'week' ? calBuildWeekView() : calBuildMonthView();
+    if(!html || html.length < 10){
+      el.innerHTML = '<div style="padding:20px;color:orange">Calendar built empty HTML (length='+html.length+')</div>';
+      return;
+    }
+    el.innerHTML = html;
+  } catch(e) {
+    console.error('renderCalendarPage crashed:', e.message, e.stack);
+    el.innerHTML = '<div style="padding:20px;color:#FF4438;font-size:13px;line-height:1.8">' +
+      '<b>Calendar error:</b> ' + e.message + '<br><br>' +
+      '<pre style="font-size:10px;white-space:pre-wrap;color:#9ca3af">' + (e.stack||'') + '</pre></div>';
+  }
 }
 
 // ─── SHARED TOOLBAR ────────────────────────────────────────────────
@@ -4689,6 +4905,131 @@ function pkSave(){
 }
 
 
+// ===== TERRITORY COVERAGE =====
+
+var TERRITORY_ACCOUNTS_SEED = [
+  // Visited in person
+  {name:'NKC Hospital',                  city:'North Kansas City, MO', visitStatus:'visited'},
+  {name:'St. Luke\'s Health System',     city:'Kansas City, MO',       visitStatus:'visited'},
+  {name:'Mosaic Life Care',              city:'St. Joseph, MO',        visitStatus:'visited'},
+  {name:'Cameron Regional Medical Center', city:'Cameron, MO',         visitStatus:'visited'},
+  {name:'Cass Regional Medical Center',  city:'Harrisonville, MO',     visitStatus:'visited', isRural:true},
+  {name:'Excelsior Springs Medical Center', city:'Excelsior Springs, MO', visitStatus:'visited', isRural:true},
+  {name:'Centerpoint Medical Center',    city:'Independence, MO',      visitStatus:'visited'},
+  {name:'Golden Valley Memorial Hospital', city:'Clinton, MO',         visitStatus:'visited', isRural:true},
+  {name:'Research Medical Center',       city:'Kansas City, MO',       visitStatus:'visited'},
+  {name:'Liberty Hospital',              city:'Liberty, MO',           visitStatus:'visited'},
+  {name:'St. Joseph Medical Center',     city:'Kansas City, MO',       visitStatus:'visited'},
+  // Contacted, not yet visited
+  {name:'Bothwell Regional Health Center', city:'Sedalia, MO',         visitStatus:'contacted', isRural:true},
+  {name:'University of Missouri Health Care', city:'Columbia, MO',     visitStatus:'contacted'},
+  {name:'Capital Region Medical Center', city:'Jefferson City, MO',    visitStatus:'contacted'},
+  {name:'Lee\'s Summit Medical Center',  city:'Lee\'s Summit, MO',     visitStatus:'contacted'},
+  // Not yet contacted
+  {name:'Western Missouri Medical Center', city:'Warrensburg, MO',     visitStatus:'not_contacted', isRural:true},
+  {name:'Lake Regional Health System',   city:'Osage Beach, MO',       visitStatus:'not_contacted', isRural:true},
+  {name:'Mercy St. Francis Hospital',    city:'Mountain View, MO',     visitStatus:'not_contacted', isRural:true},
+  {name:'Prime Health St. Mary\'s',      city:'Blue Springs, MO',      visitStatus:'not_contacted'},
+  {name:'Hannibal Regional Hospital',    city:'Hannibal, MO',          visitStatus:'not_contacted', isRural:true},
+  {name:'Moberly Regional Medical Center', city:'Moberly, MO',         visitStatus:'not_contacted', isRural:true},
+  {name:'Scotland County Hospital',      city:'Memphis, MO',           visitStatus:'not_contacted', isRural:true},
+  {name:'Wright Memorial Hospital',      city:'Trenton, MO',           visitStatus:'not_contacted', isRural:true},
+  {name:'Carroll County Memorial Hospital', city:'Carrollton, MO',     visitStatus:'not_contacted', isRural:true},
+  {name:'Ellett Memorial Hospital',      city:'Appleton City, MO',     visitStatus:'not_contacted', isRural:true},
+  {name:'Northeast Regional Medical Center', city:'Kirksville, MO',    visitStatus:'not_contacted', isRural:true},
+  {name:'Samaritan Hospital',            city:'Macon, MO',             visitStatus:'not_contacted', isRural:true},
+  {name:'Sullivan County Memorial Hospital', city:'Milan, MO',         visitStatus:'not_contacted', isRural:true},
+  {name:'SSM Health St. Mary\'s — Jefferson City', city:'Jefferson City, MO', visitStatus:'not_contacted'},
+  {name:'SSM Health St. Mary\'s — Mexico', city:'Mexico, MO',          visitStatus:'not_contacted', isRural:true},
+  {name:'Mercy Hospital Lincoln',        city:'Troy, MO',              visitStatus:'not_contacted', isRural:true},
+  {name:'Mercy Hospital Washington',     city:'Washington, MO',        visitStatus:'not_contacted', isRural:true},
+];
+
+function seedTerritoryAccounts(){
+  // Only run if DB has no accounts yet OR some of these accounts are missing
+  if(!DB.accounts) DB.accounts = [];
+  var added = 0;
+  TERRITORY_ACCOUNTS_SEED.forEach(function(seed){
+    var exists = DB.accounts.some(function(a){
+      return a.name.toLowerCase().trim() === seed.name.toLowerCase().trim();
+    });
+    if(!exists){
+      DB.accounts.push({
+        id: DB.nextId.a++,
+        name:        seed.name,
+        city:        seed.city,
+        visitStatus: seed.visitStatus || 'not_contacted',
+        isRural:     !!seed.isRural,
+        contactUninitiated: seed.visitStatus === 'not_contacted',
+        status:      'grey',
+        fleet:       [],
+        notesLog:    [],
+        questions:   [],
+        tamMin:      0,
+        tamMax:      0,
+        oppVal:      0,
+        oppValOverridden: false,
+        notes:       '',
+        champScore:  0,
+        prob:        0,
+        lastContact: '',
+      });
+      added++;
+    }
+  });
+  if(added > 0) persist();
+  return added;
+}
+
+function renderCoverage(){
+  var el = $('coverage-tracker');
+  if(!el) return;
+  if(!DB.accounts) { el.innerHTML=''; return; }
+
+  var visited       = DB.accounts.filter(function(a){ return a.visitStatus==='visited'; });
+  var contacted     = DB.accounts.filter(function(a){ return a.visitStatus==='contacted'; });
+  var not_contacted = DB.accounts.filter(function(a){ return a.visitStatus==='not_contacted' || !a.visitStatus; });
+  var total = DB.accounts.length;
+  if(total === 0){ el.innerHTML = ''; return; }
+
+  var pctV = Math.round((visited.length / total)*100);
+  var pctC = Math.round((contacted.length / total)*100);
+  var pctN = Math.round((not_contacted.length / total)*100);
+
+  function accountPill(a){
+    return '<span onclick="openDetail('+a.id+')" style="display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11.5px;cursor:pointer;margin:2px 3px;background:var(--navy-mid);color:var(--text);border:1px solid var(--navy-border);white-space:nowrap">'+a.name+'</span>';
+  }
+
+  function tier(label, icon, color, dimColor, accounts, pct){
+    return '<div style="flex:1;min-width:220px;background:var(--navy-card);border:1px solid var(--navy-border);border-top:3px solid '+color+';border-radius:10px;padding:16px">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">' +
+        '<div style="font-size:13px;font-weight:700;color:var(--text)">'+icon+' '+label+'</div>' +
+        '<div style="font-family:DM Mono,monospace;font-size:20px;font-weight:800;color:'+color+'">'+accounts.length+'</div>' +
+      '</div>' +
+      '<div style="height:5px;background:var(--navy-border);border-radius:3px;margin-bottom:12px">' +
+        '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:3px;transition:width .4s"></div>' +
+      '</div>' +
+      '<div style="line-height:1.8">'+
+        (accounts.length ? accounts.map(accountPill).join('') : '<span style="font-size:12px;color:var(--text-muted)">None yet</span>') +
+      '</div>' +
+    '</div>';
+  }
+
+  el.innerHTML =
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">'+
+      tier('Visited In Person',         '🟢', '#22c55e', 'rgba(34,197,94,.1)',  visited,       pctV) +
+      tier('Contacted — Not Yet Visited','🟡', '#f59e0b', 'rgba(245,158,11,.1)', contacted,     pctC) +
+      tier('Not Yet Contacted',         '⬜', '#6b7280', 'rgba(107,114,128,.1)',not_contacted, pctN) +
+    '</div>' +
+    '<div style="font-size:11.5px;color:var(--text-muted)">' +
+      '<b style="color:var(--text)">'+total+'</b> total accounts · ' +
+      '<b style="color:#22c55e">'+pctV+'%</b> visited · ' +
+      '<b style="color:#f59e0b">'+pctC+'%</b> contacted · ' +
+      '<b style="color:var(--text-muted)">'+pctN+'%</b> not yet reached' +
+    '</div>';
+}
+
+
 // ===== INIT =====
 initTheme();
 // Restore sidebar collapsed state on desktop
@@ -4702,6 +5043,7 @@ initTheme();
   }catch(e){}
 })();
 renderProfile();
+seedTerritoryAccounts();
 repairNoteIds();
 // Repair any calendar events that were saved with a full ISO datetime instead of YYYY-MM-DD
 DB.calendarEvents.forEach(function(e){

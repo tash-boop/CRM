@@ -77,6 +77,12 @@ a{color:inherit;text-decoration:none;}
 .hamburger{display:block;background:none;border:none;color:var(--text);font-size:22px;line-height:1;cursor:pointer;padding:4px 8px;}
 .content{padding:20px;flex:1;}
 .page{display:none;}
+[contenteditable][data-placeholder]:empty:before{content:attr(data-placeholder);color:var(--text-dim);pointer-events:none;display:block}
+#fn-text ul,#fn-text ol{padding-left:20px;margin:4px 0}
+#fn-text li{margin:2px 0}
+#fn-text b,#fn-text strong{font-weight:700}
+#fn-text i,#fn-text em{font-style:italic}
+#fn-text u{text-decoration:underline}
 .page.active{display:block;}
 
 /* CARD */
@@ -878,7 +884,14 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg"><label class="flabel">Title / Role</label><input class="finput" id="fc-title-input" placeholder="Director of..."></div>
       </div>
       <div class="frow">
-        <div class="fg"><label class="flabel">Account</label><select class="fselect" id="fc-account"></select></div>
+        <div class="fg full">
+          <label class="flabel">Accounts <span style="color:var(--text-dim);font-weight:400">(pick one or more — for contacts who oversee multiple hospitals)</span></label>
+          <div style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:6px;padding:6px 8px">
+            <input id="fc-account-search" oninput="filterAccountCheckboxes(this.value)" placeholder="Search accounts…" style="width:100%;background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:4px;padding:5px 8px;font-size:12px;color:var(--text);outline:none;margin-bottom:6px;box-sizing:border-box">
+            <div id="fc-account-list" style="max-height:130px;overflow-y:auto"></div>
+          </div>
+          <div id="fc-account-selected-summary" style="font-size:11px;color:var(--accent);margin-top:4px"></div>
+        </div>
         <div class="fg"><label class="flabel">Role / Influence Tier</label>
           <select class="fselect" id="fc-tier">
             <option value="uninfluential">Uninfluential</option>
@@ -993,7 +1006,7 @@ input[type=number]{-moz-appearance:textfield;}
 
 <!-- MODAL: Add Note (timeline entry) -->
 <div class="modal-bg" id="m-note">
-  <div class="modal">
+  <div class="modal" style="max-width:620px">
     <div class="modal-head"><div class="modal-title" id="m-note-title">Add Note</div><button class="modal-x" onclick="closeModal('m-note')">✕</button></div>
     <div class="modal-body">
       <div class="frow">
@@ -1012,7 +1025,38 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg full"><label class="flabel">Date</label><input class="finput" type="date" id="fn-date"></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Note</label><textarea class="ftextarea" id="fn-text" oninput="onNoteModalChange()" placeholder="What happened, what you learned, next steps…" style="min-height:100px"></textarea></div>
+        <div class="fg full">
+          <label class="flabel">Note</label>
+          <!-- Rich text toolbar -->
+          <div style="display:flex;flex-wrap:wrap;gap:2px;background:var(--navy-mid);border:1px solid var(--navy-border);border-bottom:none;border-radius:6px 6px 0 0;padding:6px 8px">
+            <select onchange="rtExecFormat('fontSize',this.value);this.value=''" style="background:var(--navy-card);border:1px solid var(--navy-border);color:var(--text);border-radius:4px;font-size:11px;padding:3px 6px;cursor:pointer">
+              <option value="">Size</option>
+              <option value="1">Small</option>
+              <option value="3">Normal</option>
+              <option value="5">Large</option>
+              <option value="7">Huge</option>
+            </select>
+            <div style="width:1px;background:var(--navy-border);margin:2px 4px"></div>
+            <button type="button" onclick="rtExec('bold')"            title="Bold"          style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-weight:700;font-size:13px">B</button>
+            <button type="button" onclick="rtExec('italic')"          title="Italic"        style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-style:italic;font-size:13px">I</button>
+            <button type="button" onclick="rtExec('underline')"       title="Underline"     style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;text-decoration:underline;font-size:13px">U</button>
+            <div style="width:1px;background:var(--navy-border);margin:2px 4px"></div>
+            <button type="button" onclick="rtExec('insertUnorderedList')" title="Bullet list"   style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:13px">• List</button>
+            <button type="button" onclick="rtExec('insertOrderedList')"   title="Numbered list" style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:13px">1. List</button>
+            <div style="width:1px;background:var(--navy-border);margin:2px 4px"></div>
+            <button type="button" onclick="rtExec('justifyLeft')"     title="Align left"    style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">⬅</button>
+            <button type="button" onclick="rtExec('justifyCenter')"   title="Align center"  style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">↔</button>
+            <div style="width:1px;background:var(--navy-border);margin:2px 4px"></div>
+            <button type="button" onclick="rtExec('removeFormat')"    title="Clear formatting" style="background:none;border:1px solid var(--navy-border);color:var(--text-muted);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px">✕ Clear</button>
+          </div>
+          <!-- Editable content area -->
+          <div id="fn-text"
+            contenteditable="true"
+            oninput="onNoteModalChange()"
+            style="min-height:140px;max-height:320px;overflow-y:auto;background:var(--navy-card);border:1px solid var(--navy-border);border-radius:0 0 6px 6px;padding:12px 14px;font-size:13px;line-height:1.7;color:var(--text);outline:none;white-space:pre-wrap"
+            data-placeholder="What happened, what you learned, next steps…"
+          ></div>
+        </div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-note')">Cancel</button><button class="btn btn-primary" onclick="saveNote()">Save Note</button></div>
@@ -2363,6 +2407,62 @@ function onTouchEnd(ev){
 
 
 
+
+// ===== RICH TEXT EDITOR HELPERS =====
+function rtExec(cmd){
+  document.getElementById('fn-text').focus();
+  document.execCommand(cmd, false, null);
+}
+function rtExecFormat(cmd, val){
+  document.getElementById('fn-text').focus();
+  document.execCommand(cmd, false, val);
+}
+
+
+// ===== MULTI-ACCOUNT CONTACT WIDGET =====
+function buildAccountCheckboxes(selectedAccounts){
+  // selectedAccounts: array of account names
+  var sel = selectedAccounts || [];
+  var el = $('fc-account-list');
+  if(!el) return;
+  var accounts = (DB.accounts||[]).slice().sort(function(a,b){ return a.name.localeCompare(b.name); });
+  el.innerHTML = accounts.map(function(a){
+    var checked = sel.indexOf(a.name) !== -1;
+    return '<label style="display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:4px;cursor:pointer;font-size:12.5px;color:var(--text)">' +
+      '<input type="checkbox" value="'+a.name+'" '+(checked?'checked':'')+' onchange="updateAccountSelectionSummary()" style="margin:0;cursor:pointer"> ' +
+      a.name + '<span style="color:var(--text-muted);font-size:11px;margin-left:auto">'+a.city+'</span>' +
+    '</label>';
+  }).join('');
+  updateAccountSelectionSummary();
+}
+
+function filterAccountCheckboxes(query){
+  var el = $('fc-account-list');
+  if(!el) return;
+  var q = (query||'').toLowerCase();
+  Array.from(el.querySelectorAll('label')).forEach(function(label){
+    var name = (label.textContent||'').toLowerCase();
+    label.style.display = (!q || name.indexOf(q) !== -1) ? '' : 'none';
+  });
+}
+
+function getSelectedAccounts(){
+  var el = $('fc-account-list');
+  if(!el) return [];
+  return Array.from(el.querySelectorAll('input[type=checkbox]:checked')).map(function(cb){ return cb.value; });
+}
+
+function updateAccountSelectionSummary(){
+  var sel = getSelectedAccounts();
+  var summary = $('fc-account-selected-summary');
+  if(summary){
+    summary.textContent = sel.length === 0 ? 'No accounts selected' :
+      sel.length === 1 ? '1 account selected: ' + sel[0] :
+      sel.length + ' accounts selected: ' + sel.join(', ');
+  }
+}
+
+
 // ===== CONTACT PHOTO + LAST CONTACT =====
 function previewContactPhoto(input){
   if(!input.files || !input.files[0]) return;
@@ -2509,13 +2609,13 @@ function openNoteModal(accountId, noteId){
     $('fn-source').value=n.source||'mine';
     $('fn-source-name').value=n.sourceName||'';
     $('fn-date').value=n.date||today();
-    $('fn-text').value=n.text||'';
+    var fnEl=$('fn-text'); if(fnEl){ fnEl.innerHTML=n.text||''; }
   } else {
     $('m-note-title').textContent='Add Note';
     $('fn-source').value='mine';
     $('fn-source-name').value='';
     $('fn-date').value=today();
-    $('fn-text').value='';
+    var fnEl=$('fn-text'); if(fnEl){ fnEl.innerHTML=''; }
   }
   toggleSourceNameField('fn-source','fn-source-name-wrap');
   // Restore any draft typed during a previous session that wasn't saved
@@ -2525,15 +2625,17 @@ function openNoteModal(accountId, noteId){
 }
 
 function saveNote(){
-  var text=$('fn-text').value.trim();
-  if(!text){ alert('Note text required'); return; }
+  var fnEl = $('fn-text');
+  var text = fnEl ? (fnEl.innerHTML||'').trim() : '';
+  var textPlain = fnEl ? (fnEl.innerText||'').trim() : '';
+  if(!textPlain){ alert('Note text required'); return; }
   var a=DB.accounts.find(function(x){return x.id===parseInt(_noteModalAccountId,10)||x.id===_noteModalAccountId;});
   if(!a) return;
   if(!a.notesLog) a.notesLog=[];
 
   var data={
     id: _editingNoteId || ('n'+Date.now()+Math.random().toString(36).slice(2,7)),
-    text:text,
+    text:text,       // stored as HTML for rich text
     source:$('fn-source').value,
     sourceName:$('fn-source-name').value.trim(),
     date:$('fn-date').value || today(),
@@ -2606,7 +2708,7 @@ function openDetail(id){
       var iCount=DB.interactions.filter(function(i){return i.contactId===c.id;}).length;
       contactsHtml+=
         '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--navy-border);cursor:pointer" onclick="goContacts('+c.id+')">'+
-          '<div style="width:26px;height:26px;border-radius:50%;background:var(--navy-light);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0">'+initials(c.name)+'</div>'+
+          '<div style="width:40px;height:40px;border-radius:50%;background:var(--navy-light);border:2px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;overflow:hidden">'+(c.photo?'<img src="'+c.photo+'" style="width:100%;height:100%;object-fit:cover">':initials(c.name))+'</div>'+
           '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600">'+c.name+' <span style="font-size:11px">'+iv.icon+'</span></div>'+
           '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+(rt?' · <span style="color:'+rt.color+'">'+rt.label+'</span>':'')+'</div></div>'+
           '<span style="font-size:11px;color:var(--text-dim)">'+iCount+' logs</span>'+
@@ -2786,7 +2888,7 @@ function openDetail(id){
     '</div>'+
     '<div class="detail-grid">'+
       '<div class="detail-section"><div class="ds-title">Account Information</div>'+
-        (a.parent?'<div class="ds-row"><span class="ds-key">Parent Account</span><span class="ds-val" style="color:var(--accent);font-weight:700">'+a.parent+'</span></div>':'')+
+        (a.parent?(function(){var pid=DB.accounts.find(function(x){return x.name===a.parent;});return '<div class="ds-row"><span class="ds-key">Parent Account</span><span class="ds-val" style="color:var(--accent);font-weight:700;cursor:pointer;text-decoration:underline" onclick="openDetail('+(pid?pid.id:0)+')">'+a.parent+' →</span></div>';})():'')+
         '<div class="ds-row"><span class="ds-key">Current Vendor</span><span class="ds-val">'+(a.vendor||'—')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Product / Solution</span><span class="ds-val">'+(a.product||'—')+'</span></div>'+
         '<div class="ds-row"><span class="ds-key">Budget Cycle</span><span class="ds-val">'+(a.budget||'Unknown')+'</span></div>'+
@@ -2912,11 +3014,11 @@ function renderContactsPage(){
       listHtml+=
         '<div onclick="selectContact('+c.id+')" style="padding:13px 16px;border-bottom:1px solid var(--navy-border);cursor:pointer;background:'+(isSelected?'var(--accent-dim)':'transparent')+'">'+
           '<div style="display:flex;align-items:flex-start;gap:10px">'+
-            '<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-light);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0">'+initials(c.name)+'</div>'+
+            '<div style="width:42px;height:42px;border-radius:50%;background:var(--navy-light);border:2px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;overflow:hidden">'+(c.photo?'<img src="'+c.photo+'" style="width:100%;height:100%;object-fit:cover">':initials(c.name))+'</div>'+
             '<div style="flex:1;min-width:0">'+
               '<div style="font-size:13px;font-weight:700;margin-bottom:2px">'+c.name+' <span style="font-size:12px">'+iv.icon+'</span>'+(c.source==='secondhand'?' <span style="font-size:10px">👂</span>':'')+'</div>'+
               '<div style="font-size:11.5px;color:var(--text-muted)">'+c.title+'</div>'+
-              '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">'+c.account+'</div>'+
+              '<div style="font-size:11px;color:var(--text-dim);margin-top:2px">'+(Array.isArray(c.accounts)&&c.accounts.length>1?c.accounts.join(' · '):(c.account||''))+'</div>'+
               (c.notYetMet?'<div style="font-size:10px;color:var(--orange);margin-top:2px">⏳ Not yet met in person</div>':(c.lastContact?'<div style="font-size:10px;color:var(--text-muted);margin-top:2px;font-family:DM Mono,monospace">Last contact: '+c.lastContact+'</div>':''))+
               (ROLE_TIER[c.roleTier]?'<div style="margin-top:4px"><span style="font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:10px;background:'+ROLE_TIER[c.roleTier].bg+';color:'+ROLE_TIER[c.roleTier].color+'">'+ROLE_TIER[c.roleTier].label+'</span></div>':'')+
               '<div style="font-size:11px;color:var(--text-dim);margin-top:3px">'+iCount+' interaction'+(iCount!==1?'s':'')+' '+(lastI?'· Last: '+lastI.date:'')+'</div>'+
@@ -3322,14 +3424,16 @@ function saveOpp(){
 var _editingContactId=null;
 function openContactModal(id){
   _editingContactId=id||null;
-  var sel=$('fc-account');
-  sel.innerHTML=DB.accounts.map(function(a){return '<option>'+a.name+'</option>';}).join('')||'<option value="">No accounts yet</option>';
+  // Build multi-account checkbox list
+  buildAccountCheckboxes([]);
   if(id){
     var c=DB.contacts.find(function(x){return x.id===id;});
     if(!c) return;
     $('m-contact-title').textContent='Edit Contact';
     $('fc-name').value=c.name;$('fc-title-input').value=c.title;
-    sel.value=c.account;$('fc-influence').value=c.influence;
+    // restore selected accounts (support both legacy string and new array)
+    var selAccts = Array.isArray(c.accounts) ? c.accounts : (c.account ? [c.account] : []);
+    buildAccountCheckboxes(selAccts);$('fc-influence').value=c.influence;
     $('fc-tier').value=c.roleTier||'uninfluential';
     $('fc-phone').value=c.phone||'';$('fc-email').value=c.email||'';
     $('fc-notes').value=c.notes||'';
@@ -3369,7 +3473,9 @@ function saveContact(){
   var notYetMet = $('fc-not-yet-met') ? $('fc-not-yet-met').checked : false;
   var data={
     name:name,title:$('fc-title-input').value.trim(),
-    account:$('fc-account').value,influence:$('fc-influence').value,
+    accounts: getSelectedAccounts(),
+    account: getSelectedAccounts()[0]||'', // legacy compat — primary account
+    influence:$('fc-influence').value,
     roleTier:$('fc-tier').value,
     phone:$('fc-phone').value.trim(),email:$('fc-email').value.trim(),
     notes:$('fc-notes').value.trim(),
@@ -3788,6 +3894,21 @@ function repairNoteIds(){
   });
   if(fixed>0) persist();
   return fixed;
+}
+
+
+function migrateHCAParentRelationships(){
+  // Set parent on HCA children that may already be in the DB from a previous seed
+  var HCA_CHILDREN = ['Research Medical Center','Centerpoint Medical Center',
+    "Lee's Summit Medical Center",'Lafayette Regional Health Center','Belton Regional Medical Center'];
+  var changed = 0;
+  DB.accounts.forEach(function(a){
+    if(HCA_CHILDREN.indexOf(a.name) !== -1 && !a.parent){
+      a.parent = 'HCA Midwest Health';
+      changed++;
+    }
+  });
+  if(changed > 0) persist();
 }
 
 function migrateLegacyAccountNotes(){
@@ -4634,7 +4755,7 @@ function onNoteModalChange(){
   draftSave(DRAFT_KEY_NOTE, {
     accountId: _noteModalAccountId,
     editingId: _editingNoteId,
-    text:   $('fn-text')  ? $('fn-text').value  : '',
+    text:   $('fn-text')  ? ($('fn-text').innerHTML||'') : '',
     date:   $('fn-date')  ? $('fn-date').value  : '',
     source: $('fn-source')? $('fn-source').value: 'mine',
     sourceName: $('fn-source-name') ? $('fn-source-name').value : '',
@@ -4656,7 +4777,7 @@ function onMeetingModalChange(){
 function restoreNoteDraftIfAny(accountId){
   var draft = draftLoad(DRAFT_KEY_NOTE);
   if(!draft || draft.accountId !== accountId) return false;
-  if($('fn-text'))       $('fn-text').value       = draft.text       || '';
+  var fnEl=$('fn-text'); if(fnEl) fnEl.innerHTML = draft.text || '';
   if($('fn-date'))       $('fn-date').value        = draft.date       || '';
   if($('fn-source'))     $('fn-source').value      = draft.source     || 'mine';
   if($('fn-source-name'))$('fn-source-name').value = draft.sourceName || '';
@@ -4915,16 +5036,21 @@ var TERRITORY_ACCOUNTS_SEED = [
   {name:'Cameron Regional Medical Center', city:'Cameron, MO',         visitStatus:'visited'},
   {name:'Cass Regional Medical Center',  city:'Harrisonville, MO',     visitStatus:'visited', isRural:true},
   {name:'Excelsior Springs Medical Center', city:'Excelsior Springs, MO', visitStatus:'visited', isRural:true},
-  {name:'Centerpoint Medical Center',    city:'Independence, MO',      visitStatus:'visited'},
+  {name:'Centerpoint Medical Center',    city:'Independence, MO',      visitStatus:'visited',  parent:'HCA Midwest Health'},
   {name:'Golden Valley Memorial Hospital', city:'Clinton, MO',         visitStatus:'visited', isRural:true},
-  {name:'Research Medical Center',       city:'Kansas City, MO',       visitStatus:'visited'},
+  {name:'Research Medical Center',       city:'Kansas City, MO',       visitStatus:'visited',  parent:'HCA Midwest Health'},
   {name:'Liberty Hospital',              city:'Liberty, MO',           visitStatus:'visited'},
   {name:'St. Joseph Medical Center',     city:'Kansas City, MO',       visitStatus:'visited'},
   // Contacted, not yet visited
   {name:'Bothwell Regional Health Center', city:'Sedalia, MO',         visitStatus:'contacted', isRural:true},
   {name:'University of Missouri Health Care', city:'Columbia, MO',     visitStatus:'contacted'},
   {name:'Capital Region Medical Center', city:'Jefferson City, MO',    visitStatus:'contacted'},
-  {name:'Lee\'s Summit Medical Center',  city:'Lee\'s Summit, MO',     visitStatus:'contacted'},
+  {name:'Lee\'s Summit Medical Center',  city:'Lee\'s Summit, MO',     visitStatus:'contacted', parent:'HCA Midwest Health'},
+  // HCA Midwest Health — parent IDN account
+  {name:'HCA Midwest Health',            city:'Kansas City, MO',       visitStatus:'visited', isParentAccount:true},
+  // HCA child accounts (additional ones not already seeded)
+  {name:'Lafayette Regional Health Center', city:'Lexington, MO',      visitStatus:'not_contacted', parent:'HCA Midwest Health'},
+  {name:'Belton Regional Medical Center', city:'Belton, MO',           visitStatus:'not_contacted', parent:'HCA Midwest Health'},
   // Not yet contacted
   {name:'Western Missouri Medical Center', city:'Warrensburg, MO',     visitStatus:'not_contacted', isRural:true},
   {name:'Lake Regional Health System',   city:'Osage Beach, MO',       visitStatus:'not_contacted', isRural:true},
@@ -5030,6 +5156,177 @@ function renderCoverage(){
 }
 
 
+
+// ===== PARENT / IDN ACCOUNT VIEW =====
+function openParentDetail(accountId){
+  var parent = DB.accounts.find(function(a){ return a.id===accountId; });
+  if(!parent) return;
+
+  var children = DB.accounts.filter(function(a){ return a.parent===parent.name; });
+  var allAccounts = [parent].concat(children);
+
+  // Aggregate stats
+  var totalTAM = children.reduce(function(s,a){ return s + tamMid(a); }, 0);
+  var totalSold = children.reduce(function(s,a){
+    return s + (DB.opportunities||[]).filter(function(o){ return o.account===a.name && o.stage>=9; })
+      .reduce(function(ss,o){ return ss + (o.value||0); }, 0);
+  }, 0);
+
+  // All contacts across child accounts
+  var allContacts = (DB.contacts||[]).filter(function(c){
+    return children.some(function(a){ return a.name===c.account || (Array.isArray(c.accounts) && c.accounts.indexOf(a.name)!==-1); });
+  });
+
+  // All upcoming events across children
+  var todayStr = today();
+  var allEvents = (DB.calendarEvents||[]).filter(function(e){
+    return children.some(function(a){ return a.id===e.accountId; }) && e.date >= todayStr;
+  }).sort(function(a,b){ return a.date.localeCompare(b.date); }).slice(0,8);
+
+  // All open opportunities across children
+  var allOpps = (DB.opportunities||[]).filter(function(o){
+    return children.some(function(a){ return a.name===o.account; }) && o.stage > 0;
+  }).sort(function(a,b){ return (b.stage||0)-(a.stage||0); });
+
+  // All open questions across children
+  var allQuestions = [];
+  children.forEach(function(a){
+    (a.questions||[]).filter(function(q){ return !q.answered; }).forEach(function(q){
+      allQuestions.push({q:q, accountName:a.name, accountId:a.id});
+    });
+  });
+
+  // All recent notes across children
+  var allNotes = [];
+  children.forEach(function(a){
+    (a.notesLog||[]).forEach(function(n){
+      allNotes.push({n:n, accountName:a.name, accountId:a.id});
+    });
+  });
+  allNotes.sort(function(x,y){ return new Date(y.n.date||0)-new Date(x.n.date||0); });
+
+  // Child account cards
+  var childCards = children.map(function(a){
+    var vs = {visited:'🟢 Visited', contacted:'🟡 Contacted', not_contacted:'⬜ Not Yet Contacted'}[a.visitStatus||'not_contacted']||'⬜';
+    var tam = tamMid(a);
+    return '<div onclick="openDetail('+a.id+')" style="background:var(--navy-mid);border:1px solid var(--navy-border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:background .12s" onmouseover="this.style.background=\'var(--navy-hover)\'" onmouseout="this.style.background=\'var(--navy-mid)\'">' +
+      '<div style="font-size:13px;font-weight:700;margin-bottom:3px">'+a.name+'</div>' +
+      '<div style="font-size:11px;color:var(--text-muted);margin-bottom:6px">'+a.city+'</div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' +
+        '<span style="font-size:11px">'+vs+'</span>' +
+        (tam?'<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--accent)">'+fmt(tam)+' TAM</span>':'')+
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  // Contacts
+  var contactsHtml = allContacts.length ? allContacts.map(function(c){
+    var iv = INFLUENCE[c.influence||'unknown']||INFLUENCE.unknown;
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--navy-border)">' +
+      '<div style="width:34px;height:34px;border-radius:50%;background:var(--navy-mid);border:1px solid var(--navy-border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;overflow:hidden">' +
+        (c.photo?'<img src="'+c.photo+'" style="width:100%;height:100%;object-fit:cover">':initials(c.name)) +
+      '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:13px;font-weight:700">'+c.name+' <span style="font-size:11px">'+iv.icon+'</span></div>' +
+        '<div style="font-size:11px;color:var(--text-muted)">'+c.title+'</div>' +
+        '<div style="font-size:10.5px;color:var(--text-dim)">'+c.account+'</div>' +
+      '</div>' +
+    '</div>';
+  }).join('') : '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No contacts recorded yet.</div>';
+
+  // Events
+  var eventsHtml = allEvents.length ? allEvents.map(function(e){
+    var acct = DB.accounts.find(function(a){ return a.id===e.accountId; });
+    var col = EVENT_COLORS[e.type]||'#6b7280';
+    return '<div style="display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--navy-border)">' +
+      '<div style="width:3px;min-height:32px;background:'+col+';border-radius:2px;flex-shrink:0;margin-top:2px"></div>' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:600">'+e.title+'</div>' +
+        '<div style="font-size:11px;color:var(--text-muted)">'+(acct?acct.name:'')+' · <span style="font-family:DM Mono,monospace">'+e.date+'</span></div>' +
+      '</div>' +
+    '</div>';
+  }).join('') : '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No upcoming events.</div>';
+
+  // Open questions
+  var questionsHtml = allQuestions.length ? allQuestions.map(function(item){
+    var catColor = {'Clinical':'#22c55e','Procurement':'#f59e0b','Technical':'#00C2FF','Competitive':'#f97316','General':'#6b7280'}[item.q.category||'General']||'#6b7280';
+    return '<div style="background:var(--navy-mid);border-left:3px solid '+catColor+';border-radius:0 6px 6px 0;padding:10px 12px;margin-bottom:6px">' +
+      '<div style="font-size:12.5px;line-height:1.5;color:var(--text);margin-bottom:3px">'+item.q.text+'</div>' +
+      '<div style="font-size:10.5px;color:var(--text-muted)">'+item.accountName+'</div>' +
+    '</div>';
+  }).join('') : '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No open questions.</div>';
+
+  // Recent notes
+  var notesHtml = allNotes.slice(0,10).length ? allNotes.slice(0,10).map(function(item){
+    var dateLabel = item.n.date ? new Date(item.n.date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    return '<div style="padding:10px 0;border-bottom:1px solid var(--navy-border)">' +
+      '<div style="display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap">' +
+        '<span style="font-family:DM Mono,monospace;font-size:11px;color:var(--text-muted)">'+dateLabel+'</span>' +
+        '<span style="font-size:10.5px;color:var(--accent)">'+item.accountName+'</span>' +
+      '</div>' +
+      '<div style="font-size:13px;line-height:1.6;color:var(--text)">'+item.n.text+'</div>' +
+    '</div>';
+  }).join('') : '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No notes yet.</div>';
+
+  // Deals pipeline summary
+  var dealsHtml = allOpps.length ? allOpps.map(function(o){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--navy-border)">' +
+      '<div>' +
+        '<div style="font-size:13px;font-weight:600">'+o.name+'</div>' +
+        '<div style="font-size:11px;color:var(--text-muted)">'+o.account+' · Stage '+o.stage+'</div>' +
+      '</div>' +
+      '<div style="font-family:DM Mono,monospace;font-size:13px;color:var(--accent)">'+fmt(o.value||0)+'</div>' +
+    '</div>';
+  }).join('') : '<div style="font-size:12.5px;color:var(--text-muted);padding:8px 0">No active deals.</div>';
+
+  function section(title, content, actionBtn){
+    return '<div class="detail-section">' +
+      '<div class="ds-title" style="display:flex;justify-content:space-between;align-items:center">' +
+        '<span>'+title+'</span>'+(actionBtn||'')+
+      '</div>' +
+      content +
+    '</div>';
+  }
+
+  var detailHTML =
+    '<button class="detail-back" onclick="goPage(\'accounts\',document.querySelector(\'.nav-link[onclick*=accounts]\'))">← Back to Accounts</button>' +
+    // Header
+    '<div style="background:var(--navy-card);border:1px solid var(--navy-border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px">' +
+      '<div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">' +
+        '<div style="width:52px;height:52px;border-radius:10px;background:linear-gradient(135deg,#00C2FF,#0066FF);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏛</div>' +
+        '<div style="flex:1">' +
+          '<div style="font-family:Syne,sans-serif;font-size:20px;font-weight:800;margin-bottom:4px">'+parent.name+'</div>' +
+          '<div style="font-size:13px;color:var(--text-muted);margin-bottom:10px">IDN / Parent Account · '+children.length+' facilities in your territory</div>' +
+          '<div style="display:flex;gap:16px;flex-wrap:wrap">' +
+            '<div style="text-align:center"><div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:var(--accent)">'+children.length+'</div><div style="font-size:10.5px;color:var(--text-muted)">Facilities</div></div>' +
+            '<div style="text-align:center"><div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#22c55e">'+fmt(totalTAM)+'</div><div style="font-size:10.5px;color:var(--text-muted)">Total TAM</div></div>' +
+            '<div style="text-align:center"><div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#f59e0b">'+allContacts.length+'</div><div style="font-size:10.5px;color:var(--text-muted)">Contacts</div></div>' +
+            '<div style="text-align:center"><div style="font-size:22px;font-weight:800;font-family:Syne,sans-serif;color:#a78bfa">'+allOpps.length+'</div><div style="font-size:10.5px;color:var(--text-muted)">Active Deals</div></div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    // Child account cards
+    '<div class="detail-section"><div class="ds-title">Facilities (click any to open)</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-top:8px">'+childCards+'</div>' +
+    '</div>' +
+    section('Contacts Across All Facilities', contactsHtml) +
+    section('Upcoming Events', eventsHtml) +
+    section('Open Questions', questionsHtml) +
+    section('Pipeline / Active Deals', dealsHtml) +
+    section('Recent Notes (all facilities)', notesHtml);
+
+  $('detail-content').innerHTML = detailHTML;
+  document.querySelectorAll('.nav-link').forEach(function(b){b.classList.remove('active');});
+  $('topbar-title').textContent = parent.name;
+  $('topbar-sub').textContent = 'IDN · ' + children.length + ' facilities · Click any facility card to drill in';
+  document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active');});
+  $('page-detail').classList.add('active');
+  closeSidebar();
+  saveLastView({page:'detail', accountId:parent.id});
+}
+
+
 // ===== INIT =====
 initTheme();
 // Restore sidebar collapsed state on desktop
@@ -5049,6 +5346,7 @@ repairNoteIds();
 DB.calendarEvents.forEach(function(e){
   if(e.date && e.date.indexOf('T') !== -1) e.date = e.date.split('T')[0];
 });
+migrateHCAParentRelationships();
 var migratedNotesCount = migrateLegacyAccountNotes();
 var migratedCount = migrateLegacyDeviceTypes();
 var repairedCount = repairOpportunityStages();

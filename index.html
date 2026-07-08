@@ -2691,6 +2691,10 @@ function openDetail(id){
   try {
   var a=DB.accounts.find(function(x){return x.id===id;});
   if(!a){ console.error('openDetail: no account found for id', id); return; }
+  // Route IDN/parent accounts to consolidated view
+  // Check flag OR check if any child accounts point to this account as parent
+  var isParentAcct = !!a.isParentAccount || DB.accounts.some(function(x){ return x.parent === a.name; });
+  if(isParentAcct){ openParentDetail(id); return; }
   var pColor=probColor(a.prob||0);
   var cColor=champColor(a.champScore||0);
   var cLabel=champLabel(a.champScore||0);
@@ -3898,12 +3902,18 @@ function repairNoteIds(){
 
 
 function migrateHCAParentRelationships(){
-  // Set parent on HCA children that may already be in the DB from a previous seed
   var HCA_CHILDREN = ['Research Medical Center','Centerpoint Medical Center',
-    "Lee's Summit Medical Center",'Lafayette Regional Health Center','Belton Regional Medical Center'];
+    "Lee's Summit Medical Center","Lee\'s Summit Medical Center",
+    'Lafayette Regional Health Center','Belton Regional Medical Center'];
   var changed = 0;
   DB.accounts.forEach(function(a){
-    if(HCA_CHILDREN.indexOf(a.name) !== -1 && !a.parent){
+    // Ensure HCA parent account has the flag
+    if(a.name === 'HCA Midwest Health' && !a.isParentAccount){
+      a.isParentAccount = true;
+      changed++;
+    }
+    // Ensure all children have the parent field set
+    if(HCA_CHILDREN.indexOf(a.name) !== -1 && a.parent !== 'HCA Midwest Health'){
       a.parent = 'HCA Midwest Health';
       changed++;
     }

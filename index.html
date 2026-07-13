@@ -807,7 +807,7 @@ input[type=number]{-moz-appearance:textfield;}
         </div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'fa-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','fa-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','fa-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','fa-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','fa-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','fa-notes')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','fa-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="fa-notes" class="rt-editor" contenteditable="true" onfocus="rtFocus('fa-notes')" data-placeholder="Key context, stakeholders, history…" style="min-height:80px"></div></div>
+        <div class="fg full"><label class="flabel">Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'fa-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','fa-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','fa-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','fa-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','fa-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','fa-notes')">1. List</button><button type="button" onclick="rtExec('indent','fa-notes')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','fa-notes')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','fa-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="fa-notes" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('fa-notes')" data-placeholder="Key context, stakeholders, history…" style="min-height:80px"></div></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeAccountModal()">Cancel</button><button class="btn btn-primary" onclick="saveAccount()">Save Account</button></div>
@@ -955,7 +955,7 @@ input[type=number]{-moz-appearance:textfield;}
           </label>
         </div>
       </div>
-      <div class="frow"><div class="fg full"><label class="flabel">Notes / Key Intel</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'fc-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','fc-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','fc-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','fc-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','fc-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','fc-notes')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','fc-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="fc-notes" class="rt-editor" contenteditable="true" onfocus="rtFocus('fc-notes')" data-placeholder="Personality, preferences, blockers…" style="min-height:80px"></div></div></div>
+      <div class="frow"><div class="fg full"><label class="flabel">Notes / Key Intel</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'fc-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','fc-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','fc-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','fc-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','fc-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','fc-notes')">1. List</button><button type="button" onclick="rtExec('indent','fc-notes')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','fc-notes')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','fc-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="fc-notes" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('fc-notes')" data-placeholder="Personality, preferences, blockers…" style="min-height:80px"></div></div></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-contact')">Cancel</button><button class="btn btn-primary" onclick="saveContact()">Save Contact</button></div>
   </div>
@@ -982,7 +982,7 @@ input[type=number]{-moz-appearance:textfield;}
           <select class="fselect" id="fi-sentiment"><option value="positive">🟢 Positive</option><option value="neutral" selected>🟡 Neutral</option><option value="negative">🔴 Negative</option></select>
         </div>
       </div>
-      <div class="frow"><div class="fg full"><label class="flabel">Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'fi-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','fi-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','fi-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','fi-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','fi-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','fi-notes')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','fi-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="fi-notes" class="rt-editor" contenteditable="true" onfocus="rtFocus('fi-notes')" data-placeholder="What was said, learned, next step…" style="min-height:100px"></div></div></div>
+      <div class="frow"><div class="fg full"><label class="flabel">Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'fi-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','fi-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','fi-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','fi-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','fi-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','fi-notes')">1. List</button><button type="button" onclick="rtExec('indent','fi-notes')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','fi-notes')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','fi-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="fi-notes" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('fi-notes')" data-placeholder="What was said, learned, next step…" style="min-height:100px"></div></div></div>
       <div class="frow"><div class="fg full"><label class="flabel">Follow-up Required</label><input class="finput" id="fi-followup" placeholder="e.g. Send proposal by Friday"></div></div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-interaction')">Cancel</button><button class="btn btn-primary" onclick="saveInteraction()">Save</button></div>
@@ -1061,11 +1061,14 @@ input[type=number]{-moz-appearance:textfield;}
             <button type="button" onclick="rtExec('justifyLeft')"     title="Align left"    style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">⬅</button>
             <button type="button" onclick="rtExec('justifyCenter')"   title="Align center"  style="background:none;border:1px solid var(--navy-border);color:var(--text);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">↔</button>
             <div style="width:1px;background:var(--navy-border);margin:2px 4px"></div>
+            <button type="button" onclick="rtExec('indent')" title="Indent" style="background:none;border:1px solid var(--navy-border);color:#e5e7eb;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">⇥ In</button>
+            <button type="button" onclick="rtExec('outdent')" title="Outdent" style="background:none;border:1px solid var(--navy-border);color:#e5e7eb;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:12px">⇤ Out</button>
             <button type="button" onclick="rtExec('removeFormat')"    title="Clear formatting" style="background:none;border:1px solid var(--navy-border);color:var(--text-muted);border-radius:4px;padding:3px 8px;cursor:pointer;font-size:11px">✕ Clear</button>
           </div>
           <!-- Editable content area -->
           <div id="fn-text"
             contenteditable="true"
+            onpaste="rtHandlePaste(event)"
             oninput="onNoteModalChange()"
             style="min-height:140px;max-height:320px;overflow-y:auto;background:var(--navy-card);border:1px solid var(--navy-border);border-radius:0 0 6px 6px;padding:12px 14px;font-size:13px;line-height:1.7;color:#e5e7eb;outline:none;white-space:pre-wrap;caret-color:#e5e7eb"
             data-placeholder="What happened, what you learned, next steps…"
@@ -1116,7 +1119,7 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg full"><label class="flabel">Date</label><input class="finput" type="date" id="tl-date"></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Notes — What did you learn?</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'tl-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','tl-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','tl-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','tl-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','tl-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','tl-notes')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','tl-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="tl-notes" class="rt-editor" contenteditable="true" onfocus="rtFocus('tl-notes')" data-placeholder="Key takeaways, clinical insights, things to follow up on…" style="min-height:120px"></div></div>
+        <div class="fg full"><label class="flabel">Notes — What did you learn?</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'tl-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','tl-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','tl-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','tl-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','tl-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','tl-notes')">1. List</button><button type="button" onclick="rtExec('indent','tl-notes')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','tl-notes')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','tl-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="tl-notes" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('tl-notes')" data-placeholder="Key takeaways, clinical insights, things to follow up on…" style="min-height:120px"></div></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-training-log')">Cancel</button><button class="btn btn-primary" onclick="saveTrainingLogEntry()">Save Entry</button></div>
@@ -1138,10 +1141,10 @@ input[type=number]{-moz-appearance:textfield;}
         <div class="fg full"><label class="flabel">Meeting Title / Topic</label><input class="finput" id="mt-title" placeholder="e.g. Weekly check-in — territory update"></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'mt-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','mt-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','mt-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','mt-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','mt-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','mt-notes')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','mt-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="mt-notes" class="rt-editor" contenteditable="true" onfocus="rtFocus('mt-notes')" oninput="onMeetingModalChange()" data-placeholder="What was discussed, decisions made, context…" style="min-height:120px"></div></div>
+        <div class="fg full"><label class="flabel">Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'mt-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','mt-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','mt-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','mt-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','mt-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','mt-notes')">1. List</button><button type="button" onclick="rtExec('indent','mt-notes')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','mt-notes')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','mt-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="mt-notes" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('mt-notes')" oninput="onMeetingModalChange()" data-placeholder="What was discussed, decisions made, context…" style="min-height:120px"></div></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Action Items</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'mt-actions');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','mt-actions')"><b>B</b></button><button type="button" onclick="rtExec('italic','mt-actions')"><i>I</i></button><button type="button" onclick="rtExec('underline','mt-actions')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','mt-actions')">• List</button><button type="button" onclick="rtExec('insertOrderedList','mt-actions')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','mt-actions')" style="color:var(--text-muted)">✕ Clear</button></div><div id="mt-actions" class="rt-editor" contenteditable="true" onfocus="rtFocus('mt-actions')" oninput="onMeetingModalChange()" data-placeholder="Things you committed to or need to follow up on…" style="min-height:70px"></div></div>
+        <div class="fg full"><label class="flabel">Action Items</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'mt-actions');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','mt-actions')"><b>B</b></button><button type="button" onclick="rtExec('italic','mt-actions')"><i>I</i></button><button type="button" onclick="rtExec('underline','mt-actions')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','mt-actions')">• List</button><button type="button" onclick="rtExec('insertOrderedList','mt-actions')">1. List</button><button type="button" onclick="rtExec('indent','mt-actions')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','mt-actions')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','mt-actions')" style="color:var(--text-muted)">✕ Clear</button></div><div id="mt-actions" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('mt-actions')" oninput="onMeetingModalChange()" data-placeholder="Things you committed to or need to follow up on…" style="min-height:70px"></div></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-meeting')">Cancel</button><button class="btn btn-primary" onclick="saveMeeting()">Save</button></div>
@@ -1177,10 +1180,10 @@ input[type=number]{-moz-appearance:textfield;}
         </div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Prep Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'ev-prep');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','ev-prep')"><b>B</b></button><button type="button" onclick="rtExec('italic','ev-prep')"><i>I</i></button><button type="button" onclick="rtExec('underline','ev-prep')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','ev-prep')">• List</button><button type="button" onclick="rtExec('insertOrderedList','ev-prep')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','ev-prep')" style="color:var(--text-muted)">✕ Clear</button></div><div id="ev-prep" class="rt-editor" contenteditable="true" onfocus="rtFocus('ev-prep')" data-placeholder="What do you need to prepare, know, or bring?" style="min-height:90px"></div></div>
+        <div class="fg full"><label class="flabel">Prep Notes</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'ev-prep');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','ev-prep')"><b>B</b></button><button type="button" onclick="rtExec('italic','ev-prep')"><i>I</i></button><button type="button" onclick="rtExec('underline','ev-prep')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','ev-prep')">• List</button><button type="button" onclick="rtExec('insertOrderedList','ev-prep')">1. List</button><button type="button" onclick="rtExec('indent','ev-prep')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','ev-prep')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','ev-prep')" style="color:var(--text-muted)">✕ Clear</button></div><div id="ev-prep" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('ev-prep')" data-placeholder="What do you need to prepare, know, or bring?" style="min-height:90px"></div></div>
       </div>
       <div class="frow">
-        <div class="fg full"><label class="flabel">Notes (post-meeting, optional)</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'ev-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','ev-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','ev-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','ev-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','ev-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','ev-notes')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','ev-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="ev-notes" class="rt-editor" contenteditable="true" onfocus="rtFocus('ev-notes')" data-placeholder="Fill in after the meeting — what happened, what you learned…" style="min-height:70px"></div></div>
+        <div class="fg full"><label class="flabel">Notes (post-meeting, optional)</label><div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'ev-notes');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','ev-notes')"><b>B</b></button><button type="button" onclick="rtExec('italic','ev-notes')"><i>I</i></button><button type="button" onclick="rtExec('underline','ev-notes')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','ev-notes')">• List</button><button type="button" onclick="rtExec('insertOrderedList','ev-notes')">1. List</button><button type="button" onclick="rtExec('indent','ev-notes')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','ev-notes')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','ev-notes')" style="color:var(--text-muted)">✕ Clear</button></div><div id="ev-notes" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('ev-notes')" data-placeholder="Fill in after the meeting — what happened, what you learned…" style="min-height:70px"></div></div>
       </div>
     </div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal('m-event')">Cancel</button><button class="btn btn-primary" onclick="saveEvent()">Save Event</button></div>
@@ -1230,7 +1233,7 @@ input[type=number]{-moz-appearance:textfield;}
       <div class="frow">
         <div class="fg full">
           <label class="flabel">Answer / Your Best Response</label>
-          <div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'pk-answer');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','pk-answer')"><b>B</b></button><button type="button" onclick="rtExec('italic','pk-answer')"><i>I</i></button><button type="button" onclick="rtExec('underline','pk-answer')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','pk-answer')">• List</button><button type="button" onclick="rtExec('insertOrderedList','pk-answer')">1. List</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','pk-answer')" style="color:var(--text-muted)">✕ Clear</button></div><div id="pk-answer" class="rt-editor" contenteditable="true" onfocus="rtFocus('pk-answer')" data-placeholder="Write your answer, talking points, or response here…" style="min-height:120px"></div>
+          <div class="rt-toolbar"><select onchange="rtExecFormat('fontSize',this.value,'pk-answer');this.value=''"><option value="">Size</option><option value="1">Small</option><option value="3">Normal</option><option value="5">Large</option><option value="7">Huge</option></select><div class="rt-divider"></div><button type="button" onclick="rtExec('bold','pk-answer')"><b>B</b></button><button type="button" onclick="rtExec('italic','pk-answer')"><i>I</i></button><button type="button" onclick="rtExec('underline','pk-answer')"><u>U</u></button><div class="rt-divider"></div><button type="button" onclick="rtExec('insertUnorderedList','pk-answer')">• List</button><button type="button" onclick="rtExec('insertOrderedList','pk-answer')">1. List</button><button type="button" onclick="rtExec('indent','pk-answer')" title="Indent">⇥ In</button><button type="button" onclick="rtExec('outdent','pk-answer')" title="Outdent">⇤ Out</button><div class="rt-divider"></div><button type="button" onclick="rtExec('removeFormat','pk-answer')" style="color:var(--text-muted)">✕ Clear</button></div><div id="pk-answer" class="rt-editor" contenteditable="true" onpaste="rtHandlePaste(event)" onfocus="rtFocus('pk-answer')" data-placeholder="Write your answer, talking points, or response here…" style="min-height:120px"></div>
         </div>
       </div>
     </div>
@@ -2441,6 +2444,60 @@ function rtExecFormat(cmd, val, editorId){
 }
 
 
+// ===== CLEAN PASTE HANDLER =====
+// Strips external fonts/colors/sizes from clipboard but preserves structure (bold, lists, paragraphs)
+function rtHandlePaste(e){
+  e.preventDefault();
+  var cd = e.clipboardData || window.clipboardData;
+  if(!cd) return;
+
+  // Try to get plain text first — cleanest option
+  var plain = cd.getData('text/plain');
+  var html  = cd.getData('text/html');
+
+  if(html){
+    // Strip external styling but keep structural tags
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+
+    // Remove all style attributes, class attributes, font tags with color/face/size
+    tmp.querySelectorAll('*').forEach(function(el){
+      el.removeAttribute('style');
+      el.removeAttribute('class');
+      el.removeAttribute('color');
+      el.removeAttribute('face');
+      el.removeAttribute('size');
+      el.removeAttribute('bgcolor');
+      // Unwrap <font> tags (keep their content)
+      if(el.tagName === 'FONT'){
+        var parent = el.parentNode;
+        while(el.firstChild) parent.insertBefore(el.firstChild, el);
+        parent.removeChild(el);
+      }
+    });
+    // Remove spans that are now empty of meaning
+    tmp.querySelectorAll('span').forEach(function(el){
+      var frag = document.createDocumentFragment();
+      while(el.firstChild) frag.appendChild(el.firstChild);
+      el.parentNode.replaceChild(frag, el);
+    });
+    // Remove link hrefs (keep text)
+    tmp.querySelectorAll('a').forEach(function(el){
+      var txt = document.createTextNode(el.textContent);
+      el.parentNode.replaceChild(txt, el);
+    });
+    document.execCommand('insertHTML', false, tmp.innerHTML);
+  } else if(plain){
+    // Convert plain text newlines to <br> and insert
+    var escaped = plain
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/\n/g,'<br>');
+    document.execCommand('insertHTML', false, escaped);
+  }
+}
+
 // Read value from a rich text editor (returns innerHTML)
 function rtGet(editorId){
   var el = document.getElementById(editorId);
@@ -2877,6 +2934,8 @@ function openDetail(id){
       var badge;
       if(n.fromInteraction){
         badge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--accent-dim);color:var(--accent)">💬 '+(n.interactionType||'Interaction')+' · '+n.contactName+'</span>';
+      } else if(n.fromContact){
+        badge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:rgba(167,139,250,0.15);color:#a78bfa">👤 Contact note · '+n.contactName+'</span>';
       } else if(n.source==='secondhand'){
         badge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:700;background:var(--orange-dim);color:var(--orange)">👂 Secondhand'+(n.sourceName?' · '+n.sourceName:'')+'</span>';
       } else {
@@ -3534,13 +3593,46 @@ function saveContact(){
     notYetMet: notYetMet,
     photo: photoData || undefined,
   };
+  var notesText = rtGetText('fc-notes');
+  var notesHtml  = rtGet('fc-notes');
+
   if(_editingContactId){
-    var i=DB.contacts.findIndex(function(x){return x.id===_editingContactId;});
-    if(i>-1) DB.contacts[i]=Object.assign({},DB.contacts[i],data);
+    var ci=DB.contacts.findIndex(function(x){return x.id===_editingContactId;});
+    var prevNotes = ci>-1 ? (DB.contacts[ci].notes||'') : '';
+    if(ci>-1) DB.contacts[ci]=Object.assign({},DB.contacts[ci],data);
+    // Push to account notesLog only if the notes field actually changed
+    if(notesText && notesHtml !== prevNotes){
+      pushContactNoteToAccounts(data, name, notesHtml);
+    }
   } else {
     DB.contacts.push(Object.assign({id:DB.nextId.c++,checklist:{email:false,linkedin:false,text:false,logged:true,task:false}},data));
+    // Push initial note to accounts if one was entered
+    if(notesText){
+      pushContactNoteToAccounts(data, name, notesHtml);
+    }
   }
   persist();closeModal('m-contact');renderContactsPage();
+}
+
+function pushContactNoteToAccounts(contactData, contactName, notesHtml){
+  // Push contact notes into every linked account's notesLog
+  var accountNames = Array.isArray(contactData.accounts) && contactData.accounts.length
+    ? contactData.accounts
+    : (contactData.account ? [contactData.account] : []);
+  accountNames.forEach(function(acctName){
+    var acct = DB.accounts.find(function(a){ return a.name===acctName; });
+    if(!acct) return;
+    if(!acct.notesLog) acct.notesLog=[];
+    acct.notesLog.push({
+      id:'n'+Date.now()+Math.random().toString(36).slice(2,7),
+      text: notesHtml,
+      source: 'mine',
+      sourceName: '',
+      date: today(),
+      fromContact: true,
+      contactName: contactName,
+    });
+  });
 }
 function openInteractionModal(presetContactId){
   if(DB.contacts.length===0){ alert('Add a contact first.'); return; }
@@ -3946,25 +4038,96 @@ function repairNoteIds(){
 }
 
 
-function migrateHCAParentRelationships(){
-  var HCA_CHILDREN = ['Research Medical Center','Centerpoint Medical Center',
-    "Lee's Summit Medical Center","Lee\'s Summit Medical Center",
-    'Lafayette Regional Health Center','Belton Regional Medical Center'];
+function enforceIDNRelationships(){
+  // Single authoritative function that enforces all parent/child account
+  // relationships on every load. Completely replaces the old piecemeal migrations.
+  // Adding a new IDN: just add an entry to IDN_MAP below.
+
+  var IDN_MAP = {
+    'HCA Midwest Health': [
+      'Research Medical Center',
+      'Centerpoint Medical Center',
+      "Lee's Summit Medical Center",
+      'Lafayette Regional Health Center',
+      'Belton Regional Medical Center',
+    ],
+    'University of Missouri Health Care': [
+      'MU Health Care (MUHC)',
+      'Capital Region Medical Center',
+    ],
+  };
+
   var changed = 0;
-  DB.accounts.forEach(function(a){
-    // Ensure HCA parent account has the flag
-    if(a.name === 'HCA Midwest Health' && !a.isParentAccount){
-      a.isParentAccount = true;
+
+  // Step 1: Rename old "University of Missouri Health Care" standalone → MUHC
+  // (only if it's not flagged as the parent AND the parent already exists separately)
+  var muParent = DB.accounts.find(function(a){ return a.name==='University of Missouri Health Care' && a.isParentAccount; });
+  var muStandalone = DB.accounts.find(function(a){ return a.name==='University of Missouri Health Care' && !a.isParentAccount; });
+  if(muStandalone){
+    if(muParent){
+      // Both exist — rename standalone to MUHC
+      muStandalone.name   = 'MU Health Care (MUHC)';
+      muStandalone.parent = 'University of Missouri Health Care';
+      changed++;
+    } else {
+      // Only one exists — make it the parent (seed will add MUHC and Capital Region)
+      muStandalone.isParentAccount = true;
       changed++;
     }
-    // Ensure all children have the parent field set
-    if(HCA_CHILDREN.indexOf(a.name) !== -1 && a.parent !== 'HCA Midwest Health'){
-      a.parent = 'HCA Midwest Health';
+  }
+
+  // Step 2: For every IDN, ensure parent has isParentAccount:true
+  // and every child has the correct parent field (and NOT the wrong one)
+  Object.keys(IDN_MAP).forEach(function(parentName){
+    var children = IDN_MAP[parentName];
+
+    // Fix parent account flag
+    var parentAcct = DB.accounts.find(function(a){ return a.name===parentName; });
+    if(parentAcct && !parentAcct.isParentAccount){
+      parentAcct.isParentAccount = true;
       changed++;
+    }
+
+    // Fix child parent fields
+    DB.accounts.forEach(function(a){
+      if(children.indexOf(a.name) !== -1){
+        if(a.parent !== parentName){
+          a.parent = parentName;
+          changed++;
+        }
+        // Ensure children are NOT flagged as parents
+        if(a.isParentAccount){
+          a.isParentAccount = false;
+          changed++;
+        }
+      }
+    });
+  });
+
+  // Step 3: Remove any incorrect parent assignments
+  // (e.g. if an account got assigned to the wrong IDN)
+  var allDefinedChildren = [];
+  Object.keys(IDN_MAP).forEach(function(p){ IDN_MAP[p].forEach(function(c){ allDefinedChildren.push(c); }); });
+
+  DB.accounts.forEach(function(a){
+    if(a.parent && allDefinedChildren.indexOf(a.name) === -1){
+      // This account has a parent assigned but isn't in any IDN's child list — clear it
+      // UNLESS it's a manually assigned parent (not in our IDN_MAP keys)
+      var isKnownParent = Object.keys(IDN_MAP).indexOf(a.parent) !== -1;
+      if(isKnownParent){
+        a.parent = '';
+        changed++;
+      }
     }
   });
+
   if(changed > 0) persist();
+  return changed;
 }
+
+// Keep old names as no-ops so nothing breaks if called
+function migrateMUParentRelationships(){}
+function migrateHCAParentRelationships(){}
 
 function migrateLegacyAccountNotes(){
   // The original single 'notes' field is folded into notesLog[] as a real, editable, deletable entry —
@@ -5098,8 +5261,9 @@ var TERRITORY_ACCOUNTS_SEED = [
   {name:'St. Joseph Medical Center',     city:'Kansas City, MO',       visitStatus:'visited'},
   // Contacted, not yet visited
   {name:'Bothwell Regional Health Center', city:'Sedalia, MO',         visitStatus:'contacted', isRural:true},
-  {name:'University of Missouri Health Care', city:'Columbia, MO',     visitStatus:'contacted'},
-  {name:'Capital Region Medical Center', city:'Jefferson City, MO',    visitStatus:'contacted'},
+  {name:'University of Missouri Health Care', city:'Columbia, MO', visitStatus:'contacted', isParentAccount:true},
+  {name:'MU Health Care (MUHC)',          city:'Columbia, MO',         visitStatus:'contacted', parent:'University of Missouri Health Care'},
+  {name:'Capital Region Medical Center',  city:'Jefferson City, MO',   visitStatus:'contacted', parent:'University of Missouri Health Care'},
   {name:'Lee\'s Summit Medical Center',  city:'Lee\'s Summit, MO',     visitStatus:'contacted', parent:'HCA Midwest Health'},
   // HCA Midwest Health — parent IDN account
   {name:'HCA Midwest Health',            city:'Kansas City, MO',       visitStatus:'visited', isParentAccount:true},
@@ -5401,7 +5565,7 @@ repairNoteIds();
 DB.calendarEvents.forEach(function(e){
   if(e.date && e.date.indexOf('T') !== -1) e.date = e.date.split('T')[0];
 });
-migrateHCAParentRelationships();
+enforceIDNRelationships();
 var migratedNotesCount = migrateLegacyAccountNotes();
 var migratedCount = migrateLegacyDeviceTypes();
 var repairedCount = repairOpportunityStages();
